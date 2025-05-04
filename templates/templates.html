@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agent History</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>🧠 Resurgifi Agent History</h1>
+
+    {% if history %}
+        {% for item in history %}
+            <div class="card">
+                <h2>{{ item.agent_name }}</h2>
+                <p><strong>Q:</strong> {{ item.question }}</p>
+                <p><strong>A:</strong> {{ item.answer }}</p>
+                <p style="font-size: 0.8em; color: gray;">{{ item.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No conversations yet. Try asking a question first!</p>
+    {% endif %}
+</body>
+</html>

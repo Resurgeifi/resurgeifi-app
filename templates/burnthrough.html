@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Burnthrough Mode | Resurgifi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <h1>🔥 Burnthrough Mode</h1>
+    <div class="mantra">You’re allowed to burn. Just don’t burn yourself.</div>
+
+    <form method="POST" action="/ask">
+      <label><strong>What’s burning inside you right now?</strong></label><br><br>
+      <textarea name="question" placeholder="Type what’s fueling your fire..."></textarea><br>
+      <button type="submit">Unleash It</button>
+    </form>
+
+    {% if results %}
+      <h2>🔥 Your Circle Speaks</h2>
+      {% for name, reply in results.items() %}
+        <div class="agent">
+          <strong>{{ name }}</strong><br><br>
+          <div class="agent-response">{{ reply|safe }}</div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- 🌀 Thinking Message -->
+  <!-- 🌀 Thinking Message with Fade-In -->
+<div id="loading" style="display:none; text-align:center; margin-top:20px; opacity:0; transition: opacity 0.6s ease;">
+  <p><strong>🌀 The Circle is thinking...</strong></p>
+</div>
+
+<script>
+  const form = document.querySelector("form");
+  if (form) {
+    form.addEventListener("submit", () => {
+      const loader = document.getElementById("loading");
+      loader.style.display = "block";
+      setTimeout(() => {
+        loader.style.opacity = 1;
+      }, 10); // allow display:block to apply before fading in
+    });
+  }
+</script>
+</body>
+</html>
+

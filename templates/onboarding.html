@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Start Your Resurgifi Journey</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .spiral-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .spiral-card {
+      background: #222;
+      color: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      width: 180px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .spiral-card:hover {
+      transform: scale(1.05);
+      border-color: #66f;
+    }
+
+    .spiral-card input[type="radio"] {
+      display: none;
+    }
+
+    .spiral-card.selected {
+      border-color: #4cf;
+      background: #333;
+    }
+
+    .spiral-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌀 What's pulling you into the Spiral?</h1>
+    <form method="POST" action="/register">
+      <input type="text" name="username" placeholder="Enter your name" required><br><br>
+
+      <div class="spiral-options">
+        {% for label, emoji in [
+          ('Grief / Loss', '💔'),
+          ('Trauma / Childhood', '🌪️'),
+          ('Addiction / Recovery', '🧃'),
+          ('Burnout / Overwhelm', '🔥'),
+          ('Just Lost', '😶'),
+          ('Not Sure Yet', '🤷')
+        ] %}
+          <label class="spiral-card">
+            <div class="spiral-icon">{{ emoji }}</div>
+            <strong>{{ label }}</strong>
+            <input type="radio" name="core_issue" value="{{ label }}">
+          </label>
+        {% endfor %}
+      </div>
+
+      <br><button type="submit">Begin My Journey</button>
+    </form>
+  </div>
+
+  <script>
+    document.querySelectorAll('.spiral-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.spiral-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        card.querySelector('input[type="radio"]').checked = true;
+      });
+    });
+  </script>
+</body>
+</html>

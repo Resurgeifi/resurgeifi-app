@@ -1,0 +1,10 @@
+flask
+xhtml2pdf
+python-dotenv
+markupsafe
+openai
+gunicorn
+sqlalchemy
+psycopg2-binary
+werkzeug
+

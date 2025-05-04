@@ -1,0 +1,217 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BASE STYLES */
+body {
+  font-family: 'Oswald', 'Segoe UI', Tahoma, sans-serif;
+  background-color: #76c893;
+  color: #1f3e36;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* HEADINGS */
+h1 {
+  font-size: 2.8em;
+  margin-bottom: 30px;
+  color: #1f3e36;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* PARAGRAPH */
+p, .mantra {
+  font-size: 1.2em;
+  line-height: 1.6;
+  color: #1f3e36;
+}
+
+/* BUTTONS */
+button {
+  background-color: #f4a259;
+  color: #1f3e36;
+  padding: 14px 30px;
+  font-size: 1.1em;
+  font-weight: 700;
+  border: 3px solid #1e2d2b;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+  background-color: #f69e3e;
+  transform: translateY(-2px);
+}
+
+/* CAROUSEL */
+.carousel-page {
+  width: 100%;
+  max-width: 1000px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.carousel-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 0;
+  gap: 24px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* CARDS */
+.card {
+  flex: 0 0 80%;
+  scroll-snap-align: center;
+  background-color: #f6e7c1;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  min-width: 280px;
+  max-width: 320px;
+  margin: 0 auto;
+  border: 2px solid #1e2d2b;
+}
+
+.card h2 {
+  font-size: 1.7em;
+  color: #1f3e36;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.card p {
+  font-size: 1em;
+  color: #1f3e36;
+  margin-bottom: 18px;
+}
+
+.card button {
+  background: #f4a259;
+  color: #1f3e36;
+  border: 3px solid #1e2d2b;
+  padding: 12px 24px;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.card button:hover {
+  background-color: #f69e3e;
+}
+
+/* FORM FIELDS */
+textarea, input[type="text"] {
+  width: 100%;
+  max-width: 700px;
+  padding: 16px;
+  font-size: 16px;
+  border: 2px solid #1e2d2b;
+  border-radius: 10px;
+  background-color: #f6e7c1;
+  color: #1f3e36;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+textarea:focus, input[type="text"]:focus {
+  outline: none;
+  border-color: #548b65;
+  box-shadow: 0 0 12px rgba(84, 139, 101, 0.4);
+}
+
+/* SPINNER */
+.loader {
+  border: 10px solid #f6e7c1;
+  border-top: 10px solid #f4a259;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px auto;
+}
+
+/* FALLBACK EMOJI SPINNER */
+.emoji-spinner {
+  font-size: 3em;
+  animation: spin 1s linear infinite;
+}
+
+/* SPIN ANIMATION */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* CONFIRMATION */
+#confirmation {
+  display: none;
+  text-align: center;
+  margin-top: 30px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #548b65;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+/* RESPONSE BLOCKS */
+.response-block {
+  margin: 30px auto;
+  max-width: 750px;
+  background-color: #f6e7c1;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #1e2d2b;
+  text-align: left;
+}
+
+.response-block strong {
+  font-size: 1.1em;
+  color: #1f3e36;
+}
+
+.response-text {
+  margin-top: 10px;
+  color: #1f3e36;
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 2em;
+  }
+
+  .card {
+    flex: 0 0 90%;
+  }
+
+  button {
+    font-size: 1em;
+    padding: 12px 24px;
+  }
+}
+
+
+
+
+

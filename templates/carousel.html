@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Choose Your Mode – Resurgifi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2d3748">
+  <style>
+    .about-button-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      animation: fadeSlideDown 0.8s ease-out;
+    }
+
+    .about-button {
+      background-color: #4c6ef5;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .about-button:hover {
+      background-color: #3b5bdb;
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeSlideDown {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔗 Animated About button -->
+  <div class="about-button-container">
+    <a href="{{ url_for('about') }}" style="text-decoration: none;">
+      <button class="about-button">About</button>
+    </a>
+  </div>
+
+  <div class="carousel-page">
+    <h1>Choose Your Resurgifi Mode</h1>
+    <div class="carousel-scroll">
+      {% for card in cards %}
+        <div class="card">
+          <h2>{{ card.title }}</h2>
+          <p>{{ card.description }}</p>
+          <a href="{{ card.link }}"><button>{{ card.button_text }}</button></a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Journal | Resurgifi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container" style="max-width: 700px; margin: auto;">
+    <h1>📝 Your Journal</h1>
+
+    <form method="POST" action="/journal">
+      <label for="entry"><strong>What’s on your mind today?</strong></label><br><br>
+      <textarea 
+        name="entry" 
+        rows="6" 
+        placeholder="Just write what you feel. The point of a journal is to get those rocks moving around, on the paper."
+      ></textarea><br>
+      <button type="submit">Save Entry</button>
+    </form>
+    
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ccc;">    
+
+    {% if entries %}
+      <h2>Previous Entries</h2>
+      {% for entry in entries %}
+        <div style="background:#2d3748; padding: 1rem; margin-bottom: 1rem; border-radius: 10px; color: #f7fafc;">
+          <pre style="white-space: pre-wrap;">{{ entry }}</pre>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No entries yet. Your story starts now.</p>
+    {% endif %}
+  </div>
+</body>
+</html>
