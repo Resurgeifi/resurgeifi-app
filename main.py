@@ -5,6 +5,9 @@ from datetime import datetime
 from uuid import uuid4
 from openai import OpenAI
 from dotenv import load_dotenv
+from models import JournalEntry, QueryHistory, User  # ✅ Moved here
+from db import SessionLocal
+from werkzeug.security import generate_password_hash
 
 # Load OpenAI API key from .env
 load_dotenv()
@@ -12,22 +15,24 @@ api_key = os.getenv("OPENAI_API_KEY")
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
 client = OpenAI(api_key=api_key)
 
-# Initialize the Flask app #
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")
-#Route: Homepage landing page
+
+
 @app.route('/')
 def landing():
     return render_template('landing.html')
 
+
 @app.route("/menu")
 def menu():
     if 'username' not in session:
-        return redirect(url_for('register'))  # force login/register first
-
+        return redirect(url_for('register'))
     cards = [
         {"title": "Inner Circle", "description": "Ask the AI Circle for insight and support", "link": "/form", "button_text": "Enter"},
         {"title": "Burnthrough", "description": "Process anger, betrayal, or emotional overload", "link": "/burnthrough", "button_text": "Begin"},
@@ -37,11 +42,12 @@ def menu():
     ]
     return render_template("carousel.html", cards=cards)
 
+
 @app.route("/onboarding")
 def onboarding():
     return render_template("onboarding.html")
 
-# Route: Inner Circle form page
+
 @app.route('/form', methods=['GET', 'POST'])
 def form():
     if request.method == 'POST':
@@ -49,7 +55,7 @@ def form():
         return redirect(url_for('ask'), code=307)
     return render_template('form.html')
 
-# Route: Burnthrough mode
+
 @app.route('/burnthrough', methods=['GET', 'POST'])
 def burnthrough():
     if request.method == 'POST':
@@ -57,13 +63,11 @@ def burnthrough():
         return redirect(url_for('ask'), code=307)
     return render_template('burnthrough.html')
 
-# Route: Dev Date with Eileen
+
 @app.route('/eileen')
 def eileen():
     return render_template('eileen.html')
 
-from models import JournalEntry
-from db import SessionLocal
 
 @app.route('/journal', methods=['GET', 'POST'])
 def journal():
@@ -82,7 +86,6 @@ def journal():
         db.add(new_entry)
         db.commit()
 
-    # Load past entries (most recent first)
     entries = (
         db.query(JournalEntry)
         .filter_by(user_id=user.id)
@@ -93,13 +96,6 @@ def journal():
 
     return render_template('journal.html', entries=entries)
 
-from models import User
-from db import SessionLocal
-from werkzeug.security import generate_password_hash
-
-from werkzeug.security import generate_password_hash
-from models import User
-from db import SessionLocal
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -126,18 +122,19 @@ def register():
 
         session['username'] = username
         session['theme_choice'] = theme_choice
+        session['session_id'] = str(uuid4())  # ✅ Ensures dashboard and /ask won't break
 
         return redirect(url_for('menu'))
 
     return render_template('register.html')
 
-# Route: User logout
+
 @app.route('/user/logout')
 def user_logout():
     session.clear()
     return redirect(url_for('register'))
 
-# Route: Admin login
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -148,13 +145,13 @@ def login():
         return render_template('login.html', error="Incorrect password")
     return render_template('login.html')
 
-# Route: Admin logout
+
 @app.route('/logout')
 def logout():
     session.pop('admin', None)
     return redirect(url_for('login'))
 
-# Route: Admin Log Viewer
+
 @app.route('/admin/logs')
 def admin_logs():
     if not session.get('admin'):
@@ -166,9 +163,12 @@ def admin_logs():
         content = "No logs available."
     return render_template('admin_logs.html', logs=content)
 
-# Route: Dashboard
+
 @app.route('/dashboard')
 def dashboard():
+    if 'session_id' not in session:
+        return redirect(url_for('register'))
+
     session_id = session.get('session_id')
     journal_path = f"logs/journals/{session_id}.txt"
     entry_count = 0
@@ -185,7 +185,6 @@ def dashboard():
     streak = len(streak_days)
     return render_template('dashboard.html', entry_count=entry_count, streak=streak)
 
-from models import QueryHistory
 
 @app.route('/ask', methods=['POST'])
 def ask():
@@ -225,7 +224,6 @@ def ask():
             previous_responses[agent["name"]] = Markup(reply)
             log_entries.append(f"{agent['name']}\n{reply}\n")
 
-            # ✅ Save to Postgres
             if user:
                 db.add(QueryHistory(
                     user_id=user.id,
@@ -243,7 +241,6 @@ def ask():
         db.commit()
     db.close()
 
-    # Optional: save to .log file still
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     os.makedirs("logs", exist_ok=True)
     with open("logs/conversations.log", "a", encoding="utf-8") as f:
@@ -256,6 +253,8 @@ def ask():
         return render_template("form.html", results=previous_responses)
     else:
         return render_template("burnthrough.html", results=previous_responses)
+
+
 @app.route("/history")
 def history():
     if 'username' not in session:
@@ -277,8 +276,6 @@ def history():
     db.close()
     return render_template("history.html", history=history_items)
 
+
 if __name__ == '__main__':
     app.run(debug=True, port=5050)
-
-
-
