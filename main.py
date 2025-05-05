@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from models import JournalEntry, QueryHistory, User  # ✅ Moved here
 from db import SessionLocal, engine
 from models import Base  # You already import User etc.
-
+Base.metadata.create_all(bind=engine)
 # Load OpenAI API key from .env
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
