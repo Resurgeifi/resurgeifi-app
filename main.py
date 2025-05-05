@@ -106,7 +106,12 @@ def register():
         display_name = request.form.get('display_name', '').strip()
         theme_choice = request.form['theme_choice']
 
-        if db.query(User).filter_by(username=username).first():
+        try:
+            existing_user = db.query(User).filter_by(username=username).first()
+        except Exception as e:
+            return f"<h2>Database Error</h2><pre>{e}</pre>"
+
+        if existing_user:
             db.close()
             return render_template('register.html', error="Username already taken.")
 
@@ -127,7 +132,6 @@ def register():
         return redirect(url_for('menu'))
 
     return render_template('register.html')
-
 
 @app.route('/user/logout')
 def user_logout():
