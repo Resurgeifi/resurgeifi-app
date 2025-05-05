@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resurgifi – Home</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .background-loop {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: url('{{ url_for('static', filename='loop_scene.gif') }}') center center / cover no-repeat;
+      z-index: 0;
+      opacity: 0.8;
+      animation: slowFade 20s infinite alternate;
+    }
+
+    @keyframes slowFade {
+      from { opacity: 0.8; }
+      to { opacity: 1; }
+    }
+
+    .overlay {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 90%;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .overlay h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .overlay p {
+      font-size: 1.2rem;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 12px 0;
+      background-color: rgba(20, 20, 20, 0.95);
+      z-index: 5;
+    }
+
+    .bottom-nav a {
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    .bottom-nav a span {
+      display: block;
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+
+    .plus-button {
+      width: 56px;
+      height: 56px;
+      background-color: #4c6ef5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transform: translateY(-16px);
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-loop"></div>
+  <div class="overlay">
+    <h1>Welcome to Resurgifi</h1>
+    <p>You’re not lost. You’re resurging. Choose a path forward, or return to center.</p>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="/journal"><span>✍️</span>Journal</a>
+    <a href="/burnthrough"><span>🔥</span>Burn</a>
+    <a href="/menu" class="plus-button">+</a>
+    <a href="/form"><span>🌟</span>Circle</a>
+    <a href="/dashboard"><span>📊</span>Stats</a>
+  </nav>
+</body>
+</html>
