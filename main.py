@@ -6,8 +6,8 @@ from uuid import uuid4
 from openai import OpenAI
 from dotenv import load_dotenv
 from models import JournalEntry, QueryHistory, User  # ✅ Moved here
-from db import SessionLocal
-from werkzeug.security import generate_password_hash
+from db import SessionLocal, engine
+from models import Base  # You already import User etc.
 
 # Load OpenAI API key from .env
 load_dotenv()
