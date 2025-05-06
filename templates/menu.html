@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Resurgifi{% endblock %}
+
+{% block content %}
+  <div class="main-content max-700">
+    <h1>Welcome to Resurgifi</h1>
+
+    {% if journey %}
+      <p class="mantra">You're walking the path of <strong>{{ journey|capitalize }}</strong>.</p>
+    {% endif %}
+
+    <p class="mantra">🌀 {{ daily_quote }}</p>
+    <p class="mantra">Choose a path forward, or simply breathe. Every moment here counts.</p>
+
+    <hr class="section-divider">
+
+    <div class="card">
+      <h2>Today’s Snapshot</h2>
+      <p><strong>Streak:</strong> {{ streak or "0" }} days</p>
+      <p><strong>Last Journal Entry:</strong> {{ last_entry or "None yet — today’s a good day to start." }}</p>
+    </div>
+
+    <p class="mantra" style="margin-top: 2rem;">“You’re not lost. You’re resurging.”</p>
+  </div>
+{% endblock %}

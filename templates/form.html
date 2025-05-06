@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Inner Circle | Resurgifi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Inner Circle | Resurgifi{% endblock %}
+
+{% block content %}
   <div class="container">
     <h1>🌀 Inner Circle</h1>
     <p class="mantra">Ask us anything. We’ll meet you where you are.</p>
@@ -28,10 +25,10 @@
     </audio>
 
     <!-- Confirmation message -->
-    <div id="confirmation" style="display:none;">✅ Reply received from the Circle.</div>
+    <div id="confirmation">✅ Reply received from the Circle.</div>
 
     <!-- Spinner -->
-    <div id="spinner" style="display: none; margin-top: 20px; text-align: center;">
+    <div id="spinner" style="display: none;">
       <div class="emoji-spinner">🌀</div>
       <p><strong>The Circle is thinking...</strong></p>
     </div>
@@ -50,84 +47,80 @@
       {% endfor %}
     {% endif %}
   </div>
+{% endblock %}
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.querySelector("form");
-      const spinner = document.getElementById("spinner");
-      const confirmation = document.getElementById("confirmation");
-      const button = document.getElementById("submitBtn");
-      const chime = document.getElementById("chime");
-      const audio = document.getElementById("meditationAudio");
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("form");
+    const spinner = document.getElementById("spinner");
+    const confirmation = document.getElementById("confirmation");
+    const button = document.getElementById("submitBtn");
+    const chime = document.getElementById("chime");
+    const audio = document.getElementById("meditationAudio");
 
-      // 🧘 Unlock autoplay on first click
-      document.body.addEventListener("click", () => {
+    // 🧘 Unlock autoplay on first click
+    document.body.addEventListener("click", () => {
+      if (audio && audio.paused) {
+        audio.play().catch(() => {});
+      }
+    }, { once: true });
+
+    // Resume meditation after page reload
+    if (sessionStorage.getItem("justSubmitted") === "true") {
+      sessionStorage.removeItem("justSubmitted");
+
+      setTimeout(() => {
         if (audio && audio.paused) {
-          audio.play().catch(() => {});
-        }
-      }, { once: true });
-
-      // Resume meditation after page reload
-      if (sessionStorage.getItem("justSubmitted") === "true") {
-        sessionStorage.removeItem("justSubmitted");
-
-        setTimeout(() => {
-          if (audio && audio.paused) {
-            audio.play().then(() => {
-              console.log("✅ Meditation audio resumed after reload.");
-            }).catch((err) => {
-              console.warn("🚫 Meditation audio failed:", err);
-            });
-          }
-        }, 600);
-      }
-
-      if (form && spinner && button && confirmation) {
-        form.addEventListener("submit", () => {
-          spinner.style.display = "block";
-          button.disabled = true;
-          button.innerText = "Sending...";
-
-          // Set session flag for reload detection
-          sessionStorage.setItem("justSubmitted", "true");
-        });
-
-        {% if results %}
-          spinner.style.display = "none";
-          confirmation.style.display = "block";
-
-          setTimeout(() => {
-            confirmation.style.opacity = 1;
-          }, 100);
-
-          setTimeout(() => {
-            confirmation.style.opacity = 0;
-            setTimeout(() => {
-              confirmation.style.display = "none";
-            }, 600);
-          }, 3000);
-
-          button.disabled = false;
-          button.innerText = "Ask the Circle";
-
-          if (chime) chime.play();
-        {% endif %}
-      }
-
-      const readAloudBtn = document.getElementById("readAloudBtn");
-      if (readAloudBtn) {
-        readAloudBtn.addEventListener("click", () => {
-          const responses = document.querySelectorAll(".response-text");
-          responses.forEach(response => {
-            const utterance = new SpeechSynthesisUtterance(response.textContent);
-            speechSynthesis.speak(utterance);
+          audio.play().then(() => {
+            console.log("✅ Meditation audio resumed after reload.");
+          }).catch((err) => {
+            console.warn("🚫 Meditation audio failed:", err);
           });
+        }
+      }, 600);
+    }
+
+    if (form && spinner && button && confirmation) {
+      form.addEventListener("submit", () => {
+        spinner.style.display = "block";
+        button.disabled = true;
+        button.innerText = "Sending...";
+        sessionStorage.setItem("justSubmitted", "true");
+      });
+
+      {% if results %}
+        spinner.style.display = "none";
+        confirmation.style.display = "block";
+        setTimeout(() => { confirmation.style.opacity = 1; }, 100);
+        setTimeout(() => {
+          confirmation.style.opacity = 0;
+          setTimeout(() => {
+            confirmation.style.display = "none";
+          }, 600);
+        }, 3000);
+
+        button.disabled = false;
+        button.innerText = "Ask the Circle";
+
+        if (chime) chime.play();
+      {% endif %}
+    }
+
+    const readAloudBtn = document.getElementById("readAloudBtn");
+    if (readAloudBtn) {
+      readAloudBtn.addEventListener("click", () => {
+        const responses = document.querySelectorAll(".response-text");
+        responses.forEach(response => {
+          const utterance = new SpeechSynthesisUtterance(response.textContent);
+          speechSynthesis.speak(utterance);
         });
-      }
-    });
-  </script>
-</body>
-</html>
+      });
+    }
+  });
+</script>
+{% endblock %}
+
 
 
 

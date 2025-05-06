@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Your Dashboard | Resurgifi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-  <div class="container" style="max-width: 600px; margin: auto;">
-    <h1>📊 Your Dashboard</h1>
+{% extends "base.html" %}
 
+{% block title %}Dashboard | Resurgifi{% endblock %}
+
+{% block content %}
+  <div class="container max-700">
+    <h1>📊 Your Dashboard</h1>
+    <p class="mantra">Here’s your progress so far. Keep showing up — it matters.</p>
+
+    <!-- Progress Metrics -->
     <div class="card">
       <h2>Total Journal Entries</h2>
       <p>{{ entry_count }}</p>
@@ -20,6 +18,7 @@
       <p>{{ streak }}</p>
     </div>
 
+    <!-- Current State Snapshot -->
     <div class="card">
       <h2>Your Current State</h2>
       <p><strong>Clarity:</strong> {{ session.clarity|capitalize }}</p>
@@ -27,6 +26,7 @@
       <p><strong>Support:</strong> {{ session.support|capitalize }}</p>
     </div>
 
+    <!-- Last Entry -->
     {% if last_entry %}
     <div class="card">
       <h2>Last Journaled</h2>
@@ -34,8 +34,12 @@
     </div>
     {% endif %}
 
-    <a href="/journal"><button>Go to Journal</button></a>
+    <!-- CTA -->
+    <a href="{{ url_for('journal') }}">
+      <button class="btn">Go to Journal</button>
+    </a>
   </div>
-</body>
-</html>
+{% endblock %}
+
+
 

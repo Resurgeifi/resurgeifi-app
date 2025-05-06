@@ -1,3 +1,4 @@
+import random
 from flask import Flask, render_template, request, redirect, url_for, session
 from markupsafe import Markup
 import os
@@ -34,20 +35,38 @@ def landing():
 def menu():
     if 'username' not in session:
         return redirect(url_for('register'))
-    cards = [
-        {"title": "Inner Circle", "description": "Ask the AI Circle for insight and support", "link": "/form", "button_text": "Enter"},
-        {"title": "Burnthrough", "description": "Process anger, betrayal, or emotional overload", "link": "/burnthrough", "button_text": "Begin"},
-        {"title": "Dev Date", "description": "Code gently with Eileen", "link": "/eileen", "button_text": "Let’s Go"},
-        {"title": "Journal", "description": "Write freely, reflect deeply", "link": "/journal", "button_text": "Open Journal"},
-        {"title": "Dashboard", "description": "View your progress", "link": "/dashboard", "button_text": "Check Stats"}
+
+    quotes = [
+        "You’re not behind — you’re becoming.",
+        "Even now, you are enough.",
+        "Healing isn’t linear. Keep going.",
+        "You don’t have to do this alone.",
+        "Small steps are still progress.",
+        "Your presence here is a win."
     ]
-    return render_template("carousel.html", cards=cards)
+
+    return render_template(
+        "menu.html",
+        daily_quote=random.choice(quotes),
+        journey=session.get('journey'),
+        streak=session.get('streak', 0),
+        last_entry=session.get('last_entry', None)
+    )
 
 
-@app.route("/onboarding")
+@app.route("/onboarding", methods=['GET', 'POST'])
 def onboarding():
+    if request.method == 'POST':
+        journey = request.form.get('journey')
+        if journey:
+            session['journey'] = journey  # Save in session (or DB if needed later)
+            return redirect(url_for('menu'))
     return render_template("onboarding.html")
 
+
+@app.route("/home1")
+def home1():
+    return render_template("home1.html")
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
@@ -105,7 +124,6 @@ def register():
         username = request.form['username'].strip()
         password = request.form['password']
         display_name = request.form.get('display_name', '').strip()
-        theme_choice = request.form['theme_choice']
 
         try:
             existing_user = db.query(User).filter_by(username=username).first()
@@ -120,18 +138,15 @@ def register():
             username=username,
             password_hash=generate_password_hash(password),
             display_name=display_name or None,
-            theme_choice=theme_choice
         )
         db.add(user)
         db.commit()
         db.close()
 
         session['username'] = username
-        session['theme_choice'] = theme_choice
-        session['session_id'] = str(uuid4())  # ✅ Ensures dashboard and /ask won't break
+        session['session_id'] = str(uuid4())
 
-        return redirect(url_for('menu'))
-
+        return redirect(url_for('onboarding'))  # 👈 send them to onboarding
     return render_template('register.html')
 
 @app.route('/user/logout')

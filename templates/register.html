@@ -1,60 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register – Resurgifi</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-indigo-900 to-purple-700 min-h-screen flex items-center justify-center px-4 py-12">
-  <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full space-y-6">
-    <div class="text-center">
-      <h1 class="text-3xl font-extrabold text-indigo-700">Create Your Resurgifi Account</h1>
-      <p class="mt-2 text-gray-500">Your story of healing starts here.</p>
-    </div>
+{% extends "base.html" %}
 
-    {% if error %}
-      <div class="bg-red-100 text-red-700 px-4 py-2 rounded text-sm">{{ error }}</div>
-    {% endif %}
+{% block title %}Register | Resurgifi{% endblock %}
 
-    <form method="POST" class="space-y-5">
-      <div>
-        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-        <input id="username" name="username" required type="text" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" />
-      </div>
+{% block content %}
+<div class="container" style="max-width: 500px;">
+  <h1>🔐 Join Resurgifi</h1>
+  <p class="mantra">Start your journey — we’ve been waiting for you.</p>
 
-      <div>
-        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-        <input id="password" name="password" required type="password" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" />
-      </div>
+  {% if error %}
+    <p style="color: #d9534f; font-weight: bold;">{{ error }}</p>
+  {% endif %}
 
-      <div>
-        <label for="display_name" class="block text-sm font-medium text-gray-700">Display Name (optional)</label>
-        <input id="display_name" name="display_name" type="text" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" />
-      </div>
+  <form method="POST" action="/register">
+    <label for="username">Username</label><br>
+    <input type="text" name="username" required><br><br>
 
-      <div>
-        <label for="theme_choice" class="block text-sm font-medium text-gray-700">Your Starting Theme</label>
-        <select name="theme_choice" id="theme_choice" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md bg-white focus:ring-indigo-500 focus:border-indigo-500">
-          <option value="" disabled selected>Select one…</option>
-          <option value="Grief / Loss">💔 Grief / Loss</option>
-          <option value="Trauma / Childhood">🌪️ Trauma / Childhood</option>
-          <option value="Addiction / Recovery">🧃 Addiction / Recovery</option>
-          <option value="Burnout / Overwhelm">🔥 Burnout / Overwhelm</option>
-          <option value="Just Lost">😶 Just Lost</option>
-          <option value="Not Sure Yet">🤷 Not Sure Yet</option>
-        </select>
-      </div>
+    <label for="password">Password</label><br>
+    <input type="password" name="password" required><br><br>
 
-      <div class="pt-4">
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
-          Register
-        </button>
-      </div>
-    </form>
+    <label for="display_name">Display Name (optional)</label><br>
+    <input type="text" name="display_name"><br><br>
 
-    <p class="text-center text-sm text-gray-500">Already have an account? (Login button coming soon!)</p>
-  </div>
-</body>
-</html>
+    <button type="submit">Register</button>
+  </form>
+</div>
+{% endblock %}
+
+
 
