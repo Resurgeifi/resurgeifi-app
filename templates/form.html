@@ -3,14 +3,25 @@
 {% block title %}Inner Circle | Resurgifi{% endblock %}
 
 {% block content %}
-  <!-- Hero Lineup Background -->
-  <div class="hero-lineup">
-    <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita">
-    <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa">
-    <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace">
-    <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity">
-    <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis">
+<div class="hero-arc-spacer">
+  <div class="hero-arc-lineup">
+    <div class="hero hero-left-outer">
+      <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita">
+    </div>
+    <div class="hero hero-left-inner">
+      <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa">
+    </div>
+    <div class="hero hero-center">
+      <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity">
+    </div>
+    <div class="hero hero-right-inner">
+      <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace">
+    </div>
+    <div class="hero hero-right-outer">
+      <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis">
+    </div>
   </div>
+</div>
 
   <!-- Foreground Form Content -->
   <div class="container inner-circle-wrapper">
