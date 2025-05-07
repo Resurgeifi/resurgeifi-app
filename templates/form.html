@@ -3,7 +3,17 @@
 {% block title %}Inner Circle | Resurgifi{% endblock %}
 
 {% block content %}
-  <div class="container">
+  <!-- Hero Lineup Background -->
+  <div class="hero-lineup">
+    <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita">
+    <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa">
+    <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace">
+    <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity">
+    <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis">
+  </div>
+
+  <!-- Foreground Form Content -->
+  <div class="container inner-circle-wrapper">
     <h1>🌀 Inner Circle</h1>
     <p class="mantra">Ask us anything. We’ll meet you where you are.</p>
 
@@ -16,7 +26,6 @@
       <button type="submit" id="submitBtn">Ask the Circle</button>
     </form>
 
-    <!-- Meditation Audio Player -->
     <audio 
       id="meditationAudio" 
       src="{{ url_for('static', filename='padsound-meditation-21384.mp3') }}" 
@@ -24,16 +33,13 @@
       preload="auto">
     </audio>
 
-    <!-- Confirmation message -->
     <div id="confirmation">✅ Reply received from the Circle.</div>
 
-    <!-- Spinner -->
     <div id="spinner" style="display: none;">
       <div class="emoji-spinner">🌀</div>
       <p><strong>The Circle is thinking...</strong></p>
     </div>
 
-    <!-- Chime sound -->
     <audio id="chime" src="{{ url_for('static', filename='chime.mp3') }}"></audio>
 
     {% if results %}
@@ -59,24 +65,17 @@
     const chime = document.getElementById("chime");
     const audio = document.getElementById("meditationAudio");
 
-    // 🧘 Unlock autoplay on first click
     document.body.addEventListener("click", () => {
       if (audio && audio.paused) {
         audio.play().catch(() => {});
       }
     }, { once: true });
 
-    // Resume meditation after page reload
     if (sessionStorage.getItem("justSubmitted") === "true") {
       sessionStorage.removeItem("justSubmitted");
-
       setTimeout(() => {
         if (audio && audio.paused) {
-          audio.play().then(() => {
-            console.log("✅ Meditation audio resumed after reload.");
-          }).catch((err) => {
-            console.warn("🚫 Meditation audio failed:", err);
-          });
+          audio.play().catch(() => {});
         }
       }, 600);
     }
@@ -120,8 +119,3 @@
   });
 </script>
 {% endblock %}
-
-
-
-
-

@@ -398,4 +398,19 @@ textarea:focus, input[type="text"]:focus {
   width: 24px;
   height: 24px;
 }
+.hero-lineup img {
+  max-height: 280px;
+  opacity: 0.28; /* was 0.18 */
+  transition: opacity 0.3s ease;
+  pointer-events: auto;
+}
+.hero-lineup img:hover {
+  opacity: 0.5;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
+}
+.inner-circle-wrapper {
+  padding-top: 30vh;
+  position: relative;
+  z-index: 10;
+}
 
