@@ -19,19 +19,11 @@
 
     <form method="POST" action="/ask">
       <label><strong>What’s weighing on your mind today?</strong></label><br><br>
-      <textarea 
-        name="question" 
-        placeholder="Ask the circle anything... We are here – The Resurgence Squad"
-      ></textarea><br>
+      <textarea name="question" placeholder="Ask the circle anything... We are here – The Resurgence Squad"></textarea><br>
       <button type="submit" id="submitBtn">Ask the Circle</button>
     </form>
 
-    <audio 
-      id="meditationAudio" 
-      src="{{ url_for('static', filename='padsound-meditation-21384.mp3') }}" 
-      loop 
-      preload="auto">
-    </audio>
+    <audio id="meditationAudio" src="{{ url_for('static', filename='padsound-meditation-21384.mp3') }}" loop preload="auto"></audio>
 
     <div id="confirmation">✅ Reply received from the Circle.</div>
 
@@ -65,45 +57,24 @@
     const chime = document.getElementById("chime");
     const audio = document.getElementById("meditationAudio");
 
-    document.body.addEventListener("click", () => {
-      if (audio && audio.paused) {
-        audio.play().catch(() => {});
-      }
-    }, { once: true });
-
-    if (sessionStorage.getItem("justSubmitted") === "true") {
-      sessionStorage.removeItem("justSubmitted");
-      setTimeout(() => {
-        if (audio && audio.paused) {
-          audio.play().catch(() => {});
-        }
-      }, 600);
-    }
-
-    if (form && spinner && button && confirmation) {
+    if (form) {
       form.addEventListener("submit", () => {
         spinner.style.display = "block";
         button.disabled = true;
         button.innerText = "Sending...";
         sessionStorage.setItem("justSubmitted", "true");
       });
+    }
 
-      {% if results %}
-        spinner.style.display = "none";
-        confirmation.style.display = "block";
-        setTimeout(() => { confirmation.style.opacity = 1; }, 100);
-        setTimeout(() => {
-          confirmation.style.opacity = 0;
-          setTimeout(() => {
-            confirmation.style.display = "none";
-          }, 600);
-        }, 3000);
+    if (sessionStorage.getItem("justSubmitted") === "true") {
+      sessionStorage.removeItem("justSubmitted");
+      if (audio) {
+        audio.play().catch(() => {});
+      }
+    }
 
-        button.disabled = false;
-        button.innerText = "Ask the Circle";
-
-        if (chime) chime.play();
-      {% endif %}
+    if (chime && "{{ results }}" !== "") {
+      chime.play();
     }
 
     const readAloudBtn = document.getElementById("readAloudBtn");
@@ -119,3 +90,4 @@
   });
 </script>
 {% endblock %}
+

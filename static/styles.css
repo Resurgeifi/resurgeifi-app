@@ -398,19 +398,100 @@ textarea:focus, input[type="text"]:focus {
   width: 24px;
   height: 24px;
 }
-.hero-lineup img {
-  max-height: 280px;
-  opacity: 0.28; /* was 0.18 */
-  transition: opacity 0.3s ease;
-  pointer-events: auto;
-}
-.hero-lineup img:hover {
-  opacity: 0.5;
-  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
-}
-.inner-circle-wrapper {
-  padding-top: 30vh;
-  position: relative;
-  z-index: 10;
+.hero-lineup {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 2rem 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  z-index: 0;
 }
 
+.hero-lineup img {
+  width: 160px;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.hero-lineup img:hover {
+  transform: scale(1.05);
+}
+
+/* 📱 Mobile-Friendly Fix */
+@media (max-width: 768px) {
+  .hero-lineup {
+    gap: 10px;
+    padding: 1.5rem 0;
+  }
+
+  .hero-lineup img {
+    width: 90px;
+  }
+}
+#hero-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 10, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.hero-popup-content {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.hero-popup-content img {
+  width: 150px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.speech-bubble {
+  position: relative;
+  background: #f2f2f2;
+  border: 2px solid #000;
+  border-radius: 15px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 20px 20px 0;
+  border-style: solid;
+  border-color: #f2f2f2 transparent transparent transparent;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-weight: bold;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}

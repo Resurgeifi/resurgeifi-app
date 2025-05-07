@@ -2,19 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Resurgifi{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
-    <video autoplay muted loop playsinline id="bgVideo">
-        <source src="{{ url_for('static', filename='backgrounds/cabin1.mp4') }}" type="video/mp4">
-      </video>
-      
+  <!-- Background Video -->
+  <video autoplay muted loop playsinline id="bgVideo">
+    <source src="{{ url_for('static', filename='backgrounds/cabin1.mp4') }}" type="video/mp4" />
+  </video>
+
+  <!-- Main Site Content -->
   <div class="main-content">
     {% block content %}{% endblock %}
   </div>
 
+  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <a href="/journal">
       <div class="nav-icon-button">
@@ -22,27 +25,30 @@
       </div>
       <div>Journal</div>
     </a>
-  
+
     <a href="/burnthrough">
       <div class="nav-icon-button">
         <img src="{{ url_for('static', filename='icons/burn.svg') }}" alt="Burn">
       </div>
       <div>Burn</div>
     </a>
-  
+
     <a href="/menu" class="plus-button">+</a>
-  
+
     <a href="/form">
       <div class="emoji-spinner">🌀</div>
       <div>Circle</div>
     </a>
-  
+
     <a href="/dashboard">
       <div class="nav-icon-button">
         <img src="{{ url_for('static', filename='icons/stats.svg') }}" alt="Stats">
       </div>
       <div>Stats</div>
     </a>
-  </nav>  
+  </nav>
+
+  <!-- Optional Scripts Block -->
+  {% block scripts %}{% endblock %}
 </body>
 </html>
