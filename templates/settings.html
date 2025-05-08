@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Settings | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+  <h1>⚙️ Settings</h1>
+  <p class="mantra">Customize your experience — change your journey below.</p>
+
+  <hr style="margin: 2rem 0;">
+
+  <!-- Journey Selector -->
+  <form method="POST" action="/settings">
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+      <button type="submit" name="journey" value="grief" class="journey-card">💔 Grief</button>
+      <button type="submit" name="journey" value="addiction" class="journey-card">💊 Addiction</button>
+      <button type="submit" name="journey" value="mental_health" class="journey-card">🧠 Mental Health</button>
+      <button type="submit" name="journey" value="trauma" class="journey-card">🔥 Trauma</button>
+      <button type="submit" name="journey" value="anxiety" class="journey-card">🌪️ Anxiety</button>
+    </div>
+  </form>
+
+  <p style="margin-top: 2rem; color: #aaa;">
+    Current journey: <strong>{{ session.get('journey', 'Not selected') | replace('_', ' ') | title }}</strong>
+  </p>
+
+  <form action="{{ url_for('logout') }}" method="get" style="margin-top: 3rem;">
+    <button type="submit" style="padding: 0.75rem 2rem; background-color: #e11d48; color: white; border: none; border-radius: 8px;">
+      Log Out
+    </button>
+  </form>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db import Base
@@ -8,16 +8,16 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(150), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)  # ✅ Added
     password_hash = Column(String(255), nullable=False)
     display_name = Column(String(150), nullable=True)
     theme_choice = Column(String(100), nullable=True)
+    consent = Column(String(10), nullable=True)  # ✅ Added
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Optional: Relationships for future use
     # journal_entries = relationship("JournalEntry", back_populates="user")
     # questions = relationship("QuestionLog", back_populates="user")
-from sqlalchemy import ForeignKey, Text
-from sqlalchemy.orm import relationship
 
 class JournalEntry(Base):
     __tablename__ = "journal_entries"
@@ -29,7 +29,6 @@ class JournalEntry(Base):
 
     user = relationship("User", backref="journal_entries")
 
-
 class QueryHistory(Base):
     __tablename__ = "query_history"
 
@@ -38,5 +37,6 @@ class QueryHistory(Base):
     question = Column(Text, nullable=False)
     response = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    agent_name = Column(String(100))  # ✅ FIXED
+    agent_name = Column(String(100))
+
     user = relationship("User", backref="query_history")

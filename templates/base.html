@@ -18,35 +18,37 @@
   </div>
 
   <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="/journal">
-      <div class="nav-icon-button">
-        <img src="{{ url_for('static', filename='icons/journal.svg') }}" alt="Journal">
-      </div>
-      <div>Journal</div>
-    </a>
+  <!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <a href="/journal">
+    <div class="nav-icon-button">
+      <img src="{{ url_for('static', filename='icons/journal.svg') }}" alt="Journal">
+    </div>
+    <div>Journal</div>
+  </a>
 
-    <a href="/burnthrough">
-      <div class="nav-icon-button">
-        <img src="{{ url_for('static', filename='icons/burn.svg') }}" alt="Burn">
-      </div>
-      <div>Burn</div>
-    </a>
+  <a href="/feedback">
+    <div class="nav-icon-button">
+      <img src="{{ url_for('static', filename='icons/feedback.svg') }}" alt="Feedback">
+    </div>
+    <div>Feedback</div>
+  </a>
 
-    <a href="/menu" class="plus-button">+</a>
+  <a href="/menu" class="plus-button">+</a>
 
-    <a href="/form">
-      <div class="emoji-spinner">🌀</div>
-      <div>Circle</div>
-    </a>
+  <a href="/form">
+    <div class="emoji-spinner">🌀</div>
+    <div>Circle</div>
+  </a>
 
-    <a href="/dashboard">
-      <div class="nav-icon-button">
-        <img src="{{ url_for('static', filename='icons/stats.svg') }}" alt="Stats">
-      </div>
-      <div>Stats</div>
-    </a>
-  </nav>
+  <a href="/settings">
+    <div class="nav-icon-button">
+      <img src="{{ url_for('static', filename='icons/settings-gear.svg') }}" alt="Settings">
+    </div>
+    <div>Settings</div>
+  </a>
+</nav>
+
 
   <!-- Optional Scripts Block -->
   {% block scripts %}{% endblock %}

@@ -1,9 +1,8 @@
 {% extends "base.html" %}
-
 {% block title %}Register | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 500px;">
+<div class="container" style="max-width: 500px; margin: 0 auto; text-align: center; padding-bottom: 6rem;">
   <h1>🔐 Join Resurgifi</h1>
   <p class="mantra">Start your journey — we’ve been waiting for you.</p>
 
@@ -12,19 +11,36 @@
   {% endif %}
 
   <form method="POST" action="/register">
-    <label for="username">Username</label><br>
+    <label>Username:</label><br>
     <input type="text" name="username" required><br><br>
 
-    <label for="password">Password</label><br>
+    <label>Email:</label><br>
+    <input type="email" name="email" required><br><br>
+
+    <label>Password:</label><br>
     <input type="password" name="password" required><br><br>
 
-    <label for="display_name">Display Name (optional)</label><br>
-    <input type="text" name="display_name"><br><br>
+    <label>Confirm Password:</label><br>
+    <input type="password" name="confirm_password" required><br><br>
+
+    <label>
+      <input type="checkbox" name="consent" required>
+      I give permission for Resurgifi to email me about updates and my recovery journey.
+    </label><br><br>
 
     <button type="submit">Register</button>
   </form>
+
+  <div style="margin-top: 2rem;">
+    <p style="font-size: 0.95rem;">Already have an account?
+      <a href="/login" style="color: #4f46e5; text-decoration: underline;">Log in here</a>
+    </p>
+  </div>
 </div>
 {% endblock %}
+
+
+
 
 
 

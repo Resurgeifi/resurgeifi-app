@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Login | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin: 0 auto; text-align: center; padding-bottom: 6rem;">
+  <h1>🔓 Welcome Back</h1>
+  <p class="mantra">Let’s pick up where you left off.</p>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+        {{ messages[0] }}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="/login">
+    <label>Username:</label><br>
+    <input type="text" name="username" required><br><br>
+
+    <label>Password:</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">Log In</button>
+  </form>
+
+  <div style="margin-top: 2rem;">
+    <p style="font-size: 0.95rem;">New here? 
+      <a href="/register" style="color: #4f46e5; text-decoration: underline;">Register now</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,27 +1,56 @@
-import random
-from flask import Flask, render_template, request, redirect, url_for, session
-from markupsafe import Markup
 import os
+import random
 from datetime import datetime
 from uuid import uuid4
-from openai import OpenAI
-from dotenv import load_dotenv
-from models import JournalEntry, QueryHistory, User  # ✅ Moved here
-from db import SessionLocal, engine
-from models import Base  # You already import User etc.
-from werkzeug.security import generate_password_hash
-Base.metadata.create_all(bind=engine)
-# Load OpenAI API key from .env
-load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
-admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
-client = OpenAI(api_key=api_key)
 
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_mail import Mail, Message
+from markupsafe import Markup
+from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+
+from openai import OpenAI
+from models import JournalEntry, QueryHistory, User
+from db import SessionLocal, engine
+from models import Base
+
+# ✅ Load environment variables
+load_dotenv()
+
+# ✅ Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
 
+# ✅ Configure Flask-Mail
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS") == "True"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
+mail = Mail(app)
+
+# ✅ Create tables if they don't exist
+Base.metadata.create_all(bind=engine)
+
+# ✅ Load OpenAI credentials
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
+admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
+
+# ✅ Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access Resurgifi.")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 @app.route("/about")
+@login_required
 def about():
     return render_template("about.html")
 
@@ -32,6 +61,7 @@ def landing():
 
 
 @app.route("/menu")
+@login_required
 def menu():
     if 'username' not in session:
         return redirect(url_for('register'))
@@ -55,6 +85,7 @@ def menu():
 
 
 @app.route("/onboarding", methods=['GET', 'POST'])
+@login_required
 def onboarding():
     if request.method == 'POST':
         journey = request.form.get('journey')
@@ -65,15 +96,27 @@ def onboarding():
 
 
 @app.route("/home1")
+@login_required
 def home1():
     return render_template("home1.html")
 
 @app.route('/form', methods=['GET', 'POST'])
+@login_required
 def form():
     if request.method == 'POST':
         question = request.form['question']
         return redirect(url_for('ask'), code=307)
     return render_template('form.html')
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    if request.method == "POST":
+        journey = request.form.get("journey")
+        if journey:
+            session['journey'] = journey
+            flash("Journey updated to: " + journey.replace("_", " ").title())
+            return redirect(url_for('settings'))
+    return render_template("settings.html")
 
 
 @app.route('/burnthrough', methods=['GET', 'POST'])
@@ -121,58 +164,78 @@ def journal():
 def register():
     if request.method == 'POST':
         db = SessionLocal()
-        username = request.form['username'].strip()
-        password = request.form['password']
-        display_name = request.form.get('display_name', '').strip()
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        consent = request.form.get('consent')
 
-        try:
-            existing_user = db.query(User).filter_by(username=username).first()
-        except Exception as e:
-            return f"<h2>Database Error</h2><pre>{e}</pre>"
+        # Validate
+        if not username or not email or not password or not confirm_password or not consent:
+            return render_template('register.html', error="Please fill out all fields and check the box.")
+
+        if password != confirm_password:
+            return render_template('register.html', error="Passwords do not match.")
+
+        existing_user = db.query(User).filter(
+            (User.username == username) | (User.email == email)
+        ).first()
 
         if existing_user:
             db.close()
-            return render_template('register.html', error="Username already taken.")
+            return render_template('register.html', error="Username or email already in use.")
 
-        user = User(
+        hashed_pw = generate_password_hash(password)
+        new_user = User(
             username=username,
-            password_hash=generate_password_hash(password),
-            display_name=display_name or None,
+            email=email,
+            password_hash=hashed_pw,
+            consent=consent
         )
-        db.add(user)
+
+        db.add(new_user)
         db.commit()
         db.close()
 
         session['username'] = username
         session['session_id'] = str(uuid4())
 
-        return redirect(url_for('onboarding'))  # 👈 send them to onboarding
+        flash("Account created successfully.")
+        return redirect(url_for('onboarding'))
+
     return render_template('register.html')
 
-@app.route('/user/logout')
-def user_logout():
-    session.clear()
-    return redirect(url_for('register'))
 
-
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
         password = request.form.get("password")
-        if password == admin_password:
-            session['admin'] = True
-            return redirect(url_for('admin_logs'))
-        return render_template('login.html', error="Incorrect password")
-    return render_template('login.html')
+
+        db = SessionLocal()
+        user = db.query(User).filter_by(username=username).first()
+        db.close()
+
+        if user and check_password_hash(user.password_hash, password):
+            session['user_id'] = user.id
+            session['username'] = user.username
+            return redirect(url_for("menu"))
+
+        flash("Incorrect username or password.")
+        return render_template("login.html")
+
+    return render_template("login.html")
 
 
-@app.route('/logout')
+@app.route("/logout")
+@login_required
 def logout():
-    session.pop('admin', None)
-    return redirect(url_for('login'))
-
+    session.clear()
+    flash("You’ve been logged out.")
+    return redirect(url_for("login"))
 
 @app.route('/admin/logs')
+@login_required
 def admin_logs():
     if not session.get('admin'):
         return redirect(url_for('login'))
@@ -185,6 +248,7 @@ def admin_logs():
 
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     if 'session_id' not in session:
         return redirect(url_for('register'))
@@ -207,6 +271,7 @@ def dashboard():
 
 
 @app.route('/ask', methods=['POST'])
+@login_required
 def ask():
     question = request.form.get("question")
     if not question:
@@ -273,9 +338,30 @@ def ask():
         return render_template("form.html", results=previous_responses)
     else:
         return render_template("burnthrough.html", results=previous_responses)
+@app.route("/feedback", methods=["GET", "POST"])
+@login_required
+def feedback():
+    if request.method == "POST":
+        message = request.form.get("message")
+        user = session.get("username", "Unknown User")
+
+        if message:
+            email = Message(
+                subject=f"📝 Feedback from {user}",
+                recipients=[os.getenv("MAIL_FEEDBACK_RECIPIENT")],
+                body=message
+            )
+            mail.send(email)
+            flash("Thanks for your feedback!")
+            return redirect(url_for("feedback"))
+
+        flash("Please enter a message.")
+
+    return render_template("feedback.html")
 
 
 @app.route("/history")
+@login_required
 def history():
     if 'username' not in session:
         return redirect(url_for('register'))
