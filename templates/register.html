@@ -5,10 +5,11 @@
 <div class="container" style="max-width: 500px; margin: 0 auto; text-align: center; padding-bottom: 6rem;">
   <h1>🔐 Join Resurgifi</h1>
   <p class="mantra">Start your journey — we’ve been waiting for you.</p>
-
   {% if error %}
-    <p style="color: #d9534f; font-weight: bold;">{{ error }}</p>
-  {% endif %}
+  <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
+    {{ error }}
+  </div>
+{% endif %}
 
   <form method="POST" action="/register">
     <label>Username:</label><br>
