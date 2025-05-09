@@ -164,47 +164,55 @@ def journal():
 def register():
     if request.method == 'POST':
         db = SessionLocal()
-        username = request.form.get('username', '').strip()
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        consent = request.form.get('consent')
+        try:
+            username = request.form.get('username', '').strip()
+            email = request.form.get('email', '').strip()
+            password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+            consent = request.form.get('consent')
 
-        # Validate
-        if not username or not email or not password or not confirm_password or not consent:
-            return render_template('register.html', error="Please fill out all fields and check the box.")
+            # Validate form fields
+            if not username or not email or not password or not confirm_password or not consent:
+                return render_template('register.html', error="Please fill out all fields and check the box.")
 
-        if password != confirm_password:
-            return render_template('register.html', error="Passwords do not match.")
+            if password != confirm_password:
+                return render_template('register.html', error="Passwords do not match.")
 
-        existing_user = db.query(User).filter(
-            (User.username == username) | (User.email == email)
-        ).first()
+            # Check if user already exists by username or email
+            existing_user = db.query(User).filter(
+                (User.username == username) | (User.email == email)
+            ).first()
 
-        if existing_user:
+            if existing_user:
+                return render_template('register.html', error="Username or email already in use.")
+
+            # Create new user
+            hashed_pw = generate_password_hash(password)
+            new_user = User(
+                username=username,
+                email=email,
+                password_hash=hashed_pw,
+                consent=consent
+            )
+            db.add(new_user)
+            db.commit()
+
+            # Set session
+            session['username'] = username
+            session['session_id'] = str(uuid4())
+            session['user_id'] = new_user.id
+
+            return redirect(url_for('onboarding'))
+
+        except Exception as e:
+            db.rollback()
+            print("[REGISTRATION ERROR]", e)
+            return render_template('register.html', error="Something went wrong. Please try again.")
+
+        finally:
             db.close()
-            return render_template('register.html', error="Username or email already in use.")
-
-        hashed_pw = generate_password_hash(password)
-        new_user = User(
-            username=username,
-            email=email,
-            password_hash=hashed_pw,
-            consent=consent
-        )
-
-        db.add(new_user)
-        db.commit()
-        db.close()
-
-        session['username'] = username
-        session['session_id'] = str(uuid4())
-
-        flash("Account created successfully.")
-        return redirect(url_for('onboarding'))
 
     return render_template('register.html')
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
