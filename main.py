@@ -171,14 +171,12 @@ def register():
             confirm_password = request.form.get('confirm_password')
             consent = request.form.get('consent')
 
-            # Validate form fields
             if not username or not email or not password or not confirm_password or not consent:
                 return render_template('register.html', error="Please fill out all fields and check the box.")
 
             if password != confirm_password:
                 return render_template('register.html', error="Passwords do not match.")
 
-            # Check if user already exists by username or email
             existing_user = db.query(User).filter(
                 (User.username == username) | (User.email == email)
             ).first()
@@ -186,7 +184,6 @@ def register():
             if existing_user:
                 return render_template('register.html', error="Username or email already in use.")
 
-            # Create new user
             hashed_pw = generate_password_hash(password)
             new_user = User(
                 username=username,
@@ -197,7 +194,6 @@ def register():
             db.add(new_user)
             db.commit()
 
-            # Set session
             session['username'] = username
             session['session_id'] = str(uuid4())
             session['user_id'] = new_user.id
@@ -207,7 +203,7 @@ def register():
         except Exception as e:
             db.rollback()
             print("[REGISTRATION ERROR]", e)
-            return render_template('register.html', error="Something went wrong. Please try again.")
+            return render_template('register.html', error="Something broke. Try again.")
 
         finally:
             db.close()
@@ -229,8 +225,7 @@ def login():
             session['username'] = user.username
             return redirect(url_for("menu"))
 
-        flash("Incorrect username or password.")
-        return render_template("login.html")
+        return render_template("login.html", error="Incorrect username or password.")
 
     return render_template("login.html")
 
