@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main-content max-700" style="margin-top: 60px; text-align: center;">
+  <h1>Enter Reset Code</h1>
+
+  {% if message %}
+    <p style="color: #ffaaaa; margin-bottom: 1rem;">{{ message }}</p>
+  {% endif %}
+
+  <form method="POST" style="margin-top: 2rem;">
+    <label for="reset_code">Reset Code:</label><br><br>
+    <input 
+      type="text" 
+      name="reset_code" 
+      required 
+      style="width: 100%; max-width: 300px; padding: 12px; font-size: 1rem; border: 2px solid #1e2d2b; border-radius: 10px; background-color: #f6e7c1; color: #1f3e36;"><br><br>
+
+    <label for="new_password">New Password:</label><br><br>
+    <input 
+      type="password" 
+      name="new_password" 
+      required 
+      style="width: 100%; max-width: 300px; padding: 12px; font-size: 1rem; border: 2px solid #1e2d2b; border-radius: 10px; background-color: #f6e7c1; color: #1f3e36;"><br><br>
+
+    <button type="submit">Reset Password</button>
+  </form>
+</div>
+{% endblock %}

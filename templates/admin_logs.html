@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Logs | Resurgifi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container" style="max-width: 800px; margin: auto;">
+    <h1>📂 Conversation Logs</h1>
+
+    {% if logs %}
+      <pre style="text-align: left; white-space: pre-wrap; background: #2d3748; color: #f7fafc; padding: 1em; border-radius: 10px;">
+{{ logs }}
+      </pre>
+    {% else %}
+      <p>No logs found.</p>
+    {% endif %}
+
+    <a href="/menu"><button>Back to App</button></a>
+    <a href="/logout" style="margin-top: 1rem;"><button>Log Out</button></a>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Inner Circle | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="hero-arc-spacer">
+  <div class="hero-arc-lineup">
+    <div class="hero hero-left-outer">
+      <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita">
+    </div>
+    <div class="hero hero-left-inner">
+      <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa">
+    </div>
+    <div class="hero hero-center">
+      <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity">
+    </div>
+    <div class="hero hero-right-inner">
+      <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace">
+    </div>
+    <div class="hero hero-right-outer">
+      <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis">
+    </div>
+  </div>
+</div>
+
+  <!-- Foreground Form Content -->
+  <div class="container inner-circle-wrapper">
+    <h1>🌀 Inner Circle</h1>
+    <p class="mantra">Ask us anything. We’ll meet you where you are.</p>
+
+    <form method="POST" action="/ask">
+      <label><strong>What’s weighing on your mind today?</strong></label><br><br>
+      <textarea name="question" placeholder="Ask the circle anything... We are here – The Resurgence Squad"></textarea><br>
+      <button type="submit" id="submitBtn">Ask the Circle</button>
+    </form>
+
+    <audio id="meditationAudio" src="{{ url_for('static', filename='padsound-meditation-21384.mp3') }}" loop preload="auto"></audio>
+
+    <div id="confirmation">✅ Reply received from the Circle.</div>
+
+    <div id="spinner" style="display: none;">
+      <div class="emoji-spinner">🌀</div>
+      <p><strong>The Circle is thinking...</strong></p>
+    </div>
+
+    <audio id="chime" src="{{ url_for('static', filename='chime.mp3') }}"></audio>
+
+    {% if results %}
+      <h2>Your Circle Speaks</h2>
+      <button id="readAloudBtn">🔊 Read Aloud</button>
+      {% for name, reply in results.items() %}
+        <div class="response-block">
+          <strong>{{ name }}</strong>
+          <div class="response-text">{{ reply|safe }}</div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("form");
+    const spinner = document.getElementById("spinner");
+    const confirmation = document.getElementById("confirmation");
+    const button = document.getElementById("submitBtn");
+    const chime = document.getElementById("chime");
+    const audio = document.getElementById("meditationAudio");
+
+    if (form) {
+      form.addEventListener("submit", () => {
+        spinner.style.display = "block";
+        button.disabled = true;
+        button.innerText = "Sending...";
+        sessionStorage.setItem("justSubmitted", "true");
+      });
+    }
+
+    if (sessionStorage.getItem("justSubmitted") === "true") {
+      sessionStorage.removeItem("justSubmitted");
+      if (audio) {
+        audio.play().catch(() => {});
+      }
+    }
+
+    if (chime && "{{ results }}" !== "") {
+      chime.play();
+    }
+
+    const readAloudBtn = document.getElementById("readAloudBtn");
+    if (readAloudBtn) {
+      readAloudBtn.addEventListener("click", () => {
+        const responses = document.querySelectorAll(".response-text");
+        responses.forEach(response => {
+          const utterance = new SpeechSynthesisUtterance(response.textContent);
+          speechSynthesis.speak(utterance);
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}
+

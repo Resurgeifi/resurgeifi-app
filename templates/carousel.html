@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Choose Your Mode – Resurgifi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2d3748">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+    }
+
+    .about-button-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      animation: fadeSlideDown 0.8s ease-out;
+    }
+
+    .about-button {
+      background-color: #4c6ef5;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .about-button:hover {
+      background-color: #3b5bdb;
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeSlideDown {
+      0% {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .carousel-page {
+      padding: 80px 16px 32px;
+      text-align: center;
+    }
+
+    .carousel-page h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .carousel-scroll {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 1rem;
+      padding: 1rem 0;
+    }
+
+    .card {
+      flex: 0 0 85%;
+      scroll-snap-align: center;
+      background-color: #ffffff;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      font-size: 1rem;
+      color: #4a5568;
+    }
+
+    .card button {
+      margin-top: 1rem;
+      padding: 10px 20px;
+      border: none;
+      background-color: #48bb78;
+      color: white;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .card button:hover {
+      background-color: #38a169;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔗 Animated About button -->
+  <div class="about-button-container">
+    <a href="{{ url_for('about') }}" style="text-decoration: none;">
+      <button class="about-button">About</button>
+    </a>
+  </div>
+
+  <div class="carousel-page">
+    <h1>Choose Your Resurgifi Mode</h1>
+    <div class="carousel-scroll">
+      {% for card in cards %}
+        <div class="card">
+          <h2>{{ card.title }}</h2>
+          <p>{{ card.description }}</p>
+          <a href="{{ card.link }}"><button>{{ card.button_text }}</button></a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

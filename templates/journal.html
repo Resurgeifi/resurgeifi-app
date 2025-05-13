@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Journal | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="container max-700">
+  <h1>🖍️ Your Journal</h1>
+
+  <div class="ring-status">
+    <p style="font-size: 1rem; color: #aaa;">
+      🔄 Current Ring: <strong>{{ current_ring }}</strong>
+    </p>
+  </div>
+
+  <!-- 🌱 New Journal Entry Form -->
+  <form id="journalForm" method="POST" action="/journal">
+    <label for="entry"><strong>What’s on your mind today?</strong></label><br><br>
+    <textarea 
+      name="entry" 
+      rows="6" 
+      placeholder="Just write what you feel. What did or do I want to accomplish today?"
+    ></textarea><br>
+    <button type="submit" class="btn">Save Entry</button>
+  </form>
+
+  <hr class="section-divider">
+
+  {% if entries %}
+    <h2>Previous Entries</h2>
+    {% for entry in entries %}
+      <div class="entry-box">
+        <div class="timestamp">
+          {{ entry.timestamp }}
+          <span style="margin-left: 10px;">🧠</span>
+        </div>
+        <div style="margin-top: 0.5rem;">{{ entry.content }}</div>
+        <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;">
+
+          <!-- ✏️ EDIT BUTTON -->
+          <form method="GET" action="{{ url_for('edit_entry', id=entry.id) }}" style="display: inline;">
+            <button type="submit" class="btn">Edit</button>
+          </form>
+
+          <!-- 🗑️ DELETE BUTTON -->
+          <form method="POST" action="/delete-entry/{{ entry.id }}" class="delete-form" style="display: inline;">
+            <button type="submit" class="btn-small" style="background-color: #e11d48;">Delete</button>
+          </form>
+
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No entries yet. Your story starts now.</p>
+  {% endif %}
+</div>
+
+<!-- 🌟 Cognita Flash -->
+<div id="cognitaFlash" class="hero-flash" style="display: none;">
+  <img src="{{ url_for('static', filename='images/heroes/cognita/cognita_writing.png') }}"
+       class="lucentis-image floaty" alt="Cognita Writing" />
+  <p class="hero-quote">“Every time you reflect, you rewire. You just grew.”</p>
+</div>
+
+<!-- 🚩 Warden Fall Flash -->
+<div id="wardenFlash" class="hero-flash" style="display: none;">
+  <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}"
+       class="lucentis-image floaty" alt="Warden Fall" />
+  <p class="hero-quote warden-quote">“Some sins echo forever…”</p>
+</div>
+
+<!-- 🔊 AUDIO -->
+<audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
+<audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
+
+<!-- 🎮 JS Logic -->
+<script>
+  function bindJournalFlash() {
+    const journalForm = document.getElementById("journalForm");
+    const cognitaFlash = document.getElementById("cognitaFlash");
+    const cognitaAudio = document.getElementById("flashSound");
+
+    if (journalForm) {
+      journalForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        cognitaFlash.style.display = "flex";
+        cognitaFlash.style.opacity = 1;
+
+        if (cognitaAudio) {
+          cognitaAudio.pause();
+          cognitaAudio.currentTime = 0;
+          cognitaAudio.volume = 1.0;
+          cognitaAudio.play().catch(e => console.warn("Autoplay blocked"));
+
+          setTimeout(() => {
+            const fade = setInterval(() => {
+              if (cognitaAudio.volume > 0.1) {
+                cognitaAudio.volume -= 0.1;
+              } else {
+                cognitaAudio.volume = 0;
+                cognitaAudio.pause();
+                clearInterval(fade);
+              }
+            }, 100);
+          }, 3000);
+        }
+
+        setTimeout(() => {
+          cognitaFlash.style.opacity = 0;
+          cognitaFlash.style.display = "none";
+          journalForm.submit();
+        }, 5000);
+      });
+    }
+  }
+
+  function bindDeleteFlash() {
+    const deleteForms = document.querySelectorAll(".delete-form");
+    const wardenFlash = document.getElementById("wardenFlash");
+    const wardenAudio = document.getElementById("wardenSound");
+
+    deleteForms.forEach(form => {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Show Warden flash
+        wardenFlash.classList.remove("fade-out");
+        wardenFlash.style.display = "flex";
+        wardenFlash.style.opacity = 1;
+
+        // Play audio
+        if (wardenAudio) {
+          wardenAudio.pause();
+          wardenAudio.currentTime = 0;
+          wardenAudio.volume = 1.0;
+          wardenAudio.play().catch(err => console.warn("Autoplay blocked"));
+
+          setTimeout(() => {
+            const fade = setInterval(() => {
+              if (wardenAudio.volume > 0.1) {
+                wardenAudio.volume -= 0.1;
+              } else {
+                wardenAudio.volume = 0;
+                wardenAudio.pause();
+                clearInterval(fade);
+              }
+            }, 100);
+          }, 3000);
+        }
+
+                // Fade out at 4.8s
+                setTimeout(() => {
+          wardenFlash.classList.add("fade-out");
+        }, 4200);
+
+        // Remove from DOM and submit at 5s
+        setTimeout(() => {
+          wardenFlash.remove();
+          form.submit();
+        }, 5500);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    bindJournalFlash();
+    bindDeleteFlash();
+  });
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

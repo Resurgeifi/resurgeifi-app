@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Register | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin: 0 auto; text-align: center; padding-bottom: 6rem;">
+  <h1>🔐 Join Resurgifi</h1>
+  <p class="mantra">Start your journey — we’ve been waiting for you.</p>
+
+  <!-- 🔔 Flash Messages -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div style="background: #ffe4e4; color: #8b0000; padding: 10px; border-radius: 8px; margin-bottom: 1rem;">
+        {% for msg in messages %}
+          <p style="margin: 0;">{{ msg }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('register') }}">
+    <label>Username:</label><br>
+    <input type="text" name="username" required><br><br>
+
+    <label>Email:</label><br>
+    <input type="email" name="email" required><br><br>
+
+    <label>Nickname (what should the heroes call you?):</label><br>
+    <input type="text" name="nickname" placeholder="e.g., Kevin"><br><br>
+
+    <label>Password:</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <label>Confirm Password:</label><br>
+    <input type="password" name="confirm_password" required><br><br>
+
+    <label>
+      <input type="checkbox" name="consent" value="yes" required>
+      I agree to the terms of emotional safety and support.
+    </label><br><br>
+
+    <button type="submit"
+  style="background: linear-gradient(to right, #6dd5fa, #2980b9);
+         color: white;
+         padding: 12px 24px;
+         border: none;
+         border-radius: 12px;
+         font-size: 1rem;
+         font-weight: bold;
+         cursor: pointer;
+         transition: background 0.3s ease;">
+  Begin My Journey
+</button>
+
+  </form>
+
+  <div style="margin-top: 2rem;">
+    <p style="font-size: 0.95rem;">Already have an account?
+      <a href="/login" style="color: #4f46e5; text-decoration: underline;">Log in here</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+
+
+
+
+

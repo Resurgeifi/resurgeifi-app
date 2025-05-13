@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Test Form</h1>
+  <form method="POST" action="/ask">
+    <textarea name="question" placeholder="Test input..."></textarea><br><br>
+    <button type="submit">Send</button>
+  </form>
+
+  <p style="color: red;">This line should always render, regardless of data.</p>
+
+  <div style="display: flex; gap: 10px;">
+    <button type="button">Prompt A</button>
+    <button type="button">Prompt B</button>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  console.log("✅ Script block is working");
+</script>
+{% endblock %}
+
+
+
+

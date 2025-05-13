@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Audio background -->
+<audio id="meditationMusic" autoplay loop>
+  <source src="{{ url_for('static', filename='padsound-meditation-21384.mp3') }}" type="audio/mpeg">
+</audio>
+
+<!-- Play All Responses Button -->
+<div style="text-align: center; margin-top: 20px;">
+  <button id="readAllBtn" style="background: #78c2ad; color: #0f1014; font-weight: bold; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer;">
+    🔊 Play All Responses
+  </button>
+</div>
+
+<!-- Hero responses -->
+<div class="circle-container" style="padding: 20px;">
+  {% for hero, reply in results.items() %}
+    {% set img_hero = hero|lower|replace(' ', '') %}
+    <div class="hero-response" style="display: flex; align-items: flex-start; margin-bottom: 60px;">
+      <img src="{{ url_for('static', filename='images/heroes/' + img_hero + '/' + img_hero + '_v1neutral.png') }}"
+           alt="{{ hero }}"
+           class="hero-pic"
+           style="width: 80px; height: 80px; border-radius: 50%; margin-right: 20px; border: 2px solid #ccc; object-fit: cover;">
+
+      <div class="speech-bubble"
+           style="position: relative; background: #2c2e3f; border-radius: 20px; padding: 15px; max-width: 70%; overflow-y: auto; max-height: 150px;">
+        <strong style="color: #ffffff; font-size: 1rem;">{{ hero }}</strong>
+        <div class="bubble-text">{{ reply }}</div>
+        <div style="content: ''; position: absolute; top: 20px; left: -20px; width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 20px solid #2c2e3f;"></div>
+      </div>
+    </div>
+
+    {% if loop.last and is_last_hero %}
+  <div class="journal-invite" style="margin-top: 30px; text-align: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px;">
+    Would you like to journal about how you're feeling?
+    <br>
+    <button class="global-button" onclick="location.href='{{ url_for('journal') }}'">
+        Yes, take me there →
+      </button>
+      
+  </div>
+{% endif %}
+
+  {% endfor %}
+</div>
+
+<!-- Read-Aloud Script -->
+<script>
+  const music = document.getElementById('meditationMusic');
+  const readBtn = document.getElementById('readAllBtn');
+
+  window.addEventListener("load", () => {
+    if (music) {
+      music.play().catch(() => {
+        console.log("Autoplay blocked — will wait for interaction.");
+      });
+    }
+  });
+
+  document.addEventListener("click", () => {
+    if (music && music.paused) {
+      music.play().catch(() => {});
+    }
+  });
+
+  if (readBtn) {
+    readBtn.addEventListener("click", () => {
+      if (music) music.pause();
+      const responses = document.querySelectorAll(".bubble-text");
+      let index = 0;
+
+      function speakNext() {
+        if (index >= responses.length) return;
+        const text = responses[index].textContent;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onend = () => {
+          index++;
+          speakNext();
+        };
+        speechSynthesis.speak(utterance);
+      }
+
+      speakNext();
+    });
+  }
+</script>
+
+{% endblock %}

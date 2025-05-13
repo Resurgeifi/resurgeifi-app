@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Resurgifi{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+  <!-- Background Video -->
+  <video autoplay muted loop playsinline id="bgVideo">
+    <source src="{{ url_for('static', filename='backgrounds/cabin1.mp4') }}" type="video/mp4" />
+  </video>
+
+  <!-- Main Site Content -->
+  <div class="main-content">
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="/journal">
+      <div class="nav-icon-button">
+        <img src="{{ url_for('static', filename='icons/journal.svg') }}" alt="Journal">
+      </div>
+      <div>Journal</div>
+    </a>
+
+    <a href="/feedback">
+      <div class="nav-icon-button">
+        <img src="{{ url_for('static', filename='icons/feedback.svg') }}" alt="Feedback">
+      </div>
+      <div>Feedback</div>
+    </a>
+
+    <a href="/menu" class="plus-button">+</a>
+
+    <a href="/form">
+      <div class="emoji-spinner">🌀</div>
+      <div>Circle</div>
+    </a>
+
+    <a href="/settings">
+      <div class="nav-icon-button">
+        <img src="{{ url_for('static', filename='icons/settings-gear.svg') }}" alt="Settings">
+      </div>
+      <div>Settings</div>
+    </a>
+  </nav>
+
+  <!-- Optional Scripts Block -->
+  {% block scripts %}{% endblock %}
+</body>
+</html>

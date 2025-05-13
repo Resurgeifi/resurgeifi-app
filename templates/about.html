@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}About Resurgifi{% endblock %}
+
+{% block content %}
+<div class="about-container">
+  <div class="about-image">
+    <img 
+      src="{{ url_for('static', filename='resurgenc-hero-bg.png') }}" 
+      alt="Resurgifi Hero Art"
+    >
+  </div>
+
+  <div class="about-card">
+    <h1>💫 About Resurgifi</h1>
+    <p class="mantra">This isn't just an app. It's a comeback story.</p>
+
+    <p><strong>Resurgifi</strong> is a self-guided recovery and mental health app built by Kevin Conzo and Eileen Lynch, born from real-life experience, grief, trauma, and healing. It’s designed to help users reconnect with clarity, calm, and personal transformation.</p>
+
+    <p>Unlike generic wellness tools, Resurgifi speaks from the inside out — weaving narrative, journaling, visual guidance, and AI-supported reflection into a daily practice of inner resurgence.</p>
+
+    <p><strong>Core tools include:</strong></p>
+    <ul>
+      <li>🌀 The Inner Circle — ask your Personal Circle of Resurgifi AIs anything</li>
+      <li>📓 Journaling — write, reflect, and build your streak with real reward motivations (Merch!)</li>
+      <li>🔥 Burnthrough — vent emotional weight through visual feeling prompts when words are lost</li>
+      <li>🎯 Personalized journey onboarding to shape your RESURGENCE!</li>
+    </ul>
+
+    <p>This is Kevin’s opus — a legacy for healing, created not from theory, but from living it.</p>
+    <p><em>“Stop the spiral, Resurgifi your life!”</em></p>
+
+    <a href="{{ url_for('menu') }}"><button>⬅ Back to Menu</button></a>
+  </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="landing-container" style="text-align: center; padding: 3rem 1rem; max-width: 900px; margin: 0 auto;">
+
+  <h1 style="font-size: 2.8rem; margin-bottom: 1rem;">Welcome to the Resurgifi Beta</h1>
+
+  <p style="font-size: 1.1rem; margin-bottom: 2rem;">
+    This version of Resurgifi is for you — our close friends and family. We’re building something meaningful here,
+    and your feedback is everything.
+  </p>
+
+  <div style="border: 1px solid #444; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; background-color: #1f2230;">
+    <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem;">📝 What We’re Asking From You:</h2>
+    <ul style="list-style: none; padding: 0; font-size: 1rem; text-align: left; max-width: 700px; margin: 0 auto;">
+      <li>• Please <strong>journal daily</strong> — even short entries help</li>
+      <li>• Use the <strong>Hero Circle</strong> to ask emotional or reflective questions</li>
+      <li>• Submit any ideas, bugs, or feature thoughts through the <a href="{{ url_for('feedback') }}" style="color: #76c7c0;">Feedback Form</a></li>
+    </ul>
+  </div>
+
+  <a href="{{ url_for('journal') }}" class="btn" style="margin: 1rem auto; padding: 0.75rem 2rem; font-size: 1.1rem; background-color: #3c6e71; color: #fff; border-radius: 10px; text-decoration: none;">
+    Start Journaling
+  </a>
+  <hr style="margin: 3rem auto; width: 60%; border: 0; border-top: 1px solid #666;">
+
+  <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚙️ What’s Still in Progress</h2>
+  <ul style="list-style: none; padding: 0; font-size: 1rem; text-align: left; max-width: 700px; margin: 0 auto 2rem;">
+    <li>• Avatar customization (your “inner self” will evolve soon)</li>
+    <li>• Progression system — the Five Rings of Resurgence</li>
+    <li>• Recovery Circles (private invites to support each other)</li>
+    <li>• Squad Echo mentorship roles for long-term users</li>
+    <li>• Occasional rewards, gifts, and voice interactions</li>
+    <li>• Emergency info & support for crisis situations</li>
+  </ul>
+
+  <p style="font-size: 0.95rem; color: #aaa; max-width: 700px; margin: 0 auto;">
+    ⚠️ While this app is therapeutic, it is not a substitute for clinical care. If you or someone else is in crisis, please call or text <strong>988</strong> or go to the nearest emergency room.
+  </p>
+
+  <hr style="margin: 3rem auto; width: 60%; border: 0; border-top: 1px solid #666;">
+
+  <footer style="font-size: 0.95rem; color: #aaa; margin-top: 2rem;">
+    <p style="max-width: 700px; margin: 0 auto;">
+      With gratitude and hope,<br><br>
+      <strong>Kevin Conzo & Eileen Lynch</strong><br>
+      Founders of Resurgifi
+    </p>
+  </footer>
+
+</div>
+
+{% endblock %}
+
+
+
+
+
+
+
+

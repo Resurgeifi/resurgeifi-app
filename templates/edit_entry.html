@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Edit Journal Entry | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="main-content" style="max-width: 700px; margin: auto; padding: 1.5rem;">
+  <h2>Edit Reflection</h2>
+
+  <form id="editForm">
+    <textarea name="content" rows="10" style="width: 100%; font-size: 1rem; padding: 1rem;">{{ entry.content }}</textarea>
+    <br><br>
+    <button type="submit" class="btn-celebrate">Save Changes</button>
+  </form>
+</div>
+
+<!-- 🌠 Lucentis Flash Animation -->
+<div id="lucentisFlash" class="hero-flash" style="display: none;">
+  <img src="{{ url_for('static', filename='images/heroes/lucentis/lucentis_writing.png') }}"
+       class="lucentis-image floaty" alt="Lucentis Writing" />
+  <p class="hero-quote">“Reflection refines the truth. You’ve grown.”</p>
+</div>
+
+<!-- 🔊 Sound Effect -->
+<audio id="flashSound" src="{{ url_for('static', filename='audio/lucentis_flash.mp3') }}"></audio>
+
+<!-- 🎬 Flash Trigger + Faster Audio Fade + Redirect -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById("editForm");
+    const flash = document.getElementById("lucentisFlash");
+    const audio = document.getElementById("flashSound");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const content = form.querySelector('textarea[name="content"]').value;
+
+      fetch(window.location.pathname, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({ content })
+      }).then(() => {
+        // 🔥 Show Lucentis flash
+        flash.style.display = "flex";
+
+        if (audio) {
+          audio.currentTime = 0;
+          audio.volume = 1.0;
+          audio.play().catch(e => console.warn("Audio autoplay blocked:", e));
+
+          // 🎧 Start fade earlier + make it fade faster
+          setTimeout(() => {
+            const fadeInterval = setInterval(() => {
+              if (audio.volume > 0.1) {
+                audio.volume -= 0.1;
+              } else {
+                audio.volume = 0;
+                audio.pause();
+                clearInterval(fadeInterval);
+              }
+            }, 100);
+          }, 3000); // Start fade at 3s
+        }
+
+        // ⏱ Redirect at 5s
+        setTimeout(() => {
+          flash.style.display = "none";
+          window.location.href = "/journal";
+        }, 5000);
+      });
+    });
+  });
+</script>
+{% endblock %}
+
+
