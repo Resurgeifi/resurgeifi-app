@@ -37,6 +37,25 @@ body {
   width: 100%;
   max-width: 900px;
 }
+/* Prevent horizontal scroll */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Responsive wrapper for main pages */
+.container,
+.inner-circle-wrapper {
+  max-width: 100vw;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+}
+button {
+  min-width: 100px;
+  font-size: 2rem;
+}
 
 /* =========================
    TYPOGRAPHY
@@ -785,4 +804,387 @@ textarea:focus, input[type="text"]:focus {
 .hero-flash {
   transition: opacity 1s ease;
 }
+/* Mobile-safe tweaks for settings */
+.settings-page {
+  max-width: 100vw;
+  padding: 1.5rem;
+  text-align: center;
+  overflow-x: hidden;
+}
 
+.settings-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0 2rem 0;
+}
+
+.journey-card {
+  background-color: #f6e7c1;
+  color: #1f3e36;
+  font-size: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 2px solid #1e2d2b;
+  width: 45%;
+  min-width: 140px;
+  max-width: 180px;
+  box-sizing: border-box;
+}
+
+.settings-form {
+  margin: 2rem auto;
+  max-width: 90%;
+}
+
+.settings-label {
+  font-weight: bold;
+  color: #f6e7c1;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.settings-select,
+.settings-input,
+.journey-date-input {
+  width: 100%;
+  max-width: 320px;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 2px solid #1e2d2b;
+  background-color: #f6e7c1;
+  color: #1f3e36;
+  box-sizing: border-box;
+}
+
+.logout-btn {
+  padding: 0.75rem 2rem;
+  background-color: #e11d48;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+/* 📱 Universal Mobile Reset */
+body, html {
+  margin: 0;
+  padding: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* 📦 Container Fix */
+.main-content {
+  padding: 1.5rem;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* 📱 Responsive Hero Flash */
+.hero-flash {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.hero-quote {
+  font-size: 1.1rem;
+  max-width: 90vw;
+}
+
+.hero-image {
+  width: 70%;
+  max-width: 280px;
+}
+
+/* 📊 Snapshot Card Responsive */
+.card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+@keyframes scrollUpFade {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-80px);
+  }
+}
+
+.scroll-quote {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  font-size: 1.2rem;
+  color: #f8f1e5;
+  text-shadow: 1px 1px 3px #000;
+  z-index: 10001;
+  animation: scrollUpFade 4s ease-out forwards;
+}
+.circle-container {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 2rem;
+}
+
+.hero-grid {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.hero-avatar {
+  width: 100px;
+  text-align: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.hero-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #f4a259;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.5rem;
+}
+
+.hero-circle img {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-avatar p {
+  font-weight: bold;
+}
+
+#chat-box {
+  margin-top: 2rem;
+  border-top: 2px solid #f4a259;
+  padding-top: 1rem;
+}
+
+#chat-log {
+  font-size: 1rem;
+  text-align: left;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f6e7c1;
+  border-radius: 10px;
+  color: #1f3e36;
+}
+
+.hero-message,
+.user-message {
+  margin-bottom: 1rem;
+}
+
+.user-message {
+  text-align: right;
+}
+
+#chat-form {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #1e2d2b;
+}
+
+#chat-form button {
+  padding: 10px 20px;
+  background: #f4a259;
+  color: #1f3e36;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+}
+
+.chat-hidden {
+  display: none;
+}
+.chat-input-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #1f3e36;
+  border-top: 2px solid #f4a259;
+  position: fixed;
+  bottom: 60px; /* sits above nav bar */
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #f4a259;
+  font-size: 1rem;
+  background: #f6e7c1;
+  color: #1f3e36;
+}
+
+#chat-form button {
+  padding: 10px 16px;
+  margin-left: 0.5rem;
+  font-weight: bold;
+  background: #f4a259;
+  color: #1f3e36;
+  border: none;
+  border-radius: 8px;
+}
+/* 👥 Hero Grid Layout */
+.hero-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 2rem auto;
+  max-width: 700px;
+}
+
+.hero-avatar {
+  width: 100px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.hero-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #f4a259;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.5rem;
+}
+
+.hero-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 💬 Chat Log & Box */
+#chat-box {
+  margin: 1rem auto;
+  max-width: 700px;
+  background: #f6e7c1;
+  padding: 1rem;
+  border-radius: 12px;
+  overflow-y: auto;
+  max-height: 250px;
+  color: #1f3e36;
+}
+
+.hero-message,
+.user-message {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.user-message {
+  text-align: right;
+}
+
+/* 📱 Chat Input Area */
+.chat-input-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #1f3e36;
+  border-top: 2px solid #f4a259;
+  position: fixed;
+  bottom: 60px; /* sits above nav bar */
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #f4a259;
+  font-size: 1rem;
+  background: #f6e7c1;
+  color: #1f3e36;
+}
+
+#chat-form button {
+  padding: 10px 16px;
+  margin-left: 0.5rem;
+  font-weight: bold;
+  background: #f4a259;
+  color: #1f3e36;
+  border: none;
+  border-radius: 8px;
+}
+/* Make chat input float above bottom nav */
+.chat-input-wrapper {
+  position: fixed;
+  bottom: 70px; /* space above nav bar */
+  left: 0;
+  width: 100%;
+  background: #1f3e36;
+  padding: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 9999;
+  box-sizing: border-box;
+}
+
+/* Scroll container when keyboard opens */
+.circle-container {
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding-bottom: 160px; /* ensure scroll room */
+}
+
+/* Fix hero layout on mobile */
+.hero-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.hero-avatar {
+  flex: 0 0 45%;
+  max-width: 130px;
+}
+
+.hero-circle img {
+  width: 100%;
+  height: auto;
+}

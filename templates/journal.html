@@ -64,7 +64,7 @@
 <div id="wardenFlash" class="hero-flash" style="display: none;">
   <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}"
        class="lucentis-image floaty" alt="Warden Fall" />
-  <p class="hero-quote warden-quote">“Some sins echo forever…”</p>
+  <p id="wardenQuote" class="scroll-quote">“Some sins echo forever…”</p>
 </div>
 
 <!-- 🔊 AUDIO -->
@@ -116,11 +116,17 @@
   function bindDeleteFlash() {
     const deleteForms = document.querySelectorAll(".delete-form");
     const wardenFlash = document.getElementById("wardenFlash");
+    const wardenQuote = document.getElementById("wardenQuote"); // 💡 For resetting animation
     const wardenAudio = document.getElementById("wardenSound");
 
     deleteForms.forEach(form => {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
+
+        // 🔁 Reset quote animation
+        wardenQuote.classList.remove("scroll-quote");
+        void wardenQuote.offsetWidth;
+        wardenQuote.classList.add("scroll-quote");
 
         // Show Warden flash
         wardenFlash.classList.remove("fade-out");
@@ -147,14 +153,14 @@
           }, 3000);
         }
 
-                // Fade out at 4.8s
-                setTimeout(() => {
+        // Fade out at 4.2s
+        setTimeout(() => {
           wardenFlash.classList.add("fade-out");
         }, 4200);
 
-        // Remove from DOM and submit at 5s
+        // Remove from DOM and submit at 5.5s
         setTimeout(() => {
-          wardenFlash.remove();
+          wardenFlash.style.display = "none"; // ✅ Leave in DOM for reuse
           form.submit();
         }, 5500);
       });
@@ -167,12 +173,6 @@
   });
 </script>
 {% endblock %}
-
-
-
-
-
-
 
 
 

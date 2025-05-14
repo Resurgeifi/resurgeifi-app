@@ -573,7 +573,11 @@ def history():
     )
     db.close()
     return render_template("history.html", history=history_items)
+@app.route('/new_circle')
+def new_circle():
+    return render_template('new_circle.html')
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5050)
+    app.run(debug=True, host='0.0.0.0', port=5050)
+
