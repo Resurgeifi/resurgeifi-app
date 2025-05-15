@@ -40,8 +40,12 @@ load_dotenv()
 
 # ✅ Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/contact": {"origins": "*"}})  # temporary wildcard for testing
-
+CORS(app, supports_credentials=True, resources={
+    r"/contact": {
+        "origins": "*",
+        "methods": ["POST", "OPTIONS"]
+    }
+})
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
 
 # ✅ Configure Flask-Mail
@@ -592,6 +596,9 @@ def contact():
 
 
     return "No message provided", 400
+@app.route("/contact", methods=["OPTIONS"])
+def contact_options():
+    return '', 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
