@@ -551,24 +551,6 @@ def feedback():
         flash("Please enter a message.")
 
     return render_template("feedback.html")
-@app.route("/contact", methods=["POST"])
-def contact():
-    message = request.form.get("message")
-    name = request.form.get("name", "Unknown")
-    email_addr = request.form.get("email", "No email provided")
-
-    if message:
-        email = Message(
-            subject=f"📨 Contact Form from {name}",
-            recipients=[os.getenv("MAIL_FEEDBACK_RECIPIENT")],
-            body=f"Name: {name}\nEmail: {email_addr}\n\nMessage:\n{message}"
-        )
-        mail.send(email)
-        return render_template("thankyou.html")
-
-    return "No message provided", 400
-
-
 @app.route("/history")
 @login_required
 def history():
@@ -606,7 +588,8 @@ def contact():
             body=f"Name: {name}\nEmail: {email_addr}\n\nMessage:\n{message}"
         )
         mail.send(email)
-        return render_template("thankyou.html")
+        return "<h2>Thanks for signing up. You’re part of something real.</h2>", 200
+
 
     return "No message provided", 400
 
