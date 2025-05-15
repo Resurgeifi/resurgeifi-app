@@ -40,7 +40,7 @@ load_dotenv()
 
 # ✅ Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # ✅ Now placed after app init
+CORS(app, resources={r"/contact": {"origins": "*"}})  # temporary wildcard for testing
 
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
 
