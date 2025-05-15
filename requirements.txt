@@ -10,3 +10,4 @@ werkzeug
 
 Flask-Mail
 pytz
+flask-cors
