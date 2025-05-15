@@ -593,6 +593,22 @@ def history():
 @app.route('/new_circle')
 def new_circle():
     return render_template('new_circle.html')
+@app.route("/contact", methods=["POST"])
+def contact():
+    message = request.form.get("message")
+    name = request.form.get("name", "Unknown")
+    email_addr = request.form.get("email", "No email provided")
+
+    if message:
+        email = Message(
+            subject=f"📨 Contact Form from {name}",
+            recipients=[os.getenv("MAIL_FEEDBACK_RECIPIENT")],
+            body=f"Name: {name}\nEmail: {email_addr}\n\nMessage:\n{message}"
+        )
+        mail.send(email)
+        return render_template("thankyou.html")
+
+    return "No message provided", 400
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
