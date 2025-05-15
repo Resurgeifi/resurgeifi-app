@@ -576,6 +576,30 @@ def history():
 @app.route('/new_circle')
 def new_circle():
     return render_template('new_circle.html')
+@app.route("/contact", methods=["POST"])
+def contact():
+    name = request.form.get("name")
+    email = request.form.get("email")
+    message = request.form.get("message")
+
+    signup_msg = Message(
+        subject=f"New Resurgifi Alpha Tester: {name}",
+        recipients=[os.getenv('MAIL_FEEDBACK_RECIPIENT')],
+        body=f"""
+New tester signup:
+
+Name: {name}
+Email: {email}
+Message: {message if message else '—'}
+"""
+    )
+
+    try:
+        mail.send(signup_msg)
+        return render_template("thankyou.html", name=name)
+    except Exception as e:
+        print("Email sending error:", e)
+        return "Something went wrong. Try again later.", 500
 
 
 if __name__ == '__main__':
