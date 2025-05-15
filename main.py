@@ -3,14 +3,11 @@ import os
 import random
 from datetime import datetime
 from uuid import uuid4
-from flask_cors import CORS
-CORS(app)
 
 # 🌐 Timezone Handling
 import pytz
 from pytz import timezone as tz, all_timezones
-# ✅ Utility to handle timestamp localization
-from pytz import utc
+from pytz import utc  # ✅ Utility to handle timestamp localization
 
 def localize_time(utc_time, user_timezone):
     if not user_timezone:
@@ -24,6 +21,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # 🌍 Flask Core
 from flask import Flask, abort, render_template, request, redirect, url_for, session, flash
 from flask_mail import Mail, Message
+from flask_cors import CORS  # ✅ Add this to support cross-origin POSTs
 
 # 🧪 Environment Config
 from dotenv import load_dotenv
@@ -37,12 +35,13 @@ from models import Base, User, JournalEntry, QueryHistory
 from rams import HERO_NAMES, build_context, select_heroes, build_prompt
 from markupsafe import Markup
 
-
 # ✅ Load environment variables
 load_dotenv()
 
 # ✅ Initialize Flask app
 app = Flask(__name__)
+CORS(app)  # ✅ Now placed after app init
+
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
 
 # ✅ Configure Flask-Mail
