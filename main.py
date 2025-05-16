@@ -580,6 +580,8 @@ def history():
 @app.route('/new_circle')
 def new_circle():
     return render_template('new_circle.html')
+from flask import make_response
+
 @app.route("/contact", methods=["POST"])
 def contact():
     message = request.form.get("message")
@@ -593,13 +595,21 @@ def contact():
             body=f"Name: {name}\nEmail: {email_addr}\n\nMessage:\n{message}"
         )
         mail.send(email)
-        return "<h2>Thanks for signing up. You’re part of something real.</h2>", 200
-
+        response = make_response("Thanks, you're in.")
+        response.headers['Access-Control-Allow-Origin'] = 'https://resurgelabs.com'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response
 
     return "No message provided", 400
 @app.route("/contact", methods=["OPTIONS"])
 def contact_options():
-    return '', 200
+    response = make_response()
+    response.headers['Access-Control-Allow-Origin'] = 'https://resurgelabs.com'
+    response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
