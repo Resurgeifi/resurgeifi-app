@@ -42,10 +42,11 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={
     r"/contact": {
-        "origins": "*",
+        "origins": ["https://resurgelabs.com"],
         "methods": ["POST", "OPTIONS"]
     }
 })
+
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
 
 # ✅ Configure Flask-Mail
