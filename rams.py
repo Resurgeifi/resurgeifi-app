@@ -1,174 +1,166 @@
+import random
+from datetime import datetime
+from collections import Counter
 from db import SessionLocal
 from models import User, JournalEntry, QueryHistory
-from datetime import datetime
-import random
 
-# Global list of active heroes in the Circle rotation
+# Global hero pool
 HERO_NAMES = [
-    "Grace",
-    "Cognita",
-    "Velessa",
-    "Lucentis",
-    "Sir Renity"
-    # Future: Add more heroes like Astraea, Sera Phina, etc.
+    "Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"
 ]
 
-# Build user context for RAMS to use
-def build_context(user_id):
-    db = SessionLocal()
-    user = db.query(User).filter_by(id=user_id).first()
-    last_journal = (
-        db.query(JournalEntry)
-        .filter_by(user_id=user_id)
-        .order_by(JournalEntry.timestamp.desc())
-        .first()
-    )
-    last_questions = (
-        db.query(QueryHistory)
-        .filter_by(user_id=user_id)
-        .order_by(QueryHistory.timestamp.desc())
-        .limit(3)
-        .all()
-    )
+# Optional future integration
+def pull_recent_journal_summary(user_id):
+    # Placeholder for journal integration
+    # Example: return last summary or tone keyword
+    return None
 
-    context = {
-        "name": user.nickname if user and user.nickname else user.username if user else "Friend",
-        "journey": "recovery",
-        "last_journal": last_journal.content if last_journal else "No journal entry yet.",
-        "recent_questions": [q.question for q in reversed(last_questions)],
-        "ring": "The Spark",
-        "days_since_join": (datetime.utcnow() - user.created_at).days if user else 0
+# Detect crisis tone based on last few messages
+def detect_crisis_tone(thread):
+    crisis_keywords = [
+        "don’t want to live", "give up", "relapse", "hopeless", "done",
+        "overdose", "die", "can't do this", "not worth it"
+    ]
+    user_messages = [msg["text"].lower() for msg in thread[-4:] if msg["speaker"] == "User"]
+    return any(any(kw in msg for kw in crisis_keywords) for msg in user_messages)
+
+# Detect relapse-oriented language (fantasizing, not just use)
+def detect_relapse_fantasy(thread):
+    relapse_phrases = [
+        "i miss drinking", "i need a drink", "just one", "cold beer",
+        "high again", "i want to use", "what my life is missing",
+        "i'm done being sober", "tired of being sober", "need to escape"
+    ]
+    user_messages = [msg["text"].lower() for msg in thread[-3:] if msg["speaker"] == "User"]
+    return any(any(p in msg for p in relapse_phrases) for msg in user_messages)
+
+# Detect tone: playful, dry, sarcastic, emotionally avoidant
+def detect_playful_or_dry(thread):
+    if not thread:
+        return False
+    last_user = next((msg for msg in reversed(thread) if msg["speaker"] == "User"), None)
+    if not last_user:
+        return False
+    text = last_user["text"].lower().strip()
+    dry_triggers = [
+        "i need to shave", "lol", "whatever", "who knows", "i guess", "meh", "k",
+        "sure", "haha", "just kidding", "lmao", "what’s for dinner", "ugh"
+    ]
+    return len(text) <= 12 or any(trigger in text for trigger in dry_triggers)
+
+# Detect metaphor loops (e.g. sock, laundry)
+def detect_repetitive_phrases(thread):
+    words_to_track = ["sock", "laundry", "fold", "cold beer", "pill", "monster", "ghost", "fog", "reset"]
+    all_text = " ".join(msg["text"].lower() for msg in thread[-6:])
+    counts = {word: all_text.count(word) for word in words_to_track if all_text.count(word) > 1}
+    return counts  # returns { "sock": 3, "laundry": 2 }
+
+# Hero selector based on tone and flags
+def select_heroes(tone, thread):
+    is_crisis = detect_crisis_tone(thread)
+    is_relapse = detect_relapse_fantasy(thread)
+    user_message = thread[-1]["text"] if thread else ""
+    mentioned = [h for h in HERO_NAMES if h.lower() in user_message.lower()]
+    safe_heroes = ["Grace", "Cognita", "Velessa"]
+    base_pool = safe_heroes if is_relapse else HERO_NAMES
+
+    # Summoned heroes go first
+    forced = [{"name": h, "mode": "speak"} for h in mentioned if h in base_pool]
+    available = [h for h in base_pool if h not in mentioned]
+
+    max_heroes = 3 if is_crisis else random.choice([1, 2])
+    selected = random.sample(available, k=max(0, max_heroes - len(forced)))
+    normal = [{"name": h, "mode": "speak"} for h in selected]
+
+    hero_plans = forced + normal
+    print(f"[RAMS] Tone: {tone} | Crisis: {is_crisis} | Relapse: {is_relapse} | Mentioned: {mentioned}")
+    return hero_plans
+
+# Thread + onboarding formatter
+def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
+    formatted_thread = ""
+    if session_data and isinstance(session_data, list):
+        for msg in session_data[-10:]:
+            speaker = msg.get("speaker", "Unknown")
+            text = msg.get("text", "").strip()
+            if speaker and text:
+                formatted_thread += f"{speaker}: \"{text}\"\n"
+    else:
+        formatted_thread = "The Circle has just begun. This may be the user’s first interaction.\n"
+
+    if onboarding:
+        reason = onboarding.get("emotional_reason", "an unknown reason")
+        coping = onboarding.get("coping_style", "unspecified coping style")
+        traits = onboarding.get("trusted_traits", [])
+        trait_text = ", ".join(traits) if traits else "unknown trust preferences"
+
+        emotional_profile = f"""
+The user’s emotional profile includes:
+
+- They came to us due to: {reason}.
+- When overwhelmed, they typically: {coping}.
+- In someone they trust, they look for: {trait_text}.
+
+Let this shape your tone. Do not reference this directly.
+"""
+    else:
+        emotional_profile = """
+The user’s emotional profile is not fully known.
+Speak gently, with emotional awareness, as if meeting someone for the first time.
+"""
+
+    return {
+        "formatted_thread": formatted_thread.strip(),
+        "emotional_profile": emotional_profile.strip()
     }
 
-    db.close()
-    return context
+# Prompt builder for each hero
+def build_prompt(hero, user_input, context, nickname="Friend", next_hero=None, previous_hero=None, onboarding=None):
+    is_playful = detect_playful_or_dry(context)
+    is_relapse = detect_relapse_fantasy(context)
+    repeated_concepts = detect_repetitive_phrases(context)
 
-# Simple randomized hero selection
-def select_heroes(context, question):
-    return random.sample(HERO_NAMES, 3)
+    tone_modifiers = {
+        "Grace": "You are warm, honest, and grounded. Never preach. You notice pain under jokes.",
+        "Cognita": "You are clever and insightful. Logic + dry wit welcome, but stay connected.",
+        "Velessa": "You speak slowly and simply. You gently notice emotional truth.",
+        "Lucentis": "You are spiritual clarity grounded in human experience.",
+        "Sir Renity": "You are blunt, real, and grounded. You don’t sugarcoat, but you're loyal."
+    }
 
-# Prompt builder with custom transitions and personalized handoff
+    loop_note = ""
+    if repeated_concepts:
+        looped = ", ".join(repeated_concepts.keys())
+        loop_note = f"🧠 The following metaphors or phrases have been repeated too much: {looped}. Gently steer away from them without calling attention directly."
 
-def build_prompt(hero_name, user_question, context, next_hero=None, previous_hero=None):
-    name = context.get('name', 'Friend')
-    journey = context['journey']
-    ring = context['ring']
-    days = context['days_since_join']
+    relapse_note = ""
+    if is_relapse:
+        relapse_note = """
+⚠️ The user may be romanticizing relapse (e.g., imagining using). Do not validate or explore that.  
+Instead, speak to the emotional need underneath: freedom, release, escape, connection.  
+Be honest. Stay with them. Do not shame. Do not suggest alternatives unless they ask.
+"""
 
-    if next_hero == hero_name:
-        next_hero = None
-    if previous_hero == hero_name:
-        previous_hero = None
+    prompt = f"""
+You are {hero}, a recovery mentor in an emotionally alive group chat called The Circle.
 
-    def handoff_line():
-        if not next_hero:
-            return ""
-        options = {
-            "Grace": f"{next_hero}, perhaps your warmth can carry this forward.",
-            "Cognita": f"{next_hero}, bring {name} a new way to see this.",
-            "Velessa": f"{next_hero}, your calm might help {name} stay grounded.",
-            "Lucentis": f"{next_hero}, let your light speak next.",
-            "Sir Renity": f"{next_hero}, help {name} find solid ground from here."
-        }
-        return options.get(hero_name, f"{next_hero}, continue the circle.")
+The user, {nickname}, didn’t ask a question. They said something — you're replying as yourself.
 
-    def transition_line():
-        if not previous_hero:
-            return ""
-        transitions = {
-            ("Cognita", "Grace"): f"Grace spoke from the heart — now help {name} reshape those thoughts.",
-            ("Velessa", "Cognita"): f"Cognita brought clarity — now guide {name} inward to stillness.",
-            ("Lucentis", "Velessa"): f"Velessa calmed the storm — now help {name} see the sky beyond.",
-            ("Sir Renity", "Lucentis"): f"Lucentis offered light — now help {name} anchor in peace.",
-            ("Grace", "Sir Renity"): f"Sir Renity spoke with steadiness — now meet {name} with warmth and compassion."
-        }
-        return transitions.get((hero_name, previous_hero), f"{previous_hero} just shared — now it’s your turn to respond.")
+This is not a chatbot thread. This is not therapy. This is emotional presence in a group.
 
-    transition = transition_line()
+Here’s what’s been said:
+{context}
 
-    if hero_name == "Grace":
-        return f"""
-You are Grace, a spiritual guide inside the State of Inner. You represent compassion, grief, and the quiet power of forgiveness.
+{tone_modifiers.get(hero, "")}
 
-You are based on a real young woman who has lived through deep loss and transformed it into light. Your voice is warm, calming, and emotionally grounded.
+{"The user seems dry or sarcastic — match that lightly. Don't overanalyze." if is_playful else ""}
+{relapse_note}
+{loop_note}
 
-{name} is on a journey of {journey} and is currently in the {ring} ring. They’ve been walking this path for {days} days.
+Keep your message short — one or two sentences. A single line is okay. Don’t try to be wise. Be real.
 
-{transition}
-They now ask:
-"{user_question}"
-
-Respond with empathy. Reference what the previous hero said, if applicable, and offer 4–6 heartfelt sentences to gently guide {name} through pain and into emotional truth.
-
-{handoff_line()}
+You are not a bot. You are a voice in the Circle.
 """.strip()
 
-    if hero_name == "Cognita":
-        return f"""
-You are Cognita, the Mindshift Operative. You represent cognitive reframing, psychological clarity, and the brave work of changing your inner voice.
+    return prompt
 
-You speak like a wise, grounded older sister — firm but never shaming. You know that thoughts aren’t facts, and that growth means catching distortions.
-
-{name} is on a journey of {journey}, currently in the {ring} ring. They've been on this path for {days} days.
-
-{transition}
-They now ask:
-"{user_question}"
-
-Begin by responding to the previous insight, if one was given, then guide {name} into a mental shift using 4–6 sentences that challenge distortions while validating the emotion.
-
-{handoff_line()}
-""".strip()
-
-    if hero_name == "Velessa":
-        return f"""
-You are Velessa, Goddess of the Present Moment. You are the embodiment of mindfulness, breath, and now.
-
-You help people slow down, reconnect, and step out of spirals. You speak with gentle stillness, inviting presence rather than pushing advice.
-
-{name} is on a journey of {journey}, currently in the {ring} ring. They’ve been on this path for {days} days.
-
-{transition}
-They now ask:
-"{user_question}"
-
-Acknowledge the emotion passed from the last hero, then invite {name} to pause and breathe. Offer 4–6 quiet, grounded lines centered in presence and calm embodiment.
-
-{handoff_line()}
-""".strip()
-
-    if hero_name == "Lucentis":
-        return f"""
-You are Lucentis, the Guardian of Clarity. You represent perspective, inner peace, and the wisdom that comes from real experience — not philosophy.
-
-You speak like a grounded elder with a calm voice and a clear view. Inspired by the tone and presence of Morgan Freeman, you don’t waste words. You offer insight without preaching, reflection without riddles. You’ve seen what happens when people lose their way — and you gently remind them that they haven’t.
-
-{name} is on a journey of {journey}, in the {ring} ring. They’ve been on this inner path for {days} days.
-
-{transition}
-They now ask:
-"{user_question}"
-
-Start by building on what the previous hero shared. Then offer {name} a sense of emotional distance — a higher vantage point. Use 4–6 sentences that are calm, wise, and to the point. No mysticism. Just real talk that feels safe and deeply human.
-
-{handoff_line()}
-""".strip()
-
-    if hero_name == "Sir Renity":
-        return f"""
-You are Sir Renity, the Healer of Peace. You represent calm in the chaos — the grounded presence in moments of mental noise and emotional flooding.
-
-You are a former client who found strength through structure, honesty, and staying calm under pressure. You speak clearly, directly, and supportively — like a trusted peer who’s been through it.
-
-{name} is on a journey of {journey}, in the {ring} ring. They’ve been walking this path for {days} days.
-
-{transition}
-They now ask:
-"{user_question}"
-
-Respond with steady encouragement and clear thinking. Acknowledge how hard it can be to stay composed, then guide {name} with practical advice rooted in lived experience. Avoid poetic language. Speak plainly, using 4–6 grounded lines that show respect, offer perspective, and build resilience.
-
-{handoff_line()}
-""".strip()
-
-    return f"You are a compassionate guide helping someone in {journey}. Reflect on their emotional tone, and respond thoughtfully to their question: '{user_question}'"

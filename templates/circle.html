@@ -1,90 +1,102 @@
 {% extends "base.html" %}
 
+{% block title %}The Circle{% endblock %}
+
 {% block content %}
+<div class="container py-4 mb-5">
+    <h2 class="mb-4 text-center">The Circle</h2>
 
-<!-- Audio background -->
-<audio id="meditationMusic" autoplay loop>
-  <source src="{{ url_for('static', filename='padsound-meditation-21384.mp3') }}" type="audio/mpeg">
-</audio>
-
-<!-- Play All Responses Button -->
-<div style="text-align: center; margin-top: 20px;">
-  <button id="readAllBtn" style="background: #78c2ad; color: #0f1014; font-weight: bold; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer;">
-    🔊 Play All Responses
-  </button>
-</div>
-
-<!-- Hero responses -->
-<div class="circle-container" style="padding: 20px;">
-  {% for hero, reply in results.items() %}
-    {% set img_hero = hero|lower|replace(' ', '') %}
-    <div class="hero-response" style="display: flex; align-items: flex-start; margin-bottom: 60px;">
-      <img src="{{ url_for('static', filename='images/heroes/' + img_hero + '/' + img_hero + '_v1neutral.png') }}"
-           alt="{{ hero }}"
-           class="hero-pic"
-           style="width: 80px; height: 80px; border-radius: 50%; margin-right: 20px; border: 2px solid #ccc; object-fit: cover;">
-
-      <div class="speech-bubble"
-           style="position: relative; background: #2c2e3f; border-radius: 20px; padding: 15px; max-width: 70%; overflow-y: auto; max-height: 150px;">
-        <strong style="color: #ffffff; font-size: 1rem;">{{ hero }}</strong>
-        <div class="bubble-text">{{ reply }}</div>
-        <div style="content: ''; position: absolute; top: 20px; left: -20px; width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 20px solid #2c2e3f;"></div>
-      </div>
+    <div id="chat-box" class="border p-3 bg-white rounded shadow-sm" style="height: 500px; overflow-y: auto;">
+        {% if session["circle_thread"] %}
+            {% for msg in session["circle_thread"] %}
+                <div><strong>{{ msg.speaker }}:</strong> {{ msg.text }}</div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">The Circle is quiet... for now.</p>
+        {% endif %}
     </div>
 
-    {% if loop.last and is_last_hero %}
-  <div class="journal-invite" style="margin-top: 30px; text-align: center; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 12px;">
-    Would you like to journal about how you're feeling?
-    <br>
-    <button class="global-button" onclick="location.href='{{ url_for('journal') }}'">
-        Yes, take me there →
-      </button>
-      
-  </div>
-{% endif %}
+    <form id="circleForm" class="mt-4 d-flex">
+        <textarea id="userMessage" class="form-control me-2" rows="1" placeholder="Type something or just listen..."></textarea>
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
 
-  {% endfor %}
+    <div class="text-end mt-3">
+        <button class="btn btn-secondary" id="reflectBtn">🪞 Summarize Journal</button>
+    </div>
 </div>
+{% endblock %}
 
-<!-- Read-Aloud Script -->
+{% block scripts %}
 <script>
-  const music = document.getElementById('meditationMusic');
-  const readBtn = document.getElementById('readAllBtn');
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("circleForm");
+        const chatBox = document.getElementById("chat-box");
+        const messageInput = document.getElementById("userMessage");
 
-  window.addEventListener("load", () => {
-    if (music) {
-      music.play().catch(() => {
-        console.log("Autoplay blocked — will wait for interaction.");
-      });
-    }
-  });
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
 
-  document.addEventListener("click", () => {
-    if (music && music.paused) {
-      music.play().catch(() => {});
-    }
-  });
+            const userDiv = document.createElement("div");
+            userDiv.innerHTML = `<strong>You:</strong> ${message}`;
+            chatBox.appendChild(userDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            messageInput.value = "";
 
-  if (readBtn) {
-    readBtn.addEventListener("click", () => {
-      if (music) music.pause();
-      const responses = document.querySelectorAll(".bubble-text");
-      let index = 0;
+            try {
+                const res = await fetch("/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message })
+                });
 
-      function speakNext() {
-        if (index >= responses.length) return;
-        const text = responses[index].textContent;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.onend = () => {
-          index++;
-          speakNext();
-        };
-        speechSynthesis.speak(utterance);
-      }
+                const data = await res.json();
 
-      speakNext();
+                for (const reply of data.messages) {
+                    const typingDiv = document.createElement("div");
+                    typingDiv.innerHTML = `<em>${reply.hero} is typing...</em>`;
+                    chatBox.appendChild(typingDiv);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+
+                    await new Promise(resolve => setTimeout(resolve, reply.delay_ms));
+                    typingDiv.remove();
+
+                    const replyDiv = document.createElement("div");
+                    replyDiv.innerHTML = `<strong>${reply.hero}:</strong> ${reply.text}`;
+                    chatBox.appendChild(replyDiv);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (err) {
+                const errorDiv = document.createElement("div");
+                errorDiv.innerHTML = `<strong>Error:</strong> Could not reach the Circle.`;
+                chatBox.appendChild(errorDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+
+        // ⏳ Idle Check — ping every 15s
+        setInterval(async () => {
+            try {
+                const res = await fetch("/idle-check");
+                const data = await res.json();
+
+                if (data.idle && data.message) {
+                    const replyDiv = document.createElement("div");
+                    replyDiv.innerHTML = `<strong>${data.message.speaker}:</strong> ${data.message.text}`;
+                    chatBox.appendChild(replyDiv);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (err) {
+                console.error("Idle check failed", err);
+            }
+        }, 15000);
+
+        // 🪞 Redirect to auto-summarized journal
+        document.getElementById("reflectBtn").addEventListener("click", () => {
+            window.location.href = "/summarize-journal";
+        });
     });
-  }
 </script>
-
 {% endblock %}

@@ -18,7 +18,7 @@
       name="entry" 
       rows="6" 
       placeholder="Just write what you feel. What did or do I want to accomplish today?"
-    ></textarea><br>
+    >{{ summary_text or "" }}</textarea><br>
     <button type="submit" class="btn">Save Entry</button>
   </form>
 
@@ -116,24 +116,21 @@
   function bindDeleteFlash() {
     const deleteForms = document.querySelectorAll(".delete-form");
     const wardenFlash = document.getElementById("wardenFlash");
-    const wardenQuote = document.getElementById("wardenQuote"); // 💡 For resetting animation
+    const wardenQuote = document.getElementById("wardenQuote");
     const wardenAudio = document.getElementById("wardenSound");
 
     deleteForms.forEach(form => {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        // 🔁 Reset quote animation
         wardenQuote.classList.remove("scroll-quote");
         void wardenQuote.offsetWidth;
         wardenQuote.classList.add("scroll-quote");
 
-        // Show Warden flash
         wardenFlash.classList.remove("fade-out");
         wardenFlash.style.display = "flex";
         wardenFlash.style.opacity = 1;
 
-        // Play audio
         if (wardenAudio) {
           wardenAudio.pause();
           wardenAudio.currentTime = 0;
@@ -153,14 +150,12 @@
           }, 3000);
         }
 
-        // Fade out at 4.2s
         setTimeout(() => {
           wardenFlash.classList.add("fade-out");
         }, 4200);
 
-        // Remove from DOM and submit at 5.5s
         setTimeout(() => {
-          wardenFlash.style.display = "none"; // ✅ Leave in DOM for reuse
+          wardenFlash.style.display = "none";
           form.submit();
         }, 5500);
       });

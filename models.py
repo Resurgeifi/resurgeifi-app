@@ -17,10 +17,6 @@ class User(Base):
     nickname = Column(String(50), nullable=True)
     timezone = Column(String(50), default="UTC")
 
-    # Optional: Relationships for future use
-    # journal_entries = relationship("JournalEntry", back_populates="user")
-    # questions = relationship("QuestionLog", back_populates="user")
-
 class JournalEntry(Base):
     __tablename__ = "journal_entries"
 
@@ -42,3 +38,15 @@ class QueryHistory(Base):
     agent_name = Column(String(100))
 
     user = relationship("User", backref="query_history")
+
+# ✅ NEW: Persistent chat message storage for The Circle
+class CircleMessage(Base):
+    __tablename__ = "circle_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    speaker = Column(String(100), nullable=False)  # e.g., "User", "Grace"
+    text = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="circle_messages")

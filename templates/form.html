@@ -23,82 +23,26 @@
   </div>
 </div>
 
-  <!-- Foreground Form Content -->
-  <div class="container inner-circle-wrapper">
-    <h1>🌀 Inner Circle</h1>
-    <p class="mantra">Ask us anything. We’ll meet you where you are.</p>
+<!-- 🚪 Circle Entry CTA -->
+<div class="container inner-circle-wrapper" style="text-align: center; margin-top: 2em;">
+  <h1 style="font-size: 2.2em;">🌀 Ready to Enter the Circle?</h1>
+  <p class="mantra" style="margin-bottom: 1.5em;">The heroes are gathered. They're waiting for you.</p>
 
-    <form method="POST" action="/ask">
-      <label><strong>What’s weighing on your mind today?</strong></label><br><br>
-      <textarea name="question" placeholder="Ask the circle anything... We are here – The Resurgence Squad"></textarea><br>
-      <button type="submit" id="submitBtn">Ask the Circle</button>
-    </form>
-
-    <audio id="meditationAudio" src="{{ url_for('static', filename='padsound-meditation-21384.mp3') }}" loop preload="auto"></audio>
-
-    <div id="confirmation">✅ Reply received from the Circle.</div>
-
-    <div id="spinner" style="display: none;">
-      <div class="emoji-spinner">🌀</div>
-      <p><strong>The Circle is thinking...</strong></p>
-    </div>
-
-    <audio id="chime" src="{{ url_for('static', filename='chime.mp3') }}"></audio>
-
-    {% if results %}
-      <h2>Your Circle Speaks</h2>
-      <button id="readAloudBtn">🔊 Read Aloud</button>
-      {% for name, reply in results.items() %}
-        <div class="response-block">
-          <strong>{{ name }}</strong>
-          <div class="response-text">{{ reply|safe }}</div>
-        </div>
-      {% endfor %}
-    {% endif %}
-  </div>
+  <a href="{{ url_for('circle') }}" 
+   style="background-color: #ff914d; color: white; padding: 12px 24px; border-radius: 14px; text-decoration: none; font-size: 1.2em; font-weight: bold; display: inline-block;">
+  Enter Chat
+</a>
+ 
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector("form");
-    const spinner = document.getElementById("spinner");
-    const confirmation = document.getElementById("confirmation");
-    const button = document.getElementById("submitBtn");
-    const chime = document.getElementById("chime");
     const audio = document.getElementById("meditationAudio");
-
-    if (form) {
-      form.addEventListener("submit", () => {
-        spinner.style.display = "block";
-        button.disabled = true;
-        button.innerText = "Sending...";
-        sessionStorage.setItem("justSubmitted", "true");
-      });
-    }
-
-    if (sessionStorage.getItem("justSubmitted") === "true") {
-      sessionStorage.removeItem("justSubmitted");
-      if (audio) {
-        audio.play().catch(() => {});
-      }
-    }
-
-    if (chime && "{{ results }}" !== "") {
-      chime.play();
-    }
-
-    const readAloudBtn = document.getElementById("readAloudBtn");
-    if (readAloudBtn) {
-      readAloudBtn.addEventListener("click", () => {
-        const responses = document.querySelectorAll(".response-text");
-        responses.forEach(response => {
-          const utterance = new SpeechSynthesisUtterance(response.textContent);
-          speechSynthesis.speak(utterance);
-        });
-      });
+    if (audio) {
+      audio.play().catch(() => {});
     }
   });
 </script>
 {% endblock %}
-
