@@ -70,22 +70,60 @@
 </div>
 
 <!-- 🌟 Cognita Flash -->
-<div id="cognitaFlash" class="hero-flash" style="display: none;">
+<div id="cognitaFlash" class="hero-flash">
   <img src="{{ url_for('static', filename='images/heroes/cognita/cognita_writing.png') }}"
-       class="lucentis-image floaty" alt="Cognita Writing" />
+       alt="Cognita Writing" />
   <p class="hero-quote">“Every time you reflect, you rewire. You just grew.”</p>
 </div>
 
 <!-- 🚩 Warden Fall Flash -->
-<div id="wardenFlash" class="hero-flash" style="display: none;">
+<div id="wardenFlash" class="hero-flash">
   <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}"
-       class="lucentis-image floaty" alt="Warden Fall" />
+       alt="Warden Fall" />
   <p id="wardenQuote" class="scroll-quote">“Some sins echo forever…”</p>
 </div>
 
 <!-- 🔊 AUDIO -->
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
+
+<!-- 🎨 FLASH CSS -->
+<style>
+.hero-flash {
+  position: fixed;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.hero-flash img {
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  animation: pulseGlow 3s ease-out;
+}
+
+.hero-quote, .scroll-quote {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  color: #f6e7c1;
+  text-align: center;
+  animation: scrollUpFade 4s ease-out;
+}
+
+.fade-out {
+  animation: fadeOutSmooth 1s ease-out;
+}
+</style>
 
 <!-- 🧠 Flash Logic -->
 <script>
@@ -105,7 +143,7 @@
         cognitaAudio.play().catch(() => {});
         setTimeout(() => {
           const fade = setInterval(() => {
-            if (cognitaAudio.volume > 0.1) {
+            if (cognitaAudio.volume > 0.05) {
               cognitaAudio.volume -= 0.1;
             } else {
               cognitaAudio.volume = 0;
@@ -145,7 +183,7 @@
           wardenAudio.play().catch(() => {});
           setTimeout(() => {
             const fade = setInterval(() => {
-              if (wardenAudio.volume > 0.1) {
+              if (wardenAudio.volume > 0.05) {
                 wardenAudio.volume -= 0.1;
               } else {
                 wardenAudio.volume = 0;
@@ -172,5 +210,6 @@
   });
 </script>
 {% endblock %}
+
 
 
