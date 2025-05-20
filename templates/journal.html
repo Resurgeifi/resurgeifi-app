@@ -51,15 +51,12 @@
           <span style="margin-left: 10px;">🧠</span>
         </div>
         <div style="margin-top: 0.5rem;">{{ entry.content }}</div>
-        <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;">
-          <!-- ✏️ Edit -->
-          <form method="GET" action="{{ url_for('edit_entry', id=entry.id) }}" style="display: inline;">
-            <button type="submit" class="global-button" style="padding: 8px 16px; font-size: 0.9rem;">Edit</button>
+        <div class="entry-buttons">
+          <form method="GET" action="{{ url_for('edit_entry', id=entry.id) }}">
+            <button type="submit" class="entry-button edit">Edit</button>
           </form>
-
-          <!-- 🗑️ Delete -->
-          <form method="POST" action="/delete-entry/{{ entry.id }}" class="delete-form" style="display: inline;">
-            <button type="submit" class="global-button" style="background-color: #e11d48; padding: 8px 16px; font-size: 0.9rem;">Delete</button>
+          <form method="POST" action="/delete-entry/{{ entry.id }}" class="delete-form">
+            <button type="submit" class="entry-button delete">Delete</button>
           </form>
         </div>
       </div>
@@ -91,7 +88,7 @@
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
 
-<!-- 🎨 FLASH STYLES -->
+<!-- 🎨 STYLES -->
 <style>
 .hero-flash {
   position: fixed;
@@ -138,6 +135,45 @@
 
 .fade-out {
   animation: fadeOutSmooth 1s ease-out;
+}
+
+.entry-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.entry-button {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.2s ease;
+  min-width: 100px;
+}
+
+.entry-button.edit {
+  background-color: #f4a259;
+  color: #1f3e36;
+  border: 2px solid #1f3e36;
+}
+
+.entry-button.edit:hover {
+  background-color: #f69e3e;
+}
+
+.entry-button.delete {
+  background-color: #e11d48;
+  color: #fff;
+  border: 2px solid #590b26;
+}
+
+.entry-button.delete:hover {
+  background-color: #c8103f;
 }
 </style>
 
@@ -226,6 +262,7 @@
   });
 </script>
 {% endblock %}
+
 
 
 
