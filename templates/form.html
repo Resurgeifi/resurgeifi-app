@@ -3,36 +3,46 @@
 {% block title %}Inner Circle | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="hero-arc-spacer">
-  <div class="hero-arc-lineup">
-    <div class="hero hero-left-outer">
-      <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita">
-    </div>
-    <div class="hero hero-left-inner">
-      <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa">
-    </div>
-    <div class="hero hero-center">
-      <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity">
-    </div>
-    <div class="hero hero-right-inner">
-      <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace">
-    </div>
-    <div class="hero hero-right-outer">
-      <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis">
-    </div>
+<!-- 🌀 CIRCLE PAGE TITLE IMAGE -->
+<div class="page-title" style="background-image: url('/static/titles/circle.png');">
+  Circle
+</div>
+
+<!-- 🧠 Hero Arc -->
+<div class="hero-arc-lineup">
+  <div class="hero">
+    <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita" />
+  </div>
+  <div class="hero">
+    <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa" />
+  </div>
+  <div class="hero">
+    <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity" />
+  </div>
+  <div class="hero">
+    <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace" />
+  </div>
+  <div class="hero">
+    <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis" />
   </div>
 </div>
 
-<!-- 🚪 Circle Entry CTA -->
-<div class="container inner-circle-wrapper" style="text-align: center; margin-top: 2em;">
+
+<!-- 🗣️ Hero Bio Flash -->
+<div id="heroBio" style="display: none; position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.88); color: #f6e7c1; padding: 1.5rem; border-radius: 14px; z-index: 9999; text-align: center; max-width: 90%; box-shadow: 0 0 15px black;">
+  <p id="heroBioText" style="font-size: 1.1rem; font-weight: 500;"></p>
+  <button onclick="document.getElementById('heroBio').style.display='none'" class="global-button" style="margin-top: 1rem;">Close</button>
+</div>
+
+<!-- 🚪 CTA -->
+<div class="container inner-circle-wrapper" style="text-align: center; margin-top: 2em; padding-bottom: 100px;">
   <h1 style="font-size: 2.2em;">🌀 Ready to Enter the Circle?</h1>
   <p class="mantra" style="margin-bottom: 1.5em;">The heroes are gathered. They're waiting for you.</p>
 
   <a href="{{ url_for('circle') }}" 
-   style="background-color: #ff914d; color: white; padding: 12px 24px; border-radius: 14px; text-decoration: none; font-size: 1.2em; font-weight: bold; display: inline-block;">
-  Enter Chat
-</a>
- 
+     style="background-color: #ff914d; color: white; padding: 12px 24px; border-radius: 14px; text-decoration: none; font-size: 1.2em; font-weight: bold; display: inline-block;">
+    Enter Chat
+  </a>
 </div>
 {% endblock %}
 
@@ -43,6 +53,24 @@
     if (audio) {
       audio.play().catch(() => {});
     }
+
+    // Hero bios
+    const bios = {
+      "Cognita": "🧠 Cognita - Mindshift Operative: Helps you rewrite your inner code and reframe stuck thoughts.",
+      "Velessa": "🌸 Velessa - Goddess of the Present: She pauses the noise so you can feel your breath again.",
+      "Sir Renity": "🛡️ Sir Renity - Guardian of Calm: His stillness disarms the storm inside you.",
+      "Grace": "✨ Grace - The Light Within: A constant whisper that you are worth saving.",
+      "Lucentis": "🔆 Lucentis - Bringer of Clarity: When you are lost in the fog, he’s the light that finds you."
+    };
+
+    document.querySelectorAll('.hero img').forEach(img => {
+      img.addEventListener('click', () => {
+        const name = img.alt.trim();
+        const text = bios[name] || "Hero bio coming soon.";
+        document.getElementById("heroBioText").textContent = text;
+        document.getElementById("heroBio").style.display = "block";
+      });
+    });
   });
 </script>
 {% endblock %}

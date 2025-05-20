@@ -2,30 +2,36 @@
 {% block title %}Journal | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="container max-700">
-  <h1>🖍️ Your Journal</h1>
+<!-- 🪨 Cracked Stone Title Image -->
+<img src="{{ url_for('static', filename='titles/journal.png') }}" 
+     alt="Journal Title" 
+     style="display: block; max-width: 250px; margin: 2rem auto;" />
 
+
+  <!-- 🔄 Current Ring Status -->
   <div class="ring-status">
-    <p style="font-size: 1rem; color: #aaa;">
+    <p style="font-size: 1.1rem; color: #e0d4b2;">
       🔄 Current Ring: <strong>{{ current_ring }}</strong>
     </p>
   </div>
 
-  <!-- 🌱 New Journal Entry Form -->
-  <form id="journalForm" method="POST" action="/journal">
-    <label for="entry"><strong>What’s on your mind today?</strong></label><br><br>
+  <!-- 📝 Journal Form -->
+  <form id="journalForm" method="POST" action="/journal" style="margin-top: 1.5rem;">
+    <label for="entry" style="font-size: 1.2rem;"><strong>What’s on your mind today?</strong></label><br><br>
     <textarea 
       name="entry" 
       rows="6" 
       placeholder="Just write what you feel. What did or do I want to accomplish today?"
-    >{{ summary_text or "" }}</textarea><br>
-    <button type="submit" class="btn">Save Entry</button>
+      style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #f6e7c1; color: #1f3e36;"
+    >{{ summary_text or "" }}</textarea><br><br>
+    <button type="submit" class="global-button">Save Entry</button>
   </form>
 
-  <hr class="section-divider">
+  <hr class="section-divider" style="margin: 2.5rem 0; border: 1px solid #444;">
 
+  <!-- 📜 Previous Journal Entries -->
   {% if entries %}
-    <h2>Previous Entries</h2>
+    <h2 style="text-align: center; color: #f6e7c1;">Previous Entries</h2>
     {% for entry in entries %}
       <div class="entry-box">
         <div class="timestamp">
@@ -34,22 +40,20 @@
         </div>
         <div style="margin-top: 0.5rem;">{{ entry.content }}</div>
         <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;">
-
-          <!-- ✏️ EDIT BUTTON -->
+          <!-- ✏️ Edit -->
           <form method="GET" action="{{ url_for('edit_entry', id=entry.id) }}" style="display: inline;">
-            <button type="submit" class="btn">Edit</button>
+            <button type="submit" class="global-button" style="padding: 8px 16px; font-size: 0.9rem;">Edit</button>
           </form>
 
-          <!-- 🗑️ DELETE BUTTON -->
+          <!-- 🗑️ Delete -->
           <form method="POST" action="/delete-entry/{{ entry.id }}" class="delete-form" style="display: inline;">
-            <button type="submit" class="btn-small" style="background-color: #e11d48;">Delete</button>
+            <button type="submit" class="global-button" style="background-color: #e11d48; padding: 8px 16px; font-size: 0.9rem;">Delete</button>
           </form>
-
         </div>
       </div>
     {% endfor %}
   {% else %}
-    <p>No entries yet. Your story starts now.</p>
+    <p style="color: #f6e7c1;">No entries yet. Your story starts now.</p>
   {% endif %}
 </div>
 
@@ -71,7 +75,7 @@
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
 
-<!-- 🎮 JS Logic -->
+<!-- 🧠 Flash Logic -->
 <script>
   function bindJournalFlash() {
     const journalForm = document.getElementById("journalForm");
@@ -81,7 +85,6 @@
     if (journalForm) {
       journalForm.addEventListener("submit", function (e) {
         e.preventDefault();
-
         cognitaFlash.style.display = "flex";
         cognitaFlash.style.opacity = 1;
 
@@ -89,8 +92,7 @@
           cognitaAudio.pause();
           cognitaAudio.currentTime = 0;
           cognitaAudio.volume = 1.0;
-          cognitaAudio.play().catch(e => console.warn("Autoplay blocked"));
-
+          cognitaAudio.play().catch(() => {});
           setTimeout(() => {
             const fade = setInterval(() => {
               if (cognitaAudio.volume > 0.1) {
@@ -122,11 +124,9 @@
     deleteForms.forEach(form => {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-
         wardenQuote.classList.remove("scroll-quote");
         void wardenQuote.offsetWidth;
         wardenQuote.classList.add("scroll-quote");
-
         wardenFlash.classList.remove("fade-out");
         wardenFlash.style.display = "flex";
         wardenFlash.style.opacity = 1;
@@ -135,8 +135,7 @@
           wardenAudio.pause();
           wardenAudio.currentTime = 0;
           wardenAudio.volume = 1.0;
-          wardenAudio.play().catch(err => console.warn("Autoplay blocked"));
-
+          wardenAudio.play().catch(() => {});
           setTimeout(() => {
             const fade = setInterval(() => {
               if (wardenAudio.volume > 0.1) {
@@ -168,11 +167,3 @@
   });
 </script>
 {% endblock %}
-
-
-
-
-
-
-
-
