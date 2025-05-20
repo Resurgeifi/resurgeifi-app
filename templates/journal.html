@@ -73,25 +73,29 @@
 <div id="cognitaFlash" class="hero-flash">
   <img src="{{ url_for('static', filename='images/heroes/cognita/cognita_writing.png') }}"
        alt="Cognita Writing" />
-  <p class="hero-quote">“Every time you reflect, you rewire. You just grew.”</p>
+  <div class="speech-box">
+    <p class="hero-quote">“Every time you reflect, you rewire. You just grew.”</p>
+  </div>
 </div>
 
 <!-- 🚩 Warden Fall Flash -->
 <div id="wardenFlash" class="hero-flash">
   <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}"
        alt="Warden Fall" />
-  <p id="wardenQuote" class="scroll-quote">“Some sins echo forever…”</p>
+  <div class="speech-box">
+    <p id="wardenQuote" class="scroll-quote">“Some sins echo forever…”</p>
+  </div>
 </div>
 
 <!-- 🔊 AUDIO -->
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
 
-<!-- 🎨 FLASH CSS -->
+<!-- 🎨 FLASH STYLES -->
 <style>
 .hero-flash {
   position: fixed;
-  top: 12%;
+  top: 10%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -105,18 +109,30 @@
 }
 
 .hero-flash img {
-  max-width: 200px;
+  max-width: 320px;
   width: 100%;
   height: auto;
   object-fit: contain;
   animation: pulseGlow 3s ease-out;
 }
 
-.hero-quote, .scroll-quote {
+.speech-box {
+  background: rgba(0, 0, 0, 0.85);
   margin-top: 1rem;
-  font-size: 1.1rem;
-  color: #f6e7c1;
+  padding: 1.2rem;
+  border-radius: 12px;
+  max-width: 80vw;
   text-align: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.hero-quote, .scroll-quote {
+  font-size: 1.3rem;
+  color: #f6e7c1;
+  line-height: 1.5;
+}
+
+.scroll-quote {
   animation: scrollUpFade 4s ease-out;
 }
 
@@ -210,6 +226,7 @@
   });
 </script>
 {% endblock %}
+
 
 
 
