@@ -27,7 +27,6 @@
   </div>
 </div>
 
-
 <!-- 🗣️ Hero Bio Flash -->
 <div id="heroBio" style="display: none; position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.88); color: #f6e7c1; padding: 1.5rem; border-radius: 14px; z-index: 9999; text-align: center; max-width: 90%; box-shadow: 0 0 15px black;">
   <p id="heroBioText" style="font-size: 1.1rem; font-weight: 500;"></p>
@@ -35,12 +34,13 @@
 </div>
 
 <!-- 🚪 CTA -->
-<div class="container inner-circle-wrapper" style="text-align: center; margin-top: 2em; padding-bottom: 100px;">
-  <h1 style="font-size: 2.2em;">🌀 Ready to Enter the Circle?</h1>
-  <p class="mantra" style="margin-bottom: 1.5em;">The heroes are gathered. They're waiting for you.</p>
+<div class="container inner-circle-wrapper" style="text-align: center; margin-top: 2em; margin-bottom: 8rem;">
+  <h1>🌀 Ready to Enter the Circle?</h1>
+  <p class="mantra">The heroes are gathered. They're waiting for you.</p>
 
   <a href="{{ url_for('circle') }}" 
-     style="background-color: #ff914d; color: white; padding: 12px 24px; border-radius: 14px; text-decoration: none; font-size: 1.2em; font-weight: bold; display: inline-block;">
+     class="global-button"
+     style="font-size: 1.2em;">
     Enter Chat
   </a>
 </div>
@@ -54,13 +54,12 @@
       audio.play().catch(() => {});
     }
 
-    // Hero bios
     const bios = {
-      "Cognita": "🧠 Cognita - Mindshift Operative: Helps you rewrite your inner code and reframe stuck thoughts.",
-      "Velessa": "🌸 Velessa - Goddess of the Present: She pauses the noise so you can feel your breath again.",
-      "Sir Renity": "🛡️ Sir Renity - Guardian of Calm: His stillness disarms the storm inside you.",
-      "Grace": "✨ Grace - The Light Within: A constant whisper that you are worth saving.",
-      "Lucentis": "🔆 Lucentis - Bringer of Clarity: When you are lost in the fog, he’s the light that finds you."
+      "Cognita": "🧠 Cognita – Mindshift Operative: Helps you rewrite your inner code and reframe stuck thoughts.",
+      "Velessa": "🌸 Velessa – Goddess of the Present: She pauses the noise so you can feel your breath again.",
+      "Sir Renity": "🛡️ Sir Renity – Guardian of Calm: His stillness disarms the storm inside you.",
+      "Grace": "✨ Grace – The Light Within: A constant whisper that you are worth saving.",
+      "Lucentis": "🔆 Lucentis – Bringer of Clarity: When you are lost in the fog, he’s the light that finds you."
     };
 
     document.querySelectorAll('.hero img').forEach(img => {

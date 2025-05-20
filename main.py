@@ -246,7 +246,7 @@ def menu():
     user = db.query(User).filter_by(username=session['username']).first()
     db.close()
 
-    # ✅ Calculate days on journey
+    # ✅ Days on journey
     journey_start_date = session.get('journey_start_date')
     days_on_journey = 0
     if journey_start_date:
@@ -255,6 +255,16 @@ def menu():
             days_on_journey = (datetime.now().date() - start_date.date()).days
         except Exception as e:
             print("Journey date error:", e)
+
+    # ✅ Ring level, journal count, last journal entry
+    current_ring = session.get("current_ring", "Unranked")
+    journal_entries = session.get("journal_entries", [])
+    journal_count = len(journal_entries)
+    last_journal = journal_entries[-1]["timestamp"] if journal_entries else None
+
+    # ✅ Last Circle message
+    circle_thread = session.get("circle_thread", [])
+    last_circle_msg = circle_thread[-1]["text"] if circle_thread else None
 
     quotes = [
         "You’re not behind — you’re becoming.",
@@ -271,7 +281,11 @@ def menu():
         journey=user.theme_choice or "Not Selected",
         streak=session.get('streak', 0),
         last_entry=session.get('last_entry', None),
-        days_on_journey=days_on_journey
+        days_on_journey=days_on_journey,
+        current_ring=current_ring,
+        journal_count=journal_count,
+        last_journal=last_journal,
+        last_circle_msg=last_circle_msg
     )
 
 
