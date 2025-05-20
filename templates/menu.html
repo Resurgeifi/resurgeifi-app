@@ -2,10 +2,10 @@
 {% block title %}State of Inner | Resurgifi{% endblock %}
 
 {% block content %}
-<!-- 🗿 Stone-Carved Page Title -->
-<div class="page-title" style="background-image: url('/static/titles/stateofinner.png');">
-  State of Inner
-</div>
+<!-- 🗿 State of Inner Title Image (VISIBLE) -->
+<img src="{{ url_for('static', filename='titles/stateofinner.png') }}" 
+     alt="State of Inner Title" 
+     style="display: block; max-width: 250px; margin: 2rem auto;" />
 
 <!-- 🔍 Inner Snapshot -->
 <div class="container settings-page" style="text-align: center; margin-top: 2rem;">
@@ -24,3 +24,4 @@
   <p class="mantra" style="margin-top: 2rem;">Every entry, every question, every pause... it all counts.</p>
 </div>
 {% endblock %}
+

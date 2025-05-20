@@ -245,33 +245,49 @@ def landing():
 @app.route("/menu")
 @login_required
 def menu():
-    if 'username' not in session:
-        return redirect(url_for('register'))
-
     db = SessionLocal()
     user = db.query(User).filter_by(username=session['username']).first()
-    db.close()
 
-    # Journey tracking
-    journey_start_date = session.get('journey_start_date')
+    if not user:
+        db.close()
+        flash("User not found.")
+        return redirect(url_for('login'))
+
+    # ✅ Calculate journey days
     days_on_journey = 0
-    if journey_start_date:
+    if user.journey_start_date:
         try:
-            start_date = datetime.strptime(journey_start_date, '%Y-%m-%d')
-            days_on_journey = (datetime.now().date() - start_date.date()).days
+            days_on_journey = (datetime.now().date() - user.journey_start_date.date()).days
         except Exception as e:
-            print("Journey date error:", e)
+            print("🔥 Error calculating journey days:", e)
+
+    # ✅ Journal entry count
+    journal_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()
+    journal_count = len(journal_entries)
+    last_journal = journal_entries[0].timestamp.strftime("%b %d, %Y") if journal_entries else None
+
+    # ✅ Circle message count (today only)
+    circle_thread = session.get("circle_thread", [])
+    today = datetime.now().date()
+    circle_today = [msg for msg in circle_thread if "timestamp" in msg and datetime.fromisoformat(msg["timestamp"]).date() == today]
+    last_circle_msg = None
+    for msg in reversed(circle_today):
+        if msg["speaker"] != "User":
+            last_circle_msg = msg["text"]
+            break
+
+    # ✅ Clean up
+    db.close()
 
     return render_template(
         "menu.html",
-        current_ring=session.get("current_ring", "Unranked"),
-        last_circle_msg=session.get("last_circle_msg", None),
-        last_journal=session.get("last_entry", None),
-        journal_count=session.get("journal_count", 0),
-        streak=session.get("streak", 0),
-        days_on_journey=days_on_journey
+        current_ring=user.theme_choice or "Unranked",
+        days_on_journey=days_on_journey,
+        journal_count=journal_count,
+        last_journal=last_journal,
+        last_circle_msg=last_circle_msg,
+        streak=session.get('streak', 0)
     )
-
 
 @app.route("/home1")
 @login_required
@@ -349,17 +365,20 @@ def settings():
         if 'journey_start_date' in form:
             date_str = form.get("journey_start_date")
             if date_str:
-                user.journey_start = date_str  # 🛠️ FIX: now saving to DB
-                session['journey_start_date'] = date_str
-                db.commit()
-                flash("Journey start date saved.", "success")
+                try:
+                    parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
+                    user.journey_start_date = parsed_date
+                    db.commit()
+                    flash("Journey start date saved.", "success")
+                except ValueError:
+                    flash("Invalid date format.", "error")
                 return redirect(url_for('settings'))
 
-    # 🧠 Pull saved or session data
+    # 🧠 Pull saved values
     current_journey = user.theme_choice or "Not Selected"
     timezone = user.timezone or ""
     nickname = user.nickname or ""
-    journey_start_date = session.get("journey_start_date") or (user.journey_start or "")
+    journey_start_date = user.journey_start_date.strftime('%Y-%m-%d') if user.journey_start_date else ""
 
     db.close()
 
