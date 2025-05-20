@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block title %}Inner Circle | Resurgifi{% endblock %}
 
 {% block content %}
@@ -9,26 +8,20 @@
      style="display: block; max-width: 280px; margin: 2rem auto;" />
 
 <!-- 🧠 Hero Arc Lineup -->
-<div class="hero-arc-lineup" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; padding: 2rem 1rem; max-width: 1200px; margin: 0 auto;">
-  <div class="hero" style="flex: 0 1 150px;">
-    <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita" />
-  </div>
-  <div class="hero" style="flex: 0 1 150px;">
-    <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa" />
-  </div>
-  <div class="hero" style="flex: 0 1 150px;">
-    <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity" />
-  </div>
-  <div class="hero" style="flex: 0 1 150px;">
-    <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace" />
-  </div>
-  <div class="hero" style="flex: 0 1 150px;">
-    <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis" />
-  </div>
+<div class="hero-arc-lineup">
+  {% for hero in ["Cognita", "Velessa", "SirRenity", "Grace", "Lucentis"] %}
+    <div class="hero">
+      <img src="{{ url_for('static', filename='images/heroes/' + hero + '_Transparent.png') }}"
+           alt="{{ hero }}" />
+    </div>
+  {% endfor %}
 </div>
 
 <!-- 🗣️ Hero Bio Flash -->
-<div id="heroBio" style="display: none; position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.88); color: #f6e7c1; padding: 1.5rem; border-radius: 14px; z-index: 9999; text-align: center; max-width: 90%; box-shadow: 0 0 15px black;">
+<div id="heroBio"
+     style="display: none; position: fixed; top: 30%; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.88); color: #f6e7c1; padding: 1.5rem; border-radius: 14px;
+            z-index: 9999; text-align: center; max-width: 90%; box-shadow: 0 0 15px black;">
   <p id="heroBioText" style="font-size: 1.1rem; font-weight: 500;"></p>
   <button onclick="document.getElementById('heroBio').style.display='none'" class="global-button" style="margin-top: 1rem;">Close</button>
 </div>
@@ -66,4 +59,3 @@
   });
 </script>
 {% endblock %}
-

@@ -2,7 +2,7 @@
 {% block title %}State of Inner | Resurgifi{% endblock %}
 
 {% block content %}
-<!-- 🗿 State of Inner Title Image (VISIBLE) -->
+<!-- 🗿 State of Inner Title Image -->
 <img src="{{ url_for('static', filename='titles/stateofinner.png') }}" 
      alt="State of Inner Title" 
      style="display: block; max-width: 250px; margin: 2rem auto;" />
@@ -13,7 +13,13 @@
 
   <div class="card-dark" style="margin-top: 1.5rem; padding: 1.5rem;">
     <p><strong>🌀 Current Ring:</strong> {{ current_ring or "Unranked" }}</p>
-    <p><strong>📈 Days on Journey:</strong> {{ days_on_journey or 0 }} day{{ 's' if (days_on_journey|int) != 1 else '' }}</p>
+
+    <!-- 🧭 Animated Days Count -->
+    <p><strong>📈 Days on Journey:</strong> 
+      <span id="days-display">{{ days_on_journey or 0 }}</span> 
+      day{{ 's' if (days_on_journey|int) != 1 else '' }}
+    </p>
+
     <p><strong>🔥 Streak:</strong> {{ streak or 0 }} day{{ 's' if (streak|int) != 1 else '' }}</p>
     <p><strong>📝 Journal Entries:</strong> {{ journal_count or 0 }}</p>
     <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or "None yet" }}</p>
@@ -21,7 +27,39 @@
     <p style="font-style: italic;">“{{ last_circle_msg or 'No conversations yet' }}”</p>
   </div>
 
-  <p class="mantra" style="margin-top: 2rem;">Every entry, every question, every pause... it all counts.</p>
-</div>
-{% endblock %}
+  <!-- ⏳ Spin-Up Button -->
+  <button id="calculate-days-btn" class="btn btn-outline-light" style="margin-top: 1.5rem;">
+    ⏳ Calculate Time
+  </button>
 
+  <p class="mantra" style="margin-top: 2rem;">
+    Every entry, every question, every pause... it all counts.
+  </p>
+</div>
+
+<!-- 🔊 Script: Level-Up Sound + Animated Day Counter -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("calculate-days-btn");
+  const display = document.getElementById("days-display");
+  if (!btn || !display) return;
+
+  const target = parseInt(display.textContent) || 0;
+  const audio = new Audio("/static/levelup.mp3");
+
+  btn.addEventListener("click", () => {
+    if (target === 0) return;
+    audio.play();
+    let counter = 0;
+    const interval = setInterval(() => {
+      if (counter < target) {
+        counter++;
+        display.textContent = counter;
+      } else {
+        clearInterval(interval);
+      }
+    }, 20);
+  });
+});
+</script>
+{% endblock %}

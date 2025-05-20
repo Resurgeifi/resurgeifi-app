@@ -83,7 +83,6 @@ body::before {
   }
 }
 
-
 /* =========================
    TYPOGRAPHY
 =========================== */
@@ -227,7 +226,12 @@ button {
   max-width: 1200px;
   width: 100%;
 }
-
+.hero-arc-lineup .hero {
+  flex: 0 1 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .hero-arc-lineup .hero img {
   width: 100px;
   height: auto;
@@ -241,6 +245,9 @@ button {
 @media (max-width: 600px) {
   .hero-arc-lineup .hero img {
     width: 80px;
+  }
+  .hero-arc-lineup .hero {
+    flex: 0 1 45%;
   }
 }
 
@@ -319,6 +326,7 @@ button {
   0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px #fefae0); }
   50%      { transform: scale(1.02); filter: drop-shadow(0 0 16px #fff8c1); }
 }
+
 /* =========================
    SCROLLBAR HIDING FIX
 =========================== */
@@ -326,9 +334,6 @@ html, body {
   scrollbar-width: none;           /* Firefox */
   -ms-overflow-style: none;        /* IE 10+ */
 }
-
 body::-webkit-scrollbar {
   display: none;                   /* Chrome, Safari */
 }
-
-
