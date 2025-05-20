@@ -2,13 +2,24 @@
 {% block title %}The Circle{% endblock %}
 
 {% block content %}
-<!-- 🌀 CIRCLE PAGE TITLE -->
+<!-- 🌀 PAGE TITLE IMAGE -->
 <div class="page-title" style="background-image: url('/static/titles/circle.png');">
   The Circle
 </div>
 
+<!-- ⚡ Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
 <!-- 💬 Circle Chat Log -->
-<div id="chat-box" class="circle-chat-box">
+<div id="chat-box" class="circle-chat-box" style="max-width: 1000px; margin: auto;">
   {% if session["circle_thread"] %}
     {% for msg in session["circle_thread"] %}
       <div class="circle-message"><strong>{{ msg.speaker }}:</strong> {{ msg.text }}</div>
@@ -18,8 +29,8 @@
   {% endif %}
 </div>
 
-<!-- ✍️ User Input Form -->
-<form id="circleForm" class="circle-form" style="max-width: 700px; margin: 1.5rem auto 0; display: flex; flex-direction: column; gap: 1rem;">
+<!-- 📝 User Input -->
+<form id="circleForm" class="circle-form" style="max-width: 700px; margin: 2rem auto; display: flex; flex-direction: column; gap: 1rem;">
   <textarea id="userMessage" rows="3"
     placeholder="Type something or just listen..."
     required
@@ -28,7 +39,7 @@
 </form>
 
 <!-- 🪞 Reflect Button -->
-<div style="text-align: center; margin: 2rem 0 6rem;">
+<div style="text-align: center; margin-bottom: 5rem;">
   <button class="global-button gray-button" id="reflectBtn">🪞 Summarize Journal</button>
 </div>
 {% endblock %}
@@ -40,7 +51,6 @@
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("userMessage");
 
-    // Scroll to bottom on load
     chatBox.scrollTop = chatBox.scrollHeight;
 
     form.addEventListener("submit", async (e) => {
@@ -88,7 +98,7 @@
       }
     });
 
-    // ⏳ Idle Check
+    // Idle check ping
     setInterval(async () => {
       try {
         const res = await fetch("/idle-check");
@@ -105,13 +115,13 @@
       }
     }, 15000);
 
-    // 🪞 Reflect Button
     document.getElementById("reflectBtn").addEventListener("click", () => {
       window.location.href = "/summarize-journal";
     });
   });
 </script>
 {% endblock %}
+
 
 
 

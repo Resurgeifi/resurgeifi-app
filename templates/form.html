@@ -4,25 +4,25 @@
 
 {% block content %}
 <!-- 🌀 CIRCLE PAGE TITLE IMAGE -->
-<div class="page-title" style="background-image: url('/static/titles/circle.png');">
-  Circle
-</div>
+<img src="{{ url_for('static', filename='titles/circle.png') }}"
+     alt="Circle Title"
+     style="display: block; max-width: 280px; margin: 2rem auto;" />
 
-<!-- 🧠 Hero Arc -->
-<div class="hero-arc-lineup">
-  <div class="hero">
+<!-- 🧠 Hero Arc Lineup -->
+<div class="hero-arc-lineup" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; padding: 2rem 1rem; max-width: 1200px; margin: 0 auto;">
+  <div class="hero" style="flex: 0 1 150px;">
     <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" alt="Cognita" />
   </div>
-  <div class="hero">
+  <div class="hero" style="flex: 0 1 150px;">
     <img src="{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}" alt="Velessa" />
   </div>
-  <div class="hero">
+  <div class="hero" style="flex: 0 1 150px;">
     <img src="{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}" alt="Sir Renity" />
   </div>
-  <div class="hero">
+  <div class="hero" style="flex: 0 1 150px;">
     <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace" />
   </div>
-  <div class="hero">
+  <div class="hero" style="flex: 0 1 150px;">
     <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" alt="Lucentis" />
   </div>
 </div>
@@ -34,13 +34,11 @@
 </div>
 
 <!-- 🚪 CTA -->
-<div class="container inner-circle-wrapper" style="text-align: center; margin-top: 2em; margin-bottom: 8rem;">
+<div style="text-align: center; margin-top: 2.5rem; margin-bottom: 6rem;">
   <h1>🌀 Ready to Enter the Circle?</h1>
   <p class="mantra">The heroes are gathered. They're waiting for you.</p>
 
-  <a href="{{ url_for('circle') }}" 
-     class="global-button"
-     style="font-size: 1.2em;">
+  <a href="{{ url_for('circle') }}" class="global-button" style="font-size: 1.2em; margin-top: 1rem;">
     Enter Chat
   </a>
 </div>
@@ -49,11 +47,6 @@
 {% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const audio = document.getElementById("meditationAudio");
-    if (audio) {
-      audio.play().catch(() => {});
-    }
-
     const bios = {
       "Cognita": "🧠 Cognita – Mindshift Operative: Helps you rewrite your inner code and reframe stuck thoughts.",
       "Velessa": "🌸 Velessa – Goddess of the Present: She pauses the noise so you can feel your breath again.",
@@ -73,3 +66,4 @@
   });
 </script>
 {% endblock %}
+

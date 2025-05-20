@@ -16,6 +16,17 @@
     </p>
   </div>
 
+  <!-- ⚡ Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   <!-- 📝 Journal Form -->
   <form id="journalForm" method="POST" action="/journal" style="margin-top: 1.5rem;">
     <label for="entry" style="font-size: 1.2rem;"><strong>What’s on your mind today?</strong></label><br><br>
@@ -86,17 +97,12 @@
     if (journalForm && cognitaFlash && cognitaAudio) {
       journalForm.addEventListener("submit", function (e) {
         e.preventDefault();
-
-        // Show Cognita flash
         cognitaFlash.style.display = "flex";
         cognitaFlash.style.opacity = 1;
-
-        // Play audio
         cognitaAudio.pause();
         cognitaAudio.currentTime = 0;
         cognitaAudio.volume = 1.0;
         cognitaAudio.play().catch(() => {});
-
         setTimeout(() => {
           const fade = setInterval(() => {
             if (cognitaAudio.volume > 0.1) {
@@ -108,11 +114,10 @@
             }
           }, 100);
         }, 3000);
-
         setTimeout(() => {
           cognitaFlash.style.opacity = 0;
           cognitaFlash.style.display = "none";
-          journalForm.submit(); // Now allow form to submit
+          journalForm.submit();
         }, 5000);
       });
     }
@@ -133,7 +138,6 @@
         wardenFlash.classList.remove("fade-out");
         wardenFlash.style.display = "flex";
         wardenFlash.style.opacity = 1;
-
         if (wardenAudio) {
           wardenAudio.pause();
           wardenAudio.currentTime = 0;
@@ -151,11 +155,9 @@
             }, 100);
           }, 3000);
         }
-
         setTimeout(() => {
           wardenFlash.classList.add("fade-out");
         }, 4200);
-
         setTimeout(() => {
           wardenFlash.style.display = "none";
           form.submit();
@@ -170,4 +172,5 @@
   });
 </script>
 {% endblock %}
+
 
