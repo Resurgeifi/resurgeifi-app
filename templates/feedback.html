@@ -2,28 +2,21 @@
 {% block title %}Feedback | Resurgifi{% endblock %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 2rem auto; text-align: center;">
+<div class="main-content" style="max-width: 600px; margin: 2rem auto; text-align: center;">
   <h2>📝 Feedback</h2>
-  <p>Tell us what’s working, what’s broken, or what would help. You're shaping the beta.</p>
+  <p class="mantra">Tell us what’s working, what’s broken, or what would help. You're shaping the beta.</p>
 
   {% with messages = get_flashed_messages() %}
     {% if messages %}
-      <div style="
-        background-color: #d1e7dd;
-        color: #0f5132;
-        padding: 2rem;
-        border-radius: 12px;
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-top: 2rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      ">
+      <div class="flash-message flash-success" style="margin-top: 2rem;">
         {{ messages[0] }}
       </div>
     {% else %}
-      <form method="POST" action="/feedback">
-        <textarea name="message" placeholder="What's on your mind? Please be as specific as possible." rows="6" style="width: 100%; padding: 1rem; border-radius: 8px; margin-top: 1rem;"></textarea><br><br>
-        <button type="submit" style="padding: 0.75rem 1.5rem; background-color: #4f46e5; color: white; border: none; border-radius: 6px;">Send Feedback</button>
+      <form method="POST" action="/feedback" style="margin-top: 2rem;">
+        <textarea name="message" rows="6"
+          placeholder="What's on your mind? Please be as specific as possible."
+          style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #fef9e7; color: #1f3e36;"></textarea><br><br>
+        <button type="submit" class="global-button">Send Feedback</button>
       </form>
     {% endif %}
   {% endwith %}

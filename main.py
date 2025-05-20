@@ -170,6 +170,7 @@ def circle():
 @login_required
 def summarize_journal():
     from openai import OpenAI
+    from datetime import datetime, date
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     user_id = session.get("user_id")
@@ -179,8 +180,13 @@ def summarize_journal():
         flash("No Circle data available for today.", "warning")
         return redirect(url_for("journal"))
 
-    # 🔒 Only summarize user messages
-    user_only = [msg for msg in thread if msg["speaker"] == "User"]
+    # 🔒 Only summarize user messages from TODAY
+    user_only = [
+        msg for msg in thread
+        if msg["speaker"] == "User"
+        and "timestamp" in msg
+        and datetime.fromisoformat(msg["timestamp"]).date() == date.today()
+    ]
 
     if not user_only:
         flash("Say something in the Circle before summarizing. Your journal should reflect your own voice.", "warning")
@@ -303,9 +309,11 @@ def settings():
     ]
 
     if request.method == "POST":
+        form = request.form
+
         # ✅ Journey selection
-        if 'journey' in request.form:
-            journey = request.form.get("journey")
+        if 'journey' in form:
+            journey = form.get("journey")
             if journey:
                 user.theme_choice = journey
                 session['journey'] = journey
@@ -314,8 +322,8 @@ def settings():
                 return redirect(url_for('settings'))
 
         # ✅ Timezone selection
-        if 'timezone' in request.form:
-            selected_tz = request.form.get("timezone")
+        if 'timezone' in form:
+            selected_tz = form.get("timezone")
             if selected_tz in common_timezones:
                 user.timezone = selected_tz
                 session['timezone'] = selected_tz
@@ -327,27 +335,31 @@ def settings():
                 return redirect(url_for('settings'))
 
         # ✅ Nickname update
-        if 'nickname' in request.form:
-            nickname = request.form.get("nickname")
+        if 'nickname' in form:
+            nickname = form.get("nickname")
             if nickname:
                 user.nickname = nickname
                 user.display_name = nickname
+                session['nickname'] = nickname
                 db.commit()
                 flash("Nickname updated.", "success")
                 return redirect(url_for('settings'))
 
         # ✅ Journey start date input
-        if 'journey_start_date' in request.form:
-            date_str = request.form.get("journey_start_date")
+        if 'journey_start_date' in form:
+            date_str = form.get("journey_start_date")
             if date_str:
+                user.journey_start = date_str  # 🛠️ FIX: now saving to DB
                 session['journey_start_date'] = date_str
+                db.commit()
                 flash("Journey start date saved.", "success")
                 return redirect(url_for('settings'))
 
+    # 🧠 Pull saved or session data
     current_journey = user.theme_choice or "Not Selected"
     timezone = user.timezone or ""
     nickname = user.nickname or ""
-    journey_start_date = session.get("journey_start_date", "")
+    journey_start_date = session.get("journey_start_date") or (user.journey_start or "")
 
     db.close()
 
@@ -359,7 +371,6 @@ def settings():
         nickname=nickname,
         journey_start_date=journey_start_date
     )
-
 
 @app.route("/delete-entry/<int:id>", methods=["GET", "POST"])
 @login_required
