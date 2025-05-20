@@ -12,7 +12,7 @@
   {% for hero in ["Cognita", "Velessa", "SirRenity", "Grace", "Lucentis"] %}
     <div class="hero">
       <img src="{{ url_for('static', filename='images/heroes/' + hero + '_Transparent.png') }}"
-           alt="{{ hero }}" />
+           alt="{{ hero }}" class="hero-img" />
     </div>
   {% endfor %}
 </div>
@@ -48,7 +48,7 @@
       "Lucentis": "🔆 Lucentis – Bringer of Clarity: When you are lost in the fog, he’s the light that finds you."
     };
 
-    document.querySelectorAll('.hero img').forEach(img => {
+    document.querySelectorAll('.hero-img').forEach(img => {
       img.addEventListener('click', () => {
         const name = img.alt.trim();
         const text = bios[name] || "Hero bio coming soon.";
