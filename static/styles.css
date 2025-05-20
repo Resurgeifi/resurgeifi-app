@@ -312,5 +312,16 @@ button {
   0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px #fefae0); }
   50%      { transform: scale(1.02); filter: drop-shadow(0 0 16px #fff8c1); }
 }
+/* =========================
+   SCROLLBAR HIDING FIX
+=========================== */
+html, body {
+  scrollbar-width: none;           /* Firefox */
+  -ms-overflow-style: none;        /* IE 10+ */
+}
+
+body::-webkit-scrollbar {
+  display: none;                   /* Chrome, Safari */
+}
 
 
