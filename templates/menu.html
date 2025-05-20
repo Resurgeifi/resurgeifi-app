@@ -1,191 +1,26 @@
 {% extends "base.html" %}
-{% block title %}Home | Resurgifi{% endblock %}
+{% block title %}State of Inner | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="main-content" style="max-width: 700px; margin: auto; padding: 1.5rem;">
-  <h1>Welcome to Resurgifi</h1>
-
-  {% if days_on_journey %}
-    <button id="calculateJourneyBtn" class="btn-celebrate">See My Journey Days</button>
-    <div id="journeyResult" class="journey-flash" style="display: none;"></div>
-
-    <div id="heroMilestoneFlash" class="hero-flash" style="display: none;">
-      <img id="heroImage" src="" alt="Hero Milestone" class="hero-image">
-      <p id="heroQuote" class="hero-quote"></p>
-    </div>
-    <audio id="celebrationSound" src="{{ url_for('static', filename='levelup.mp3') }}" loop></audio>
- {% endif %}
-
-  {% if journey %}
-    <p class="mantra">You're walking the path of <strong>{{ journey|capitalize }}</strong>.</p>
-  {% endif %}
-
-  <p class="mantra">🌀 {{ daily_quote }}</p>
-  <p class="mantra">Choose a path forward, or simply breathe. Every moment here counts.</p>
-
-  <hr class="section-divider" style="margin: 2rem 0;">
-
-  <div class="card" style="padding: 1.25rem; background-color: #1f1f2e; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
-    <h2 style="margin-bottom: 1rem;">Today’s Snapshot</h2>
-    <p><strong>Streak:</strong> {{ streak or "0" }} day{{ 's' if streak != 1 }}</p>
-    <p><strong>Last Journal Entry:</strong> {{ last_entry or "None yet — today’s a good day to start." }}</p>
-  </div>
-
-  <p class="mantra" style="margin-top: 2.5rem;">“You’re not lost. You’re resurging.”</p>
+<!-- 🗿 Stone-Carved Page Title -->
+<div class="page-title" style="background-image: url('/static/titles/stateofinner.png');">
+  State of Inner
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const button = document.getElementById('calculateJourneyBtn');
-    const result = document.getElementById('journeyResult');
-    const audio = document.getElementById('celebrationSound');
-    const heroFlash = document.getElementById('heroMilestoneFlash');
-    const heroImage = document.getElementById('heroImage');
-    const heroQuote = document.getElementById('heroQuote');
-    const target = {{ days_on_journey or 0 }};
+<!-- 🔍 Inner Snapshot -->
+<div class="container settings-page" style="text-align: center; margin-top: 2rem;">
+  <h1>📊 Your Current State</h1>
 
-    const heroPool = [
-      {
-        name: "Grace",
-        image: "{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}",
-        quote: "You said yes to this path. I felt it. I’m with you now."
-      },
-      {
-        name: "Cognita",
-        image: "{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}",
-        quote: "You are not your thoughts. You are the one learning from them."
-      },
-      {
-        name: "Lucentis",
-        image: "{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}",
-        quote: "Even in darkness, clarity waits. Let’s rise together."
-      },
-      {
-        name: "Sir Renity",
-        image: "{{ url_for('static', filename='images/heroes/SirRenity_Transparent.png') }}",
-        quote: "Calm isn’t silence. It’s the power to choose your response."
-      },
-      {
-        name: "Velessa",
-        image: "{{ url_for('static', filename='images/heroes/Velessa_Transparent.png') }}",
-        quote: "This moment is enough. So are you."
-      }
-    ];
+  <div class="card-dark" style="margin-top: 1.5rem; padding: 1.5rem;">
+    <p><strong>🌀 Current Ring:</strong> {{ current_ring or "Unranked" }}</p>
+    <p><strong>📈 Days on Journey:</strong> {{ days_on_journey or 0 }} day{{ 's' if (days_on_journey|int) != 1 else '' }}</p>
+    <p><strong>🔥 Streak:</strong> {{ streak or 0 }} day{{ 's' if (streak|int) != 1 else '' }}</p>
+    <p><strong>📝 Journal Entries:</strong> {{ journal_count or 0 }}</p>
+    <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or "None yet" }}</p>
+    <p><strong>💬 Last Circle Message:</strong></p>
+    <p style="font-style: italic;">“{{ last_circle_msg or 'No conversations yet' }}”</p>
+  </div>
 
-    if (button) {
-      button.addEventListener('click', () => {
-        const hero = heroPool[Math.floor(Math.random() * heroPool.length)];
-        let count = 0;
-
-        result.style.display = 'block';
-        result.innerHTML = "🌱 Calculating...";
-        button.disabled = true;
-
-        // 🔊 Start level-up loop sound
-        audio.pause();
-        audio.currentTime = 0;
-        audio.play().catch(e => console.warn("Level-up audio blocked:", e));
-
-        const interval = setInterval(() => {
-          count++;
-          result.innerHTML = `🌟 You’ve been on this journey for <strong>${count}</strong> day${count !== 1 ? 's' : ''}.`;
-
-          if (count >= target) {
-            clearInterval(interval);
-
-            // 🔇 Stop the loop when counting ends
-            audio.pause();
-            audio.currentTime = 0;
-
-            result.innerHTML += "<br><em>You showed up. That matters.</em>";
-
-            heroImage.src = hero.image;
-            heroQuote.innerText = hero.quote;
-            heroFlash.style.display = "flex";
-
-            setTimeout(() => {
-              heroFlash.style.display = "none";
-            }, 5000);
-          }
-        }, 25);
-      });
-    }
-  });
-</script>
-
-
-<style>
-  .btn-celebrate {
-    margin-bottom: 1rem;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    border: none;
-    background-color: #7dd3fc;
-    color: #1f2937;
-    font-weight: bold;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .btn-celebrate:hover {
-    background-color: #38bdf8;
-  }
-
-  .journey-flash {
-    margin-top: 1rem;
-    font-size: 1.6rem;
-    font-weight: 600;
-    text-align: center;
-    color: #fefae0;
-  }
-
-  .hero-flash {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 15, 25, 0.9);
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    animation: fadeInOut 5s ease-in-out;
-    text-align: center;
-  }
-
-  .hero-image {
-    width: 300px;
-    max-width: 80%;
-    margin-bottom: 1rem;
-    animation: popIn 2s ease-out;
-  }
-
-  .hero-quote {
-    color: #f6e7c1;
-    font-size: 1.4rem;
-    font-weight: 500;
-    max-width: 450px;
-    text-shadow: 0 0 5px rgba(255,255,255,0.2);
-  }
-
-  @keyframes fadeInOut {
-    0% { opacity: 0; }
-    10% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; display: none; }
-  }
-
-  @keyframes popIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-</style>
+  <p class="mantra" style="margin-top: 2rem;">Every entry, every question, every pause... it all counts.</p>
+</div>
 {% endblock %}
-
-
-
-
-
