@@ -41,6 +41,12 @@
     </div>
   </form>
 
+  <!-- 💬 Feedback Link -->
+  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+    <p class="mantra">Want to help us improve Resurgifi?</p>
+    <a href="/feedback" class="global-button">📣 Leave Feedback</a>
+  </div>
+
   <!-- 🔓 Logout -->
   <form action="{{ url_for('logout') }}" method="get">
     <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
@@ -66,18 +72,21 @@
     const sound = document.getElementById("graceSound");
 
     forms.forEach(form => {
-      form.addEventListener("submit", () => {
-        setTimeout(() => {
-          flash.style.display = "flex";
-          flash.style.opacity = 1;
-          sound.currentTime = 0;
-          sound.play();
-        }, 100);
+      form.addEventListener("submit", (e) => {
+        e.preventDefault(); // stop instant reload
+
+        flash.style.display = "flex";
+        flash.style.opacity = 1;
+        flash.style.transform = "scale(1.03)";
+        sound.currentTime = 0;
+        sound.play();
 
         setTimeout(() => {
           flash.style.opacity = 0;
+          flash.style.transform = "scale(1)";
           flash.style.display = "none";
-        }, 4500);
+          form.submit(); // now send the form
+        }, 3500);
       });
     });
   });
@@ -94,7 +103,7 @@
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.6s ease, transform 0.6s ease;
   opacity: 0;
 }
 .hero-flash img {
@@ -117,6 +126,3 @@
 }
 </style>
 {% endblock %}
-
-
-
