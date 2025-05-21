@@ -9,14 +9,12 @@
 
 <!-- 🧭 Snapshot Container -->
 <div class="main-content" style="text-align: center;">
-
   <h1>📊 Your Current State</h1>
 
   <!-- Dark Card -->
   <div class="card-dark" style="margin: 2rem auto; padding: 2rem; max-width: 600px; border-radius: 16px; background: rgba(0,0,0,0.6); box-shadow: 0 0 20px rgba(0,0,0,0.4);">
     <p><strong>🌀 Current Ring:</strong> {{ current_ring or "Unranked" }}</p>
-    
-    <!-- Animated Days -->
+
     <p><strong>📈 Days on Journey:</strong> 
       <span id="days-display">?</span> 
       day{{ 's' if (days_on_journey|int) != 1 else '' }}
@@ -41,7 +39,7 @@
 
 <!-- 🌟 Grace Flash -->
 <div id="graceFlash" class="hero-flash">
-  <img src="{{ url_for('static', filename='images/heroes/grace/grace_flash.png') }}" alt="Grace Flash" />
+  <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace Flash" />
   <div class="speech-box">
     <p class="hero-quote">“You didn’t skip the journey. You lived it.”</p>
   </div>
@@ -49,7 +47,7 @@
 
 <audio id="graceSound" src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
 
-<!-- 🎬 Script: Manual Spin-Up -->
+<!-- 🎬 Script -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const display = document.getElementById("days-display");
@@ -57,8 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const flash = document.getElementById("graceFlash");
   const audio = document.getElementById("graceSound");
 
-  const stored = localStorage.getItem("lastDaysCount") || "0";
   const actual = {{ days_on_journey or 0 }};
+  const stored = localStorage.getItem("lastDaysCount") || "0";
 
   display.textContent = stored;
 
@@ -67,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let counter = parseInt(stored) || 0;
     audio.currentTime = 0;
+    audio.volume = 1.0;
     audio.play();
 
     const interval = setInterval(() => {
@@ -77,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
         clearInterval(interval);
         localStorage.setItem("lastDaysCount", counter.toString());
 
-        // Grace Flash
+        // Grace flash
         flash.style.display = "flex";
         flash.style.opacity = 1;
         setTimeout(() => {
@@ -90,13 +89,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<!-- 💅 Flash Styles -->
+<!-- 💅 Styles -->
 <style>
 .hero-flash {
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.9);
   display: none;
   flex-direction: column;
   justify-content: center;
@@ -106,8 +105,8 @@ document.addEventListener("DOMContentLoaded", () => {
   opacity: 0;
 }
 .hero-flash img {
-  width: 80vw;
-  max-width: 400px;
+  width: 90vw;
+  max-width: 460px;
   animation: pulseGlow 2.5s ease-out;
 }
 .speech-box {
@@ -119,10 +118,11 @@ document.addEventListener("DOMContentLoaded", () => {
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 .hero-quote {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #f6e7c1;
   line-height: 1.6;
 }
 </style>
 {% endblock %}
+
 
