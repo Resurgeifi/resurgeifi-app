@@ -30,29 +30,29 @@
   </div>
 
   <!-- 🚦 Bottom Navigation -->
-  <nav class="bottom-nav">
-    <div class="nav-side nav-left">
-      <a href="/journal" class="nav-item">
-        <img src="{{ url_for('static', filename='icons/journal-quill.png') }}" alt="Journal" class="nav-icon" />
-      </a>
-      <a href="/life-ring" class="nav-item">
-        <span class="nav-icon" style="font-size: 28px; line-height: 1;">🛟</span>
-      </a>
-    </div>
-  
-    <div class="nav-center">
-      <a href="/menu" class="plus-button">+</a>
-    </div>
-  
-    <div class="nav-side nav-right">
-      <a href="/form" class="nav-item">
-        <img src="{{ url_for('static', filename='icons/circle-logo.png') }}" alt="Circle" class="nav-icon" />
-      </a>
-      <a href="/settings" class="nav-item">
-        <img src="{{ url_for('static', filename='icons/gear.png') }}" alt="Settings" class="nav-icon" />
-      </a>
-    </div>
-  </nav>
+<nav class="bottom-nav">
+  <div class="nav-side nav-left">
+    <a href="/journal" class="nav-item" aria-label="Journal">
+      <img src="{{ url_for('static', filename='icons/journal-quill.png') }}" alt="Journal Icon" class="nav-icon" />
+    </a>
+    <a href="/life-ring" class="nav-item" aria-label="Life Ring">
+      <span class="nav-icon" style="font-size: 36px; line-height: 1;">🛟</span>
+    </a>
+  </div>
+
+  <div class="nav-center">
+    <a href="/menu" class="plus-button" aria-label="Main Menu">+</a>
+  </div>
+
+  <div class="nav-side nav-right">
+    <a href="/form" class="nav-item" aria-label="Circle">
+      <img src="{{ url_for('static', filename='icons/circle-logo.png') }}" alt="Circle Icon" class="nav-icon" />
+    </a>
+    <a href="/settings" class="nav-item" aria-label="Settings">
+      <img src="{{ url_for('static', filename='icons/gear.png') }}" alt="Settings Icon" class="nav-icon" />
+    </a>
+  </div>
+</nav>
 
   <!-- 🧠 Page-Level Scripts -->
   {% block scripts %}{% endblock %}

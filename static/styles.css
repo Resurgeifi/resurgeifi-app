@@ -183,36 +183,45 @@ button {
   box-sizing: border-box;
 }
 
+/* Side navs expand evenly */
 .nav-side {
   display: flex;
-  gap: 1rem;
   flex: 1;
+  justify-content: space-evenly;
+  align-items: center;
 }
 
+/* Center stays fixed width */
 .nav-center {
   display: flex;
   justify-content: center;
-  flex: 0 0 auto;
+  align-items: center;
+  flex: 0 0 80px;
 }
 
+/* Individual items */
 .nav-item {
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  padding: 0.3rem;
+  padding: 0.5rem;
+  min-width: 44px;
 }
 
+/* 🔍 Bigger and cleaner icons */
 .nav-icon {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
+/* Central + button */
 .plus-button {
   background-color: #f4a259;
   color: #1f3e36;
-  width: 58px;
-  height: 58px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   font-size: 2rem;
   font-weight: bold;
@@ -224,27 +233,28 @@ button {
   z-index: 1001;
 }
 
-/* 🧠 Mobile Cleanup */
+/* 📱 Mobile Tweaks */
 @media (max-width: 600px) {
   .nav-icon {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-item {
+    min-width: 36px;
   }
 
   .bottom-nav {
     padding: 6px 10px;
   }
 
-  .nav-side {
-    gap: 0.8rem;
-  }
-
   .plus-button {
-    width: 54px;
-    height: 54px;
-    font-size: 1.8rem;
+    width: 52px;
+    height: 52px;
+    font-size: 1.6rem;
   }
 }
+
 
 /* =========================
    HERO ARC LINEUP
