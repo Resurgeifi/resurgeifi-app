@@ -1,0 +1,21 @@
+[
+    {
+      "name": "Engage Recovery",
+      "tags": ["Outpatient", "Mental Health", "Massachusetts", "Insurance"],
+      "type": "Outpatient, Dual Diagnosis",
+      "location": "Massachusetts (Virtual & In-Person)",
+      "quote": "If you're ready, they’re ready.",
+      "phone": "+18885551212",
+      "website": "https://engagerecovery.com/?src=resurgifi"
+    },
+    {
+      "name": "California Behavioral Health",
+      "tags": ["Inpatient", "Detox", "Grief", "West Coast", "No Insurance"],
+      "type": "Inpatient, Medical Detox",
+      "location": "Palm Desert, CA",
+      "quote": "They helped me when I couldn’t help myself.",
+      "phone": "+18885551313",
+      "website": "https://californiabehavioralhealth.com/?src=resurgifi"
+    }
+  ]
+  
