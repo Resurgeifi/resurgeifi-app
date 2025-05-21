@@ -6,60 +6,61 @@
      alt="Journal Title" 
      style="display: block; max-width: 250px; margin: 2rem auto;" />
 
-<div class="main-content">
-
-  <div class="ring-status">
-    <p style="font-size: 1.1rem; color: #e0d4b2;">
-      🔄 Current Ring: <strong>{{ current_ring }}</strong>
-    </p>
-  </div>
-
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-container">
-        {% for category, message in messages %}
-          <div class="flash flash-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <form id="journalForm" method="POST" action="/journal" style="margin-top: 1.5rem;">
-    <label for="entry" style="font-size: 1.2rem;"><strong>What’s on your mind today?</strong></label><br><br>
-    <textarea 
-      name="entry" 
-      rows="6" 
-      placeholder="Just write what you feel. What did or do I want to accomplish today?"
-      style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #f6e7c1; color: #1f3e36;"
-    >{{ summary_text or "" }}</textarea><br><br>
-    <button type="submit" class="global-button">Save Entry</button>
-  </form>
-
-  <hr class="section-divider" style="margin: 2.5rem 0; border: 1px solid #444;">
-
-  {% if entries %}
-    <h2 style="text-align: center; color: #f6e7c1;">Previous Entries</h2>
-    {% for entry in entries %}
-      <div class="entry-box">
-        <div class="timestamp">
-          {{ entry.timestamp }}
-          <span style="margin-left: 10px;">🧠</span>
-        </div>
-        <div style="margin-top: 0.5rem;">{{ entry.content }}</div>
-        <div class="entry-buttons">
-          <form method="GET" action="{{ url_for('edit_entry', id=entry.id) }}">
-            <button type="submit" class="entry-button edit">Edit</button>
-          </form>
-          <form method="POST" action="/delete-entry/{{ entry.id }}" class="delete-form">
-            <button type="submit" class="entry-button delete">Delete</button>
-          </form>
-        </div>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p style="color: #f6e7c1;">No entries yet. Your story starts now.</p>
-  {% endif %}
+<!-- 🔄 Current Ring Status -->
+<div class="ring-status">
+  <p style="font-size: 1.1rem; color: #e0d4b2;">
+    🔄 Current Ring: <strong>{{ current_ring }}</strong>
+  </p>
 </div>
+
+<!-- ⚡ Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- 📝 Journal Form -->
+<form id="journalForm" method="POST" action="/journal" style="margin-top: 1.5rem;">
+  <label for="entry" style="font-size: 1.2rem;"><strong>What’s on your mind today?</strong></label><br><br>
+  <textarea 
+    name="entry" 
+    rows="6" 
+    placeholder="Just write what you feel. What did or do I want to accomplish today?"
+    style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #f6e7c1; color: #1f3e36;"
+  >{{ summary_text or "" }}</textarea><br><br>
+  <button type="submit" class="global-button">Save Entry</button>
+</form>
+
+<hr class="section-divider" style="margin: 2.5rem 0; border: 1px solid #444;">
+
+<!-- 📜 Previous Journal Entries -->
+{% if entries %}
+  <h2 style="text-align: center; color: #f6e7c1;">Previous Entries</h2>
+  {% for entry in entries %}
+    <div class="entry-box">
+      <div class="timestamp">
+        {{ entry.timestamp }}
+        <span style="margin-left: 10px;">🧠</span>
+      </div>
+      <div style="margin-top: 0.5rem;">{{ entry.content }}</div>
+      <div class="entry-buttons">
+        <form method="GET" action="{{ url_for('edit_entry', id=entry.id) }}">
+          <button type="submit" class="entry-button edit">Edit</button>
+        </form>
+        <form method="POST" action="/delete-entry/{{ entry.id }}" class="delete-form">
+          <button type="submit" class="entry-button delete">Delete</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <p style="color: #f6e7c1;">No entries yet. Your story starts now.</p>
+{% endif %}
 
 <!-- 🌟 Cognita Flash -->
 <div id="cognitaFlash" class="hero-flash">
@@ -76,11 +77,13 @@
   <div class="speech-box">
     <p class="hero-quote">“Some sins echo forever…”</p>
   </div>
+</div>
 
 <!-- 🔊 AUDIO -->
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
 
+<!-- 🎨 FLASH STYLES & LOGIC -->
 <style>
 .hero-flash {
   position: fixed;
@@ -238,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 {% endblock %}
+
 
 
 

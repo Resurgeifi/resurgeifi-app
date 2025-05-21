@@ -34,11 +34,9 @@
     <div class="nav-side nav-left">
       <a href="/journal" class="nav-item">
         <img src="{{ url_for('static', filename='icons/journal-quill.png') }}" alt="Journal" class="nav-icon" />
-        <span>Journal</span>
       </a>
       <a href="/life-ring" class="nav-item">
-        <span class="nav-icon" style="font-size: 24px;">🛟</span>
-        <span>Life Ring</span>
+        <span class="nav-icon" style="font-size: 28px; line-height: 1;">🛟</span>
       </a>
     </div>
   
@@ -49,16 +47,15 @@
     <div class="nav-side nav-right">
       <a href="/form" class="nav-item">
         <img src="{{ url_for('static', filename='icons/circle-logo.png') }}" alt="Circle" class="nav-icon" />
-        <span>Circle</span>
       </a>
       <a href="/settings" class="nav-item">
         <img src="{{ url_for('static', filename='icons/gear.png') }}" alt="Settings" class="nav-icon" />
-        <span>Settings</span>
       </a>
     </div>
   </nav>
-  
+
   <!-- 🧠 Page-Level Scripts -->
   {% block scripts %}{% endblock %}
 </body>
 </html>
+

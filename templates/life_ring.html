@@ -37,85 +37,90 @@
 
 {% block scripts %}
 <script>
-const rescueQuestions = [
-  {
-    q: "What are you seeking help for?",
-    options: ["Detox", "Mental Health", "Substance Use", "Grief / Loss", "Just Exploring"],
-    key: "need"
-  },
-  {
-    q: "What type of help do you think you need?",
-    options: ["Inpatient", "Outpatient", "Not Sure"],
-    key: "care_type"
-  },
-  {
-    q: "Do you have insurance?",
-    options: ["Yes", "No", "Not Sure"],
-    key: "insurance"
-  },
-  {
-    q: "Where are you located?",
-    options: ["East Coast", "Midwest", "West Coast", "South", "Nationwide"],
-    key: "region"
-  }
-];
-
-const rescueMatch = {
-  name: "Clear Horizon Recovery",
-  type: "Dual Diagnosis, Inpatient + Outpatient",
-  location: "Nationwide (Based in Florida)",
-  quote: "They know what rock bottom feels like — and how to build from it.",
-  phone: "tel:+18885559999",
-  website: "https://clearhorizonrecovery.com/?src=resurgifi"
-};
-
-let currentStep = 0;
-let userAnswers = {};
-
-function startRescueFlow() {
-  currentStep = 0;
-  userAnswers = {};
-  document.getElementById("rescueModal").style.display = "flex";
-  showQuestion();
-}
-
-function showQuestion() {
-  const q = rescueQuestions[currentStep];
-  document.getElementById("questionText").textContent = q.q;
-
-  const buttonArea = document.getElementById("responseButtons");
-  buttonArea.innerHTML = "";
-  q.options.forEach(option => {
-    const btn = document.createElement("button");
-    btn.textContent = option;
-    btn.className = "global-button";
-    btn.style.margin = "0.5rem";
-    btn.onclick = () => {
-      userAnswers[q.key] = option;
-      currentStep++;
-      if (currentStep < rescueQuestions.length) {
-        showQuestion();
-      } else {
-        showRescueMatch();
+    const rescueQuestions = [
+      {
+        key: "need",
+        q: "What are you seeking help for?",
+        options: ["Detox", "Mental Health", "Substance Use", "Grief / Loss", "Just Exploring"]
+      },
+      {
+        key: "care_type",
+        q: "What level of care do you think you need?",
+        options: ["Inpatient", "Outpatient", "Not Sure"]
+      },
+      {
+        key: "insurance",
+        q: "Do you have insurance?",
+        options: ["Yes", "No", "Not Sure"]
+      },
+      {
+        key: "region",
+        q: "Where are you located?",
+        options: ["East Coast", "Midwest", "West Coast", "South", "Nationwide"]
       }
+    ];
+    
+    const rescueMatch = {
+      name: "Clear Horizon Recovery",
+      type: "Dual Diagnosis, Inpatient + Outpatient",
+      location: "Nationwide (Based in Florida)",
+      quote: "They know what rock bottom feels like — and how to build from it.",
+      phone: "tel:+18885559999",
+      website: "https://clearhorizonrecovery.com/?src=resurgifi"
     };
-    buttonArea.appendChild(btn);
-  });
-}
-
-function showRescueMatch() {
-  document.getElementById("rescueModal").style.display = "none";
-
-  document.getElementById("matchName").textContent = rescueMatch.name;
-  document.getElementById("matchType").textContent = rescueMatch.type;
-  document.getElementById("matchLocation").textContent = rescueMatch.location;
-  document.getElementById("matchQuote").textContent = "“" + rescueMatch.quote + "”";
-  document.getElementById("matchCall").setAttribute("href", rescueMatch.phone);
-  document.getElementById("matchVisit").setAttribute("href", rescueMatch.website);
-
-  document.getElementById("rescueResult").style.display = "block";
-}
-</script>
+    
+    let currentStep = 0;
+    let userAnswers = {};
+    
+    function startRescueFlow() {
+      currentStep = 0;
+      userAnswers = {};
+      document.getElementById("rescueModal").style.display = "flex";
+      showQuestion();
+    }
+    
+    function showQuestion() {
+      const qBlock = rescueQuestions[currentStep];
+      if (!qBlock) {
+        console.warn("Missing question at step:", currentStep);
+        showRescueMatch();
+        return;
+      }
+    
+      document.getElementById("questionText").textContent = qBlock.q;
+      const buttonArea = document.getElementById("responseButtons");
+      buttonArea.innerHTML = "";
+    
+      qBlock.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.className = "global-button";
+        btn.style.margin = "0.5rem";
+        btn.onclick = () => {
+          userAnswers[qBlock.key] = option;
+          currentStep++;
+          if (currentStep < rescueQuestions.length) {
+            showQuestion();
+          } else {
+            showRescueMatch();
+          }
+        };
+        buttonArea.appendChild(btn);
+      });
+    }
+    
+    function showRescueMatch() {
+      document.getElementById("rescueModal").style.display = "none";
+      document.getElementById("rescueResult").style.display = "block";
+      document.getElementById("matchName").textContent = rescueMatch.name;
+      document.getElementById("matchType").textContent = rescueMatch.type;
+      document.getElementById("matchLocation").textContent = rescueMatch.location;
+      document.getElementById("matchQuote").textContent = "“" + rescueMatch.quote + "”";
+      document.getElementById("matchCall").setAttribute("href", rescueMatch.phone);
+      document.getElementById("matchVisit").setAttribute("href", rescueMatch.website);
+    }
+    </script>
+    
 
 <style>
 .modal-overlay {
