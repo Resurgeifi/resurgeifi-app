@@ -47,11 +47,10 @@
     <p class="hero-quote">“You didn’t skip the journey. You lived it.”</p>
   </div>
 </div>
-<audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
 
+<audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
 {% endblock %}
 
-<!-- 🎬 Reset + Count Logic -->
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -68,13 +67,16 @@ document.addEventListener("DOMContentLoaded", () => {
   button.addEventListener("click", () => {
     let counter = parseInt(stored) || 0;
 
-    // ⏺ Sound setup — same as journal
-    audio.pause();
-    audio.currentTime = 0;
-    audio.volume = 1.0;
-    audio.play().catch(err => {
-      console.warn("Grace sound failed to play:", err);
-    });
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = 1.0;
+      audio.play().catch(err => {
+        console.warn("Grace sound failed to play:", err);
+      });
+    } catch (e) {
+      console.warn("Audio playback issue:", e);
+    }
 
     const interval = setInterval(() => {
       if (counter < actual) {
@@ -84,12 +86,10 @@ document.addEventListener("DOMContentLoaded", () => {
         clearInterval(interval);
         localStorage.setItem("lastDaysCount", counter.toString());
 
-        // 🌟 Show flash
         flash.style.display = "flex";
         flash.style.opacity = 1;
-        flash.style.pointerEvents = "none"; // optional but safe
+        flash.style.pointerEvents = "none";
 
-        // ⏳ Fade out + hide
         setTimeout(() => {
           flash.style.opacity = 0;
           setTimeout(() => {
@@ -127,7 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
   opacity: 0;
 }
 
-
 .hero-flash img {
   width: 90vw;
   max-width: 460px;
@@ -150,6 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 </style>
 {% endblock %}
+
 
 
 
