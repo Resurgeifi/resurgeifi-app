@@ -47,12 +47,13 @@
     <p class="hero-quote">“You didn’t skip the journey. You lived it.”</p>
   </div>
 </div>
-<audio id="graceSound" src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
+<audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
 
 {% endblock %}
 
 {% block scripts %}
 <!-- 🎬 Reset + Count Logic -->
+{% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const display = document.getElementById("days-display");
@@ -61,17 +62,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("graceSound");
 
   const actual = {{ days_on_journey or 0 }};
-
-  // Reset journey count on page load
   localStorage.removeItem("lastDaysCount");
   const stored = "0";
   display.textContent = stored;
 
   button.addEventListener("click", () => {
     let counter = parseInt(stored) || 0;
+
+    // ⏺ Sound setup — same as journal
+    audio.pause();
     audio.currentTime = 0;
     audio.volume = 1.0;
-    audio.play();
+    audio.play().catch(err => {
+      console.warn("Grace sound failed to play:", err);
+    });
 
     const interval = setInterval(() => {
       if (counter < actual) {
@@ -81,12 +85,18 @@ document.addEventListener("DOMContentLoaded", () => {
         clearInterval(interval);
         localStorage.setItem("lastDaysCount", counter.toString());
 
+        // 🌟 Show flash
         flash.style.display = "flex";
         flash.style.opacity = 1;
+        flash.style.pointerEvents = "none"; // optional but safe
+
+        // ⏳ Fade out + hide
         setTimeout(() => {
           flash.style.opacity = 0;
-          flash.style.display = "none";
-        }, 5000);
+          setTimeout(() => {
+            flash.style.display = "none";
+          }, 600);
+        }, 3000);
       }
     }, 20);
   });
@@ -103,8 +113,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 .hero-flash {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.9);
   display: none;
   flex-direction: column;
@@ -114,6 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   transition: opacity 0.4s ease;
   opacity: 0;
 }
+
 
 .hero-flash img {
   width: 90vw;
