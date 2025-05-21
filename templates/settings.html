@@ -2,65 +2,57 @@
 {% block title %}Settings | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="container settings-page">
-  <h1>⚙️ Settings</h1>
-  <p class="mantra">Customize your experience — change your journey below.</p>
-  <hr style="margin: 2rem 0;">
+<div class="container settings-page" style="max-width: 600px; margin: auto; text-align: center;">
+
+  <h1 style="margin-bottom: 1rem;">⚙️ Settings</h1>
+  <p class="mantra">Customize your inner experience. Start where it feels right.</p>
 
   <!-- 🌱 Journey Selector -->
-  <form method="POST" action="/settings">
-    <div class="settings-options">
-      <button type="submit" name="journey" value="grief" class="journey-card">💔 Grief</button>
-      <button type="submit" name="journey" value="addiction" class="journey-card">💊 Addiction</button>
-      <button type="submit" name="journey" value="mental_health" class="journey-card">🧠 Mental Health</button>
-      <button type="submit" name="journey" value="trauma" class="journey-card">🔥 Trauma</button>
-      <button type="submit" name="journey" value="anxiety" class="journey-card">🌪️ Anxiety</button>
-    </div>
-  </form>
+  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+    <form method="POST" action="/settings">
+      <h2 style="margin-bottom: 1rem;">Choose Your Journey</h2>
+      <div class="settings-options" style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+        <button type="submit" name="journey" value="grief" class="journey-card">💔 Grief</button>
+        <button type="submit" name="journey" value="addiction" class="journey-card">💊 Addiction</button>
+        <button type="submit" name="journey" value="mental_health" class="journey-card">🧠 Mental Health</button>
+        <button type="submit" name="journey" value="trauma" class="journey-card">🔥 Trauma</button>
+        <button type="submit" name="journey" value="anxiety" class="journey-card">🌪️ Anxiety</button>
+      </div>
+    </form>
+    <p style="margin-top: 1.25rem;">
+      Current Journey: <strong>{{ session.get('journey', 'Not selected') | replace('_', ' ') | title }}</strong>
+    </p>
+  </div>
 
-  <p class="current-journey-text">
-    Current Journey: <strong>{{ session.get('journey', 'Not selected') | replace('_', ' ') | title }}</strong>
-  </p>
-
-  <!-- 🕰️ Journey Start Date -->
-  <form method="POST" action="/settings" class="settings-form">
-    <label for="journey_start_date" class="journey-date-label">🌄 When did your journey begin?</label>
-    <input type="date" name="journey_start_date" value="{{ journey_start_date }}" class="journey-date-input">
-    <small class="journey-date-note">
-      This could be your sobriety date, a moment of surrender, or just a personal turning point.
-    </small><br><br>
-    <button type="submit">Save Journey Start Date</button>
-  </form>
-
-  <hr class="section-divider">
-
-  <!-- 🌍 Time Zone Selector -->
-  <form method="POST" action="/settings" class="settings-form">
-    <label for="timezone" class="settings-label">🌍 Select Your Time Zone:</label>
-    <select name="timezone" required class="settings-select">
-      <option value="">-- Select --</option>
-      <option value="America/New_York" {% if timezone == 'America/New_York' %}selected{% endif %}>Eastern (New York)</option>
-      <option value="America/Chicago" {% if timezone == 'America/Chicago' %}selected{% endif %}>Central (Chicago)</option>
-      <option value="America/Denver" {% if timezone == 'America/Denver' %}selected{% endif %}>Mountain (Denver)</option>
-      <option value="America/Los_Angeles" {% if timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific (Los Angeles)</option>
-      <option value="America/Phoenix" {% if timezone == 'America/Phoenix' %}selected{% endif %}>Arizona (Phoenix)</option>
-      <option value="America/Anchorage" {% if timezone == 'America/Anchorage' %}selected{% endif %}>Alaska (Anchorage)</option>
-      <option value="America/Honolulu" {% if timezone == 'America/Honolulu' %}selected{% endif %}>Hawaii (Honolulu)</option>
-    </select><br><br>
-    <button type="submit">Save Time Zone</button>
-  </form>
+  <!-- 📅 Journey Start Date -->
+  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+    <form method="POST" action="/settings">
+      <h2 style="margin-bottom: 1rem;">When Did You Begin?</h2>
+      <input type="date" name="journey_start_date" value="{{ journey_start_date }}" class="journey-date-input" style="padding: 0.75rem; font-size: 1rem; border-radius: 10px; border: 2px solid #ccc;">
+      <p style="font-size: 0.95rem; color: #ccc; margin-top: 0.75rem;">
+        This might be your sobriety date, a moment of surrender, or a turning point.
+      </p>
+      <button type="submit" class="global-button" style="margin-top: 1rem;">Save Start Date</button>
+    </form>
+  </div>
 
   <!-- 📝 Nickname -->
-  <form method="POST" action="/settings" class="settings-form">
-    <label for="nickname" class="settings-label">📝 Update Your Nickname:</label>
-    <input type="text" name="nickname" value="{{ nickname }}" placeholder="Enter nickname" class="settings-input">
-    <button type="submit">Save Nickname</button>
-  </form>
+  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+    <form method="POST" action="/settings">
+      <h2 style="margin-bottom: 1rem;">Your Nickname</h2>
+      <input type="text" name="nickname" value="{{ nickname }}" placeholder="Enter nickname" class="settings-input" style="padding: 0.75rem; font-size: 1rem; border-radius: 10px; border: 2px solid #ccc;">
+      <button type="submit" class="global-button" style="margin-top: 1rem;">Save Nickname</button>
+    </form>
+  </div>
 
   <!-- 🔓 Logout -->
-  <form action="{{ url_for('logout') }}" method="get" class="settings-form">
-    <button type="submit" class="logout-btn">Log Out</button>
-  </form>
+  <div style="margin-top: 3rem;">
+    <form action="{{ url_for('logout') }}" method="get">
+      <button type="submit" class="global-button" style="background-color: #e11d48; color: white;">Log Out</button>
+    </form>
+  </div>
+
 </div>
 {% endblock %}
+
 
