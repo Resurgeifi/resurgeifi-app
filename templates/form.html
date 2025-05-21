@@ -5,7 +5,7 @@
 <!-- 🌀 CIRCLE PAGE TITLE IMAGE -->
 <img src="{{ url_for('static', filename='titles/circle.png') }}"
      alt="Circle Title"
-     style="display: block; max-width: 280px; margin: 2rem auto;" />
+     class="circle-title-img" />
 
 <!-- 🧠 Hero Arc Lineup -->
 <div class="hero-arc-lineup">
@@ -19,9 +19,21 @@
 
 <!-- 🗣️ Hero Bio Flash -->
 <div id="heroBio"
-     style="display: none; position: fixed; top: 30%; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.88); color: #f6e7c1; padding: 1.5rem; border-radius: 14px;
-            z-index: 9999; text-align: center; max-width: 90%; box-shadow: 0 0 15px black;">
+     style="display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: #f6e7c1;
+            padding: 2rem;
+            border-radius: 18px;
+            z-index: 9999;
+            text-align: center;
+            max-width: 90%;
+            width: 340px;
+            box-shadow: 0 0 30px black;">
+  <img id="heroBioImg" src="" alt="" style="width: 150px; height: auto; margin-bottom: 1rem; border-radius: 12px; box-shadow: 0 0 10px #f4a259;">
   <p id="heroBioText" style="font-size: 1.1rem; font-weight: 500;"></p>
   <button onclick="document.getElementById('heroBio').style.display='none'" class="global-button" style="margin-top: 1rem;">Close</button>
 </div>
@@ -41,21 +53,38 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const bios = {
-      "Cognita": "🧠 Cognita – Mindshift Operative: Helps you rewrite your inner code and reframe stuck thoughts.",
-      "Velessa": "🌸 Velessa – Goddess of the Present: She pauses the noise so you can feel your breath again.",
-      "Sir Renity": "🛡️ Sir Renity – Guardian of Calm: His stillness disarms the storm inside you.",
-      "Grace": "✨ Grace – The Light Within: A constant whisper that you are worth saving.",
-      "Lucentis": "🔆 Lucentis – Bringer of Clarity: When you are lost in the fog, he’s the light that finds you."
+      "cognita": {
+        text: "🧠 Cognita – Mindshift Operative: Helps you rewrite your inner code and reframe stuck thoughts.",
+        img: "/static/images/heroes/Cognita_Transparent.png"
+      },
+      "velessa": {
+        text: "🌸 Velessa – Goddess of the Present: She pauses the noise so you can feel your breath again.",
+        img: "/static/images/heroes/Velessa_Transparent.png"
+      },
+      "sirrenity": {
+        text: "🛡️ Sir Renity – Guardian of Calm: His stillness disarms the storm inside you.",
+        img: "/static/images/heroes/SirRenity_Transparent.png"
+      },
+      "grace": {
+        text: "✨ Grace – The Light Within: A constant whisper that you are worth saving.",
+        img: "/static/images/heroes/Grace_Transparent.png"
+      },
+      "lucentis": {
+        text: "🔆 Lucentis – Bringer of Clarity: When you are lost in the fog, he’s the light that finds you.",
+        img: "/static/images/heroes/Lucentis_Transparent.png"
+      }
     };
 
     document.querySelectorAll('.hero-img').forEach(img => {
       img.addEventListener('click', () => {
-        const name = img.alt.trim();
-        const text = bios[name] || "Hero bio coming soon.";
-        document.getElementById("heroBioText").textContent = text;
+        const name = img.alt.trim().replace(/\s+/g, "").toLowerCase();
+        const hero = bios[name] || { text: "Hero bio coming soon.", img: "" };
+        document.getElementById("heroBioText").textContent = hero.text;
+        document.getElementById("heroBioImg").src = hero.img;
         document.getElementById("heroBio").style.display = "block";
       });
     });
   });
 </script>
 {% endblock %}
+
