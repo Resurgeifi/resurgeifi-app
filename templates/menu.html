@@ -5,18 +5,21 @@
 <!-- 🗿 Title -->
 <img src="{{ url_for('static', filename='titles/stateofinner.png') }}" 
      alt="State of Inner Title" 
-     style="display: block; max-width: 250px; margin: 2rem auto;" />
+     class="circle-title-img" />
 
 <!-- 🧭 Snapshot Container -->
 <div class="main-content" style="text-align: center;">
   <h1>📊 Your Current State</h1>
+  <p style="font-style: italic; margin-bottom: 1.5rem;">
+    Inner ring calibrated. Standing by for clarity...
+  </p>
 
   <!-- Dark Card -->
   <div class="card-dark">
-    <p><strong>🌀 Current Ring:</strong> {{ current_ring or "Unranked" }}</p>
+    <p><strong>🌀 Recovery Ring:</strong> {{ current_ring or "Not Yet Assigned" }}</p>
 
     <p><strong>📈 Days on Journey:</strong> 
-      <span id="days-display">?</span> 
+      <span id="days-display">0</span> 
       day{{ 's' if (days_on_journey|int) != 1 else '' }}
     </p>
 
@@ -44,10 +47,12 @@
     <p class="hero-quote">“You didn’t skip the journey. You lived it.”</p>
   </div>
 </div>
-
 <audio id="graceSound" src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
 
-<!-- 🎬 Script -->
+{% endblock %}
+
+{% block scripts %}
+<!-- 🎬 Reset + Count Logic -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const display = document.getElementById("days-display");
@@ -56,13 +61,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("graceSound");
 
   const actual = {{ days_on_journey or 0 }};
-  const stored = localStorage.getItem("lastDaysCount") || "0";
 
+  // Reset journey count on page load
+  localStorage.removeItem("lastDaysCount");
+  const stored = "0";
   display.textContent = stored;
 
   button.addEventListener("click", () => {
-    if (parseInt(stored) === actual) return;
-
     let counter = parseInt(stored) || 0;
     audio.currentTime = 0;
     audio.volume = 1.0;
@@ -76,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
         clearInterval(interval);
         localStorage.setItem("lastDaysCount", counter.toString());
 
-        // Grace flash
         flash.style.display = "flex";
         flash.style.opacity = 1;
         setTimeout(() => {
@@ -88,9 +92,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+{% endblock %}
 
-<!-- 💅 Styles -->
+{% block styles %}
 <style>
+.card-dark {
+  font-size: 1.25rem;
+  line-height: 1.7;
+}
+
 .hero-flash {
   position: fixed;
   top: 0; left: 0;
@@ -104,11 +114,13 @@ document.addEventListener("DOMContentLoaded", () => {
   transition: opacity 0.4s ease;
   opacity: 0;
 }
+
 .hero-flash img {
   width: 90vw;
   max-width: 460px;
   animation: pulseGlow 2.5s ease-out;
 }
+
 .speech-box {
   margin-top: 1.5rem;
   background: #000;
@@ -117,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
   text-align: center;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
+
 .hero-quote {
   font-size: 1.4rem;
   color: #f6e7c1;
@@ -124,5 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 </style>
 {% endblock %}
+
 
 
