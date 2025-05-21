@@ -27,8 +27,8 @@
     <p><strong>Type:</strong> <span id="matchType"></span></p>
     <p><strong>Location:</strong> <span id="matchLocation"></span></p>
     <p style="font-style: italic;" id="matchQuote"></p>
-    <div style="margin-top: 1.5rem;">
-      <a id="matchCall" class="global-button" style="margin-right: 1rem;">📞 Call Now</a>
+    <div class="final-action-buttons">
+      <a id="matchCall" class="global-button">📞 Call Now</a>
       <a id="matchVisit" class="global-button" target="_blank">🌐 Visit Website</a>
     </div>
   </div>
@@ -155,6 +155,21 @@ function showRescueMatch() {
   justify-content: center;
   gap: 1rem;
 }
+
+.final-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.final-action-buttons a {
+  flex: 1 1 160px;
+  text-align: center;
+  max-width: 240px;
+}
 </style>
 {% endblock %}
+
 
