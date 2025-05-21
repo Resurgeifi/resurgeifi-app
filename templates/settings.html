@@ -62,50 +62,63 @@
     <p class="hero-quote">“Settings saved. You’re building a real path here.”</p>
   </div>
 </div>
-<audio id="graceSound" src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
+<audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
 
 <!-- 🎬 Flash Script -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const forms = document.querySelectorAll("form");
-    const flash = document.getElementById("graceFlash");
-    const sound = document.getElementById("graceSound");
+  const forms = document.querySelectorAll("form");
+  const flash = document.getElementById("graceFlash");
+  const sound = document.getElementById("graceSound");
 
-    forms.forEach(form => {
-      form.addEventListener("submit", (e) => {
-        e.preventDefault(); // stop instant reload
+  forms.forEach(form => {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault(); // stop instant reload
 
-        flash.style.display = "flex";
-        flash.style.opacity = 1;
-        flash.style.transform = "scale(1.03)";
-        sound.currentTime = 0;
-        sound.play();
+      flash.style.display = "flex";
+      flash.style.opacity = 1;
+      flash.style.transform = "scale(1.03)";
+      sound.pause();
+sound.currentTime = 0;
+sound.load();
+sound.volume = 1.0;
+sound.play().catch(err => {
+  console.warn("Grace sound was blocked in settings page:", err);
+});
 
+
+      // Grace fade-out, then submit form
+      setTimeout(() => {
+        flash.style.opacity = 0;
+        flash.style.transform = "scale(1)";
         setTimeout(() => {
-          flash.style.opacity = 0;
-          flash.style.transform = "scale(1)";
           flash.style.display = "none";
-          form.submit(); // now send the form
-        }, 3500);
-      });
+          form.submit(); // submit after fade
+        }, 500);
+      }, 3000);
     });
   });
+});
 </script>
 
 <style>
 .hero-flash {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.85);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
   display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.4s ease, transform 0.4s ease;
   opacity: 0;
 }
+
 .hero-flash img {
   width: 80vw;
   max-width: 400px;
