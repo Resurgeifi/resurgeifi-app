@@ -87,11 +87,10 @@ body::before {
 }
 
 /* =========================
-   MAIN CONTENT AREA – Fixed
+   MAIN CONTENT AREA – Full Width
 =========================== */
 .main-content {
   width: 100%;
-  max-width: 1200px;
   margin: 0 auto;
   padding: 1.25rem 1.5rem 100px;
   position: relative;
@@ -101,14 +100,6 @@ body::before {
   align-items: stretch;
   box-sizing: border-box;
 }
-
-/* Optional: For larger screens, you can *cap* the width gently */
-@media (min-width: 1024px) {
-  .main-content {
-    max-width: 1200px;
-  }
-}
-
 
 /* =========================
    TYPOGRAPHY
