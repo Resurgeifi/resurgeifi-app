@@ -4,18 +4,17 @@ from collections import Counter
 from db import SessionLocal
 from models import User, JournalEntry, QueryHistory
 
-# Global hero pool
+# ✅ Hero pool
 HERO_NAMES = [
     "Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"
 ]
 
-# Optional future integration
+# 🧠 Optional future journal integration
 def pull_recent_journal_summary(user_id):
-    # Placeholder for journal integration
-    # Example: return last summary or tone keyword
+    # Placeholder for future tone-sensing
     return None
 
-# Detect crisis tone based on last few messages
+# 🚨 Detect active crisis tone
 def detect_crisis_tone(thread):
     crisis_keywords = [
         "don’t want to live", "give up", "relapse", "hopeless", "done",
@@ -24,7 +23,7 @@ def detect_crisis_tone(thread):
     user_messages = [msg["text"].lower() for msg in thread[-4:] if msg["speaker"] == "User"]
     return any(any(kw in msg for kw in crisis_keywords) for msg in user_messages)
 
-# Detect relapse-oriented language (fantasizing, not just use)
+# 🍺 Detect romanticizing relapse (not just mention)
 def detect_relapse_fantasy(thread):
     relapse_phrases = [
         "i miss drinking", "i need a drink", "just one", "cold beer",
@@ -34,7 +33,7 @@ def detect_relapse_fantasy(thread):
     user_messages = [msg["text"].lower() for msg in thread[-3:] if msg["speaker"] == "User"]
     return any(any(p in msg for p in relapse_phrases) for msg in user_messages)
 
-# Detect tone: playful, dry, sarcastic, emotionally avoidant
+# 😒 Detect dry or deflective tone
 def detect_playful_or_dry(thread):
     if not thread:
         return False
@@ -48,14 +47,14 @@ def detect_playful_or_dry(thread):
     ]
     return len(text) <= 12 or any(trigger in text for trigger in dry_triggers)
 
-# Detect metaphor loops (e.g. sock, laundry)
+# 🔁 Detect metaphor loops (sock, fog, beer, etc.)
 def detect_repetitive_phrases(thread):
     words_to_track = ["sock", "laundry", "fold", "cold beer", "pill", "monster", "ghost", "fog", "reset"]
     all_text = " ".join(msg["text"].lower() for msg in thread[-6:])
     counts = {word: all_text.count(word) for word in words_to_track if all_text.count(word) > 1}
-    return counts  # returns { "sock": 3, "laundry": 2 }
+    return counts  # e.g., { "sock": 3, "laundry": 2 }
 
-# Hero selector based on tone and flags
+# 🎯 Choose heroes based on tone and flags
 def select_heroes(tone, thread):
     is_crisis = detect_crisis_tone(thread)
     is_relapse = detect_relapse_fantasy(thread)
@@ -64,9 +63,13 @@ def select_heroes(tone, thread):
     safe_heroes = ["Grace", "Cognita", "Velessa"]
     base_pool = safe_heroes if is_relapse else HERO_NAMES
 
-    # Summoned heroes go first
-    forced = [{"name": h, "mode": "speak"} for h in mentioned if h in base_pool]
-    available = [h for h in base_pool if h not in mentioned]
+    # 🔒 Relapse fallback: always include Grace
+    if is_relapse:
+        forced = [{"name": "Grace", "mode": "speak"}]
+        available = [h for h in HERO_NAMES if h not in ["Lucentis", "Sir Renity", "Grace"]]
+    else:
+        forced = [{"name": h, "mode": "speak"} for h in mentioned if h in base_pool]
+        available = [h for h in base_pool if h not in mentioned]
 
     max_heroes = 3 if is_crisis else random.choice([1, 2])
     selected = random.sample(available, k=max(0, max_heroes - len(forced)))
@@ -76,7 +79,7 @@ def select_heroes(tone, thread):
     print(f"[RAMS] Tone: {tone} | Crisis: {is_crisis} | Relapse: {is_relapse} | Mentioned: {mentioned}")
     return hero_plans
 
-# Thread + onboarding formatter
+# 🧠 Thread + onboarding formatter
 def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
     formatted_thread = ""
     if session_data and isinstance(session_data, list):
@@ -114,7 +117,7 @@ Speak gently, with emotional awareness, as if meeting someone for the first time
         "emotional_profile": emotional_profile.strip()
     }
 
-# Prompt builder for each hero
+# 🗣️ Hero prompt builder
 def build_prompt(hero, user_input, context, nickname="Friend", next_hero=None, previous_hero=None, onboarding=None):
     is_playful = detect_playful_or_dry(context)
     is_relapse = detect_relapse_fantasy(context)
@@ -163,4 +166,5 @@ You are not a bot. You are a voice in the Circle.
 """.strip()
 
     return prompt
+
 

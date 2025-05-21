@@ -657,11 +657,8 @@ def journal():
 @login_required
 def ask():
     try:
-        from models import CircleMessage  # ✅ Already exists
-        from models import QueryHistory   # ✅ Already exists
-        from uuid import uuid4
-        from datetime import datetime
-        import random
+        from models import CircleMessage
+        from rams import build_prompt, select_heroes
 
         data = request.get_json()
         user_message = data.get("message", "").strip()
@@ -673,28 +670,30 @@ def ask():
             session['session_id'] = str(uuid4())
 
         user_id = session.get("user_id")
-
         db = SessionLocal()
         user = db.query(User).filter_by(id=user_id).first()
         nickname = user.nickname if user and user.nickname else user.username
 
-        # 🧠 Pull last thread from DB instead of session
-        past_messages = (
-            db.query(CircleMessage)
-            .filter_by(user_id=user_id)
-            .order_by(CircleMessage.timestamp.asc())
-            .limit(20)
-            .all()
-        )
-        thread = [{"speaker": m.speaker, "text": m.text} for m in past_messages]
+        # 🧠 Pull thread from session (for memory + context)
+        thread = session.get("circle_thread", [])
         thread.append({"speaker": "User", "text": user_message})
+        thread = thread[-20:]
 
-        # 💾 Save new user message to DB
+        # 🧠 Save user message to DB
         db.add(CircleMessage(user_id=user_id, speaker="User", text=user_message))
         session["last_input_ts"] = datetime.utcnow().isoformat()
 
         tone = session.get("tone", "neutral")
         onboarding = session.get("onboarding_data", {})
+
+        # ➕ Track continuity — who last spoke?
+        previous_hero = None
+        for msg in reversed(thread[:-1]):
+            if msg["speaker"] != "User":
+                previous_hero = msg["speaker"]
+                break
+
+        # 🔁 Choose heroes
         selected_heroes = select_heroes(tone, thread)
 
         results = []
@@ -710,7 +709,8 @@ def ask():
                         user_input=user_message,
                         context=thread,
                         nickname=nickname,
-                        onboarding=onboarding
+                        onboarding=onboarding,
+                        previous_hero=previous_hero
                     )
 
                     response = client.chat.completions.create(
@@ -720,9 +720,8 @@ def ask():
                     )
 
                     reply = response.choices[0].message.content.strip()
-
                     if reply.lower().startswith(f"{hero.lower()}:"):
-                        reply = reply[len(hero) + 1:].strip()
+                        reply = reply[len(hero)+1:].strip()
 
                     pause = random.randint(2500, 4000)
                     typing_time = len(reply.split()) * random.randint(65, 80)
@@ -731,19 +730,10 @@ def ask():
                 elif mode == "brb":
                     reply = hero_plan.get("text", f"{hero} has stepped away briefly.")
                     delay = 1200 + i * 900
-
                 else:
                     continue
 
-                # 💾 Save reply to DB
                 db.add(CircleMessage(user_id=user_id, speaker=hero, text=reply))
-
-                results.append({
-                    "hero": hero,
-                    "text": reply,
-                    "delay_ms": delay
-                })
-
                 thread.append({"speaker": hero, "text": reply})
 
                 if user and mode == "speak":
@@ -754,6 +744,12 @@ def ask():
                         response=reply
                     ))
 
+                results.append({
+                    "hero": hero,
+                    "text": reply,
+                    "delay_ms": delay
+                })
+
             except Exception as e:
                 error_msg = f"Error: {str(e)}"
                 thread.append({"speaker": hero, "text": error_msg})
@@ -763,6 +759,7 @@ def ask():
                     "delay_ms": 1500 + i * 700
                 })
 
+        session["circle_thread"] = thread[-20:]
         db.commit()
         db.close()
 
