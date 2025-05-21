@@ -38,6 +38,38 @@ body.flashing {
 html, body {
   overflow-x: hidden;
 }
+/* =============== FULL MOBILE APP LAYOUT =============== */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  font-family: 'Oswald', 'Segoe UI', Tahoma, sans-serif;
+  background-color: #1a1a1a;
+  background-image: url("/static/backgrounds/stoneback.png");
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: #e7dbc9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 🔥 Main content full-width */
+.main-content {
+  flex-grow: 1;
+  width: 100%;
+  max-width: none;
+  padding: 1.25rem 1rem 100px; /* leaves room for nav bar */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;
+}
 
 /* =========================
    STATE OF INNER CARD – Mobile Friendly
