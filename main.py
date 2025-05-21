@@ -657,7 +657,11 @@ def journal():
 @login_required
 def ask():
     try:
-        from models import CircleMessage  # ✅ Add this import near the top if not already
+        from models import CircleMessage  # ✅ Already exists
+        from models import QueryHistory   # ✅ Already exists
+        from uuid import uuid4
+        from datetime import datetime
+        import random
 
         data = request.get_json()
         user_message = data.get("message", "").strip()
@@ -674,15 +678,19 @@ def ask():
         user = db.query(User).filter_by(id=user_id).first()
         nickname = user.nickname if user and user.nickname else user.username
 
-        # 🧠 Pull thread from session (still used for context)
-        thread = session.get("circle_thread", [])
+        # 🧠 Pull last thread from DB instead of session
+        past_messages = (
+            db.query(CircleMessage)
+            .filter_by(user_id=user_id)
+            .order_by(CircleMessage.timestamp.asc())
+            .limit(20)
+            .all()
+        )
+        thread = [{"speaker": m.speaker, "text": m.text} for m in past_messages]
         thread.append({"speaker": "User", "text": user_message})
-        thread = thread[-20:]  # trim session memory
 
-        # 🧠 Persist user message to DB
+        # 💾 Save new user message to DB
         db.add(CircleMessage(user_id=user_id, speaker="User", text=user_message))
-
-        # Store last input time for idle check
         session["last_input_ts"] = datetime.utcnow().isoformat()
 
         tone = session.get("tone", "neutral")
@@ -727,7 +735,7 @@ def ask():
                 else:
                     continue
 
-                # ✅ Save hero reply to DB
+                # 💾 Save reply to DB
                 db.add(CircleMessage(user_id=user_id, speaker=hero, text=reply))
 
                 results.append({
@@ -755,8 +763,6 @@ def ask():
                     "delay_ms": 1500 + i * 700
                 })
 
-        # ✅ Update session memory
-        session["circle_thread"] = thread[-20:]
         db.commit()
         db.close()
 
@@ -766,7 +772,6 @@ def ask():
         import traceback
         print("🔥 /ask route error:", traceback.format_exc())
         return jsonify({"error": "Server error", "details": str(e)}), 500
-
 
 @app.route('/idle-check', methods=['GET'])
 @login_required
