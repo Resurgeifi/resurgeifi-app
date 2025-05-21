@@ -12,17 +12,60 @@
   </form>
 </div>
 
-<!-- 🌠 Lucentis Flash Animation -->
-<div id="lucentisFlash" class="hero-flash" style="display: none;">
-  <img src="{{ url_for('static', filename='images/heroes/lucentis/lucentis_writing.png') }}"
-       class="lucentis-image floaty" alt="Lucentis Writing" />
-  <p class="hero-quote">“Reflection refines the truth. You’ve grown.”</p>
+<!-- 🌠 Lucentis Flash -->
+<div id="lucentisFlash" class="hero-flash">
+  <img src="{{ url_for('static', filename='images/heroes/lucentis/lucentis_writing.png') }}" alt="Lucentis Writing" />
+  <div class="speech-box">
+    <p class="hero-quote">“Reflection refines the truth. You’ve grown.”</p>
+  </div>
 </div>
 
 <!-- 🔊 Sound Effect -->
 <audio id="flashSound" src="{{ url_for('static', filename='audio/lucentis_flash.mp3') }}"></audio>
 
-<!-- 🎬 Flash Trigger + Faster Audio Fade + Redirect -->
+<!-- 💡 Flash Styling -->
+<style>
+.hero-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.hero-flash img {
+  width: 80vw;
+  max-width: 400px;
+  height: auto;
+  object-fit: contain;
+  animation: pulseGlow 3s ease-out;
+}
+.speech-box {
+  background: #000;
+  margin-top: 1.5rem;
+  padding: 1.4rem 1.8rem;
+  border-radius: 14px;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+}
+.hero-quote {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #f6e7c1;
+  line-height: 1.6;
+}
+</style>
+
+<!-- 🎬 Flash Logic -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById("editForm");
@@ -41,15 +84,14 @@
         },
         body: new URLSearchParams({ content })
       }).then(() => {
-        // 🔥 Show Lucentis flash
         flash.style.display = "flex";
+        flash.style.opacity = 1;
 
         if (audio) {
           audio.currentTime = 0;
           audio.volume = 1.0;
           audio.play().catch(e => console.warn("Audio autoplay blocked:", e));
 
-          // 🎧 Start fade earlier + make it fade faster
           setTimeout(() => {
             const fadeInterval = setInterval(() => {
               if (audio.volume > 0.1) {
@@ -60,11 +102,11 @@
                 clearInterval(fadeInterval);
               }
             }, 100);
-          }, 3000); // Start fade at 3s
+          }, 3000);
         }
 
-        // ⏱ Redirect at 5s
         setTimeout(() => {
+          flash.style.opacity = 0;
           flash.style.display = "none";
           window.location.href = "/journal";
         }, 5000);
@@ -73,5 +115,6 @@
   });
 </script>
 {% endblock %}
+
 
 

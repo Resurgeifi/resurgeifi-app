@@ -2,21 +2,18 @@
 {% block title %}Journal | Resurgifi{% endblock %}
 
 {% block content %}
-<!-- 🪨 Cracked Stone Title Image -->
 <img src="{{ url_for('static', filename='titles/journal.png') }}" 
      alt="Journal Title" 
      style="display: block; max-width: 250px; margin: 2rem auto;" />
 
 <div class="main-content">
 
-  <!-- 🔄 Current Ring Status -->
   <div class="ring-status">
     <p style="font-size: 1.1rem; color: #e0d4b2;">
       🔄 Current Ring: <strong>{{ current_ring }}</strong>
     </p>
   </div>
 
-  <!-- ⚡ Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div class="flash-container">
@@ -27,7 +24,6 @@
     {% endif %}
   {% endwith %}
 
-  <!-- 📝 Journal Form -->
   <form id="journalForm" method="POST" action="/journal" style="margin-top: 1.5rem;">
     <label for="entry" style="font-size: 1.2rem;"><strong>What’s on your mind today?</strong></label><br><br>
     <textarea 
@@ -41,7 +37,6 @@
 
   <hr class="section-divider" style="margin: 2.5rem 0; border: 1px solid #444;">
 
-  <!-- 📜 Previous Journal Entries -->
   {% if entries %}
     <h2 style="text-align: center; color: #f6e7c1;">Previous Entries</h2>
     {% for entry in entries %}
@@ -68,8 +63,7 @@
 
 <!-- 🌟 Cognita Flash -->
 <div id="cognitaFlash" class="hero-flash">
-  <img src="{{ url_for('static', filename='images/heroes/cognita/cognita_writing.png') }}"
-       alt="Cognita Writing" />
+  <img src="{{ url_for('static', filename='images/heroes/cognita/cognita_writing.png') }}" alt="Cognita Writing" />
   <div class="speech-box">
     <p class="hero-quote">“Every time you reflect, you rewire. You just grew.”</p>
   </div>
@@ -77,10 +71,9 @@
 
 <!-- 🚩 Warden Fall Flash -->
 <div id="wardenFlash" class="hero-flash">
-  <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}"
-       alt="Warden Fall" />
+  <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}" alt="Warden Fall" />
   <div class="speech-box">
-    <p id="wardenQuote" class="scroll-quote">“Some sins echo forever…”</p>
+    <p class="hero-quote scroll-quote">“Some sins echo forever…”</p>
   </div>
 </div>
 
@@ -88,69 +81,57 @@
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
 
-<!-- 🎨 STYLES -->
 <style>
 .hero-flash {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
   width: 100vw;
-  background: rgba(0, 0, 0, 0.75);
+  height: 100vh;
   z-index: 9999;
   display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-
 .hero-flash img {
-  width: 100vw;
-  max-width: none;
+  width: 80vw;
+  max-width: 400px;
   height: auto;
   object-fit: contain;
   animation: pulseGlow 3s ease-out;
 }
-
 .speech-box {
-  background: rgba(0, 0, 0, 0.85);
-  margin-top: 1rem;
-  padding: 1.2rem;
-  border-radius: 12px;
+  background: #000;
+  margin-top: 1.5rem;
+  padding: 1.4rem 1.8rem;
+  border-radius: 14px;
   max-width: 90vw;
   text-align: center;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
 }
-
 .hero-quote {
-  font-size: 1.4rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #fff8dc;
-  text-shadow: 1px 1px 3px black;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #f6e7c1;
+  line-height: 1.6;
 }
-
 .scroll-quote {
   animation: scrollUpFade 4s ease-out;
-  font-size: 1.3rem;
-  color: #f6e7c1;
-  line-height: 1.5;
 }
-
 .fade-out {
   animation: fadeOutSmooth 1s ease-out;
 }
-
 .entry-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 10px;
 }
-
 .entry-button {
   padding: 10px 20px;
   font-size: 0.95rem;
@@ -162,113 +143,102 @@
   transition: background-color 0.2s ease;
   min-width: 100px;
 }
-
 .entry-button.edit {
   background-color: #f4a259;
   color: #1f3e36;
   border: 2px solid #1f3e36;
 }
-
 .entry-button.edit:hover {
   background-color: #f69e3e;
 }
-
 .entry-button.delete {
   background-color: #e11d48;
   color: #fff;
   border: 2px solid #590b26;
 }
-
 .entry-button.delete:hover {
   background-color: #c8103f;
 }
 </style>
 
-<!-- 🧠 Flash Logic -->
 <script>
-  function bindJournalFlash() {
-    const journalForm = document.getElementById("journalForm");
-    const cognitaFlash = document.getElementById("cognitaFlash");
-    const cognitaAudio = document.getElementById("flashSound");
+function bindJournalFlash() {
+  const journalForm = document.getElementById("journalForm");
+  const cognitaFlash = document.getElementById("cognitaFlash");
+  const cognitaAudio = document.getElementById("flashSound");
 
-    if (journalForm && cognitaFlash && cognitaAudio) {
-      journalForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        cognitaFlash.style.display = "flex";
-        cognitaFlash.style.opacity = 1;
-        cognitaAudio.pause();
-        cognitaAudio.currentTime = 0;
-        cognitaAudio.volume = 1.0;
-        cognitaAudio.play().catch(() => {});
+  if (journalForm && cognitaFlash && cognitaAudio) {
+    journalForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      cognitaFlash.style.display = "flex";
+      cognitaFlash.style.opacity = 1;
+      cognitaAudio.pause();
+      cognitaAudio.currentTime = 0;
+      cognitaAudio.volume = 1.0;
+      cognitaAudio.play().catch(() => {});
+      setTimeout(() => {
+        const fade = setInterval(() => {
+          if (cognitaAudio.volume > 0.05) {
+            cognitaAudio.volume -= 0.1;
+          } else {
+            cognitaAudio.volume = 0;
+            cognitaAudio.pause();
+            clearInterval(fade);
+          }
+        }, 100);
+      }, 3000);
+      setTimeout(() => {
+        cognitaFlash.style.opacity = 0;
+        cognitaFlash.style.display = "none";
+        journalForm.submit();
+      }, 5000);
+    });
+  }
+}
+
+function bindDeleteFlash() {
+  const deleteForms = document.querySelectorAll(".delete-form");
+  const wardenFlash = document.getElementById("wardenFlash");
+  const wardenAudio = document.getElementById("wardenSound");
+
+  deleteForms.forEach(form => {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      wardenFlash.style.display = "flex";
+      wardenFlash.style.opacity = 1;
+      if (wardenAudio) {
+        wardenAudio.pause();
+        wardenAudio.currentTime = 0;
+        wardenAudio.volume = 1.0;
+        wardenAudio.play().catch(() => {});
         setTimeout(() => {
           const fade = setInterval(() => {
-            if (cognitaAudio.volume > 0.05) {
-              cognitaAudio.volume -= 0.1;
+            if (wardenAudio.volume > 0.05) {
+              wardenAudio.volume -= 0.1;
             } else {
-              cognitaAudio.volume = 0;
-              cognitaAudio.pause();
+              wardenAudio.volume = 0;
+              wardenAudio.pause();
               clearInterval(fade);
             }
           }, 100);
         }, 3000);
-        setTimeout(() => {
-          cognitaFlash.style.opacity = 0;
-          cognitaFlash.style.display = "none";
-          journalForm.submit();
-        }, 5000);
-      });
-    }
-  }
-
-  function bindDeleteFlash() {
-    const deleteForms = document.querySelectorAll(".delete-form");
-    const wardenFlash = document.getElementById("wardenFlash");
-    const wardenQuote = document.getElementById("wardenQuote");
-    const wardenAudio = document.getElementById("wardenSound");
-
-    deleteForms.forEach(form => {
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        wardenQuote.classList.remove("scroll-quote");
-        void wardenQuote.offsetWidth;
-        wardenQuote.classList.add("scroll-quote");
-        wardenFlash.classList.remove("fade-out");
-        wardenFlash.style.display = "flex";
-        wardenFlash.style.opacity = 1;
-        if (wardenAudio) {
-          wardenAudio.pause();
-          wardenAudio.currentTime = 0;
-          wardenAudio.volume = 1.0;
-          wardenAudio.play().catch(() => {});
-          setTimeout(() => {
-            const fade = setInterval(() => {
-              if (wardenAudio.volume > 0.05) {
-                wardenAudio.volume -= 0.1;
-              } else {
-                wardenAudio.volume = 0;
-                wardenAudio.pause();
-                clearInterval(fade);
-              }
-            }, 100);
-          }, 3000);
-        }
-        setTimeout(() => {
-          wardenFlash.classList.add("fade-out");
-        }, 4200);
-        setTimeout(() => {
-          wardenFlash.style.display = "none";
-          form.submit();
-        }, 5500);
-      });
+      }
+      setTimeout(() => {
+        wardenFlash.style.opacity = 0;
+        wardenFlash.style.display = "none";
+        form.submit();
+      }, 5000);
     });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    bindJournalFlash();
-    bindDeleteFlash();
   });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bindJournalFlash();
+  bindDeleteFlash();
+});
 </script>
 {% endblock %}
+
 
 
 
