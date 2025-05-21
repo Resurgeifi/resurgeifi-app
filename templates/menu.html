@@ -2,21 +2,23 @@
 {% block title %}State of Inner | Resurgifi{% endblock %}
 
 {% block content %}
-<!-- 🗿 State of Inner Title Image -->
+<!-- 🗿 Title -->
 <img src="{{ url_for('static', filename='titles/stateofinner.png') }}" 
      alt="State of Inner Title" 
      style="display: block; max-width: 250px; margin: 2rem auto;" />
 
-<!-- 🔍 Inner Snapshot -->
-<div class="container settings-page" style="text-align: center; margin-top: 2rem;">
+<!-- 🧭 Snapshot Container -->
+<div class="main-content" style="text-align: center;">
+
   <h1>📊 Your Current State</h1>
 
-  <div class="card-dark" style="margin-top: 1.5rem; padding: 1.5rem;">
+  <!-- Dark Card -->
+  <div class="card-dark" style="margin: 2rem auto; padding: 2rem; max-width: 600px; border-radius: 16px; background: rgba(0,0,0,0.6); box-shadow: 0 0 20px rgba(0,0,0,0.4);">
     <p><strong>🌀 Current Ring:</strong> {{ current_ring or "Unranked" }}</p>
-
-    <!-- 🧭 Animated Days Count -->
+    
+    <!-- Animated Days -->
     <p><strong>📈 Days on Journey:</strong> 
-      <span id="days-display">{{ days_on_journey or 0 }}</span> 
+      <span id="days-display">?</span> 
       day{{ 's' if (days_on_journey|int) != 1 else '' }}
     </p>
 
@@ -27,9 +29,9 @@
     <p style="font-style: italic;">“{{ last_circle_msg or 'No conversations yet' }}”</p>
   </div>
 
-  <!-- ⏳ Spin-Up Button -->
-  <button id="calculate-days-btn" class="btn btn-outline-light" style="margin-top: 1.5rem;">
-    ⏳ Calculate Time
+  <!-- ⏳ Count Button -->
+  <button id="calculate-days-btn" class="global-button" style="margin-top: 1.5rem;">
+    ⏳ Count Days
   </button>
 
   <p class="mantra" style="margin-top: 2rem;">
@@ -37,29 +39,90 @@
   </p>
 </div>
 
-<!-- 🔊 Script: Level-Up Sound + Animated Day Counter -->
+<!-- 🌟 Grace Flash -->
+<div id="graceFlash" class="hero-flash">
+  <img src="{{ url_for('static', filename='images/heroes/grace/grace_flash.png') }}" alt="Grace Flash" />
+  <div class="speech-box">
+    <p class="hero-quote">“You didn’t skip the journey. You lived it.”</p>
+  </div>
+</div>
+
+<audio id="graceSound" src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
+
+<!-- 🎬 Script: Manual Spin-Up -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("calculate-days-btn");
   const display = document.getElementById("days-display");
-  if (!btn || !display) return;
+  const button = document.getElementById("calculate-days-btn");
+  const flash = document.getElementById("graceFlash");
+  const audio = document.getElementById("graceSound");
 
-  const target = parseInt(display.textContent) || 0;
-  const audio = new Audio("/static/levelup.mp3");
+  const stored = localStorage.getItem("lastDaysCount") || "0";
+  const actual = {{ days_on_journey or 0 }};
 
-  btn.addEventListener("click", () => {
-    if (target === 0) return;
+  display.textContent = stored;
+
+  button.addEventListener("click", () => {
+    if (parseInt(stored) === actual) return;
+
+    let counter = parseInt(stored) || 0;
+    audio.currentTime = 0;
     audio.play();
-    let counter = 0;
+
     const interval = setInterval(() => {
-      if (counter < target) {
+      if (counter < actual) {
         counter++;
         display.textContent = counter;
       } else {
         clearInterval(interval);
+        localStorage.setItem("lastDaysCount", counter.toString());
+
+        // Grace Flash
+        flash.style.display = "flex";
+        flash.style.opacity = 1;
+        setTimeout(() => {
+          flash.style.opacity = 0;
+          flash.style.display = "none";
+        }, 5000);
       }
     }, 20);
   });
 });
 </script>
+
+<!-- 💅 Flash Styles -->
+<style>
+.hero-flash {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+  opacity: 0;
+}
+.hero-flash img {
+  width: 80vw;
+  max-width: 400px;
+  animation: pulseGlow 2.5s ease-out;
+}
+.speech-box {
+  margin-top: 1.5rem;
+  background: #000;
+  padding: 1.2rem 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+.hero-quote {
+  font-size: 1.3rem;
+  color: #f6e7c1;
+  line-height: 1.6;
+}
+</style>
 {% endblock %}
+

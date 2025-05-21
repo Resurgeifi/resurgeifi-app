@@ -266,15 +266,20 @@ def menu():
     journal_count = len(journal_entries)
     last_journal = journal_entries[0].timestamp.strftime("%b %d, %Y") if journal_entries else None
 
-    # ✅ Circle message count (today only)
-    circle_thread = session.get("circle_thread", [])
-    today = datetime.now().date()
-    circle_today = [msg for msg in circle_thread if "timestamp" in msg and datetime.fromisoformat(msg["timestamp"]).date() == today]
-    last_circle_msg = None
-    for msg in reversed(circle_today):
-        if msg["speaker"] != "User":
-            last_circle_msg = msg["text"]
-            break
+    # ✅ Circle message from DB (today only, excluding user posts)
+    from models import CircleMessage
+    now = datetime.utcnow()
+    start_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    circle_msgs = (
+        db.query(CircleMessage)
+        .filter(CircleMessage.user_id == user.id)
+        .filter(CircleMessage.timestamp >= start_today)
+        .filter(CircleMessage.speaker != "User")
+        .order_by(CircleMessage.timestamp.desc())
+        .all()
+    )
+    last_circle_msg = circle_msgs[0].text if circle_msgs else None
 
     # ✅ Clean up
     db.close()
