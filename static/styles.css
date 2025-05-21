@@ -35,6 +35,20 @@ body > * {
 body.flashing {
   overflow: hidden !important;
 }
+/* =========================
+   STATE OF INNER CARD – Mobile Friendly
+=========================== */
+.card-dark {
+  width: 95%;
+  max-width: 480px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  text-align: center;
+}
 
 /* =========================
    DARK OVERLAY
