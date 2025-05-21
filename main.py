@@ -897,6 +897,9 @@ def set_timezone():
     offset = data.get("offset", 0)  # Offset in minutes (e.g. -300 for EST)
     session["tz_offset_min"] = offset
     return jsonify({"status": "ok", "offset": offset})
+@app.route("/life-ring")
+def life_ring():
+    return render_template("life_ring.html")
 
 
 if __name__ == '__main__':

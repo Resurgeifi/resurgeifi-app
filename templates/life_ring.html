@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Life Ring | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="main-content" style="max-width: 700px; margin: 0 auto; text-align: center;">
+  <h1>🛟 Life Ring: Real-World Support</h1>
+
+  <p class="mantra" style="margin-bottom: 2rem;">
+    When virtual help isn't enough, we guide you toward a real-world hand. One question at a time.
+  </p>
+
+  <button onclick="startRescueFlow()" class="global-button" style="background-color: #e11d48;">
+    Begin Rescue Check-In
+  </button>
+
+  <!-- 🔄 Rescue Modal Container -->
+  <div id="rescueModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <h2 id="questionText">Loading...</h2>
+      <div id="responseButtons"></div>
+    </div>
+  </div>
+
+  <!-- 🎯 Final Match Display -->
+  <div id="rescueResult" class="entry-box" style="display: none; margin-top: 3rem;">
+    <h3 id="matchName"></h3>
+    <p><strong>Type:</strong> <span id="matchType"></span></p>
+    <p><strong>Location:</strong> <span id="matchLocation"></span></p>
+    <p style="font-style: italic;" id="matchQuote"></p>
+    <div style="margin-top: 1.5rem;">
+      <a id="matchCall" class="global-button" style="margin-right: 1rem;">📞 Call Now</a>
+      <a id="matchVisit" class="global-button" target="_blank">🌐 Visit Website</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const rescueQuestions = [
+  {
+    q: "What are you seeking help for?",
+    options: ["Detox", "Mental Health", "Substance Use", "Grief / Loss", "Just Exploring"],
+    key: "need"
+  },
+  {
+    q: "What type of help do you think you need?",
+    options: ["Inpatient", "Outpatient", "Not Sure"],
+    key: "care_type"
+  },
+  {
+    q: "Do you have insurance?",
+    options: ["Yes", "No", "Not Sure"],
+    key: "insurance"
+  },
+  {
+    q: "Where are you located?",
+    options: ["East Coast", "Midwest", "West Coast", "South", "Nationwide"],
+    key: "region"
+  }
+];
+
+const rescueMatch = {
+  name: "Clear Horizon Recovery",
+  type: "Dual Diagnosis, Inpatient + Outpatient",
+  location: "Nationwide (Based in Florida)",
+  quote: "They know what rock bottom feels like — and how to build from it.",
+  phone: "tel:+18885559999",
+  website: "https://clearhorizonrecovery.com/?src=resurgifi"
+};
+
+let currentStep = 0;
+let userAnswers = {};
+
+function startRescueFlow() {
+  currentStep = 0;
+  userAnswers = {};
+  document.getElementById("rescueModal").style.display = "flex";
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = rescueQuestions[currentStep];
+  document.getElementById("questionText").textContent = q.q;
+
+  const buttonArea = document.getElementById("responseButtons");
+  buttonArea.innerHTML = "";
+  q.options.forEach(option => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.className = "global-button";
+    btn.style.margin = "0.5rem";
+    btn.onclick = () => {
+      userAnswers[q.key] = option;
+      currentStep++;
+      if (currentStep < rescueQuestions.length) {
+        showQuestion();
+      } else {
+        showRescueMatch();
+      }
+    };
+    buttonArea.appendChild(btn);
+  });
+}
+
+function showRescueMatch() {
+  document.getElementById("rescueModal").style.display = "none";
+
+  document.getElementById("matchName").textContent = rescueMatch.name;
+  document.getElementById("matchType").textContent = rescueMatch.type;
+  document.getElementById("matchLocation").textContent = rescueMatch.location;
+  document.getElementById("matchQuote").textContent = "“" + rescueMatch.quote + "”";
+  document.getElementById("matchCall").setAttribute("href", rescueMatch.phone);
+  document.getElementById("matchVisit").setAttribute("href", rescueMatch.website);
+
+  document.getElementById("rescueResult").style.display = "block";
+}
+</script>
+
+<style>
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.modal-content {
+  background: #f6e7c1;
+  color: #1f3e36;
+  padding: 2rem;
+  border-radius: 14px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 0 15px #000;
+}
+</style>
+{% endblock %}
