@@ -23,10 +23,10 @@
 
   <!-- 🎯 Final Match Display -->
   <div id="rescueResult" class="entry-box" style="display: none; margin-top: 3rem;">
-    <h3 id="matchName"></h3>
-    <p><strong>Type:</strong> <span id="matchType"></span></p>
-    <p><strong>Location:</strong> <span id="matchLocation"></span></p>
-    <p style="font-style: italic;" id="matchQuote"></p>
+    <h3 id="matchName">Clear Horizon Recovery</h3>
+    <p><strong>Type:</strong> <span id="matchType">Dual Diagnosis, Inpatient + Outpatient</span></p>
+    <p><strong>Location:</strong> <span id="matchLocation">Nationwide (Based in Florida)</span></p>
+    <p id="matchQuote" style="font-style: italic;">“They know what rock bottom feels like — and how to build from it.”</p>
     <div class="final-action-buttons">
       <a id="matchCall" class="global-button">📞 Call Now</a>
       <a id="matchVisit" class="global-button" target="_blank">🌐 Visit Website</a>
@@ -109,14 +109,16 @@ function showQuestion() {
 }
 
 function showRescueMatch() {
+  const match = rescueMatch;
+
   document.getElementById("rescueModal").style.display = "none";
   document.getElementById("rescueResult").style.display = "block";
-  document.getElementById("matchName").textContent = rescueMatch.name;
-  document.getElementById("matchType").textContent = rescueMatch.type;
-  document.getElementById("matchLocation").textContent = rescueMatch.location;
-  document.getElementById("matchQuote").textContent = "“" + rescueMatch.quote + "”";
-  document.getElementById("matchCall").setAttribute("href", rescueMatch.phone);
-  document.getElementById("matchVisit").setAttribute("href", rescueMatch.website);
+  document.getElementById("matchName").textContent = match.name;
+  document.getElementById("matchType").textContent = match.type;
+  document.getElementById("matchLocation").textContent = match.location;
+  document.getElementById("matchQuote").textContent = "“" + match.quote + "”";
+  document.getElementById("matchCall").setAttribute("href", match.phone);
+  document.getElementById("matchVisit").setAttribute("href", match.website);
 }
 </script>
 
@@ -171,5 +173,6 @@ function showRescueMatch() {
 }
 </style>
 {% endblock %}
+
 
 
