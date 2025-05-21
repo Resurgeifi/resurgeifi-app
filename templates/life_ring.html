@@ -16,7 +16,7 @@
   <!-- 🔄 Rescue Modal Container -->
   <div id="rescueModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
-      <h2 id="questionText">Loading...</h2>
+      <p id="questionText" class="life-question">Loading...</p>
       <div id="responseButtons"></div>
     </div>
   </div>
@@ -37,90 +37,88 @@
 
 {% block scripts %}
 <script>
-    const rescueQuestions = [
-      {
-        key: "need",
-        q: "What are you seeking help for?",
-        options: ["Detox", "Mental Health", "Substance Use", "Grief / Loss", "Just Exploring"]
-      },
-      {
-        key: "care_type",
-        q: "What level of care do you think you need?",
-        options: ["Inpatient", "Outpatient", "Not Sure"]
-      },
-      {
-        key: "insurance",
-        q: "Do you have insurance?",
-        options: ["Yes", "No", "Not Sure"]
-      },
-      {
-        key: "region",
-        q: "Where are you located?",
-        options: ["East Coast", "Midwest", "West Coast", "South", "Nationwide"]
-      }
-    ];
-    
-    const rescueMatch = {
-      name: "Clear Horizon Recovery",
-      type: "Dual Diagnosis, Inpatient + Outpatient",
-      location: "Nationwide (Based in Florida)",
-      quote: "They know what rock bottom feels like — and how to build from it.",
-      phone: "tel:+18885559999",
-      website: "https://clearhorizonrecovery.com/?src=resurgifi"
-    };
-    
-    let currentStep = 0;
-    let userAnswers = {};
-    
-    function startRescueFlow() {
-      currentStep = 0;
-      userAnswers = {};
-      document.getElementById("rescueModal").style.display = "flex";
-      showQuestion();
-    }
-    
-    function showQuestion() {
-      const qBlock = rescueQuestions[currentStep];
-      if (!qBlock) {
-        console.warn("Missing question at step:", currentStep);
+const rescueQuestions = [
+  {
+    key: "need",
+    q: "What are you seeking help for?",
+    options: ["Detox", "Mental Health", "Substance Use", "Grief / Loss", "Just Exploring"]
+  },
+  {
+    key: "care_type",
+    q: "What level of care do you think you need?",
+    options: ["Inpatient", "Outpatient", "Not Sure"]
+  },
+  {
+    key: "insurance",
+    q: "Do you have insurance?",
+    options: ["Yes", "No", "Not Sure"]
+  },
+  {
+    key: "region",
+    q: "Where are you located?",
+    options: ["East Coast", "Midwest", "West Coast", "South", "Nationwide"]
+  }
+];
+
+const rescueMatch = {
+  name: "Clear Horizon Recovery",
+  type: "Dual Diagnosis, Inpatient + Outpatient",
+  location: "Nationwide (Based in Florida)",
+  quote: "They know what rock bottom feels like — and how to build from it.",
+  phone: "tel:+18885559999",
+  website: "https://clearhorizonrecovery.com/?src=resurgifi"
+};
+
+let currentStep = 0;
+let userAnswers = {};
+
+function startRescueFlow() {
+  currentStep = 0;
+  userAnswers = {};
+  document.getElementById("rescueModal").style.display = "flex";
+  showQuestion();
+}
+
+function showQuestion() {
+  const qBlock = rescueQuestions[currentStep];
+  if (!qBlock) {
+    showRescueMatch();
+    return;
+  }
+
+  document.getElementById("questionText").textContent = qBlock.q;
+  const buttonArea = document.getElementById("responseButtons");
+  buttonArea.innerHTML = "";
+
+  qBlock.options.forEach(option => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.className = "global-button";
+    btn.style.margin = "0.5rem";
+    btn.onclick = () => {
+      userAnswers[qBlock.key] = option;
+      currentStep++;
+      if (currentStep < rescueQuestions.length) {
+        showQuestion();
+      } else {
         showRescueMatch();
-        return;
       }
-    
-      document.getElementById("questionText").textContent = qBlock.q;
-      const buttonArea = document.getElementById("responseButtons");
-      buttonArea.innerHTML = "";
-    
-      qBlock.options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.textContent = option;
-        btn.className = "global-button";
-        btn.style.margin = "0.5rem";
-        btn.onclick = () => {
-          userAnswers[qBlock.key] = option;
-          currentStep++;
-          if (currentStep < rescueQuestions.length) {
-            showQuestion();
-          } else {
-            showRescueMatch();
-          }
-        };
-        buttonArea.appendChild(btn);
-      });
-    }
-    
-    function showRescueMatch() {
-      document.getElementById("rescueModal").style.display = "none";
-      document.getElementById("rescueResult").style.display = "block";
-      document.getElementById("matchName").textContent = rescueMatch.name;
-      document.getElementById("matchType").textContent = rescueMatch.type;
-      document.getElementById("matchLocation").textContent = rescueMatch.location;
-      document.getElementById("matchQuote").textContent = "“" + rescueMatch.quote + "”";
-      document.getElementById("matchCall").setAttribute("href", rescueMatch.phone);
-      document.getElementById("matchVisit").setAttribute("href", rescueMatch.website);
-    }
-    </script>
-    
+    };
+    buttonArea.appendChild(btn);
+  });
+}
+
+function showRescueMatch() {
+  document.getElementById("rescueModal").style.display = "none";
+  document.getElementById("rescueResult").style.display = "block";
+  document.getElementById("matchName").textContent = rescueMatch.name;
+  document.getElementById("matchType").textContent = rescueMatch.type;
+  document.getElementById("matchLocation").textContent = rescueMatch.location;
+  document.getElementById("matchQuote").textContent = "“" + rescueMatch.quote + "”";
+  document.getElementById("matchCall").setAttribute("href", rescueMatch.phone);
+  document.getElementById("matchVisit").setAttribute("href", rescueMatch.website);
+}
+</script>
 
 <style>
 .modal-overlay {
@@ -133,6 +131,7 @@
   align-items: center;
   z-index: 9999;
 }
+
 .modal-content {
   background: #f6e7c1;
   color: #1f3e36;
@@ -142,5 +141,20 @@
   text-align: center;
   box-shadow: 0 0 15px #000;
 }
+
+.life-question {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #1f3e36;
+}
+
+#responseButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
 </style>
 {% endblock %}
+
