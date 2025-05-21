@@ -92,9 +92,11 @@
 <style>
 .hero-flash {
   position: fixed;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0, 0, 0, 0.75);
   z-index: 9999;
   display: none;
   flex-direction: column;
@@ -106,14 +108,11 @@
 }
 
 .hero-flash img {
-  max-width: 400px;
-  width: 100%;
+  width: 100vw;
+  max-width: none;
   height: auto;
   object-fit: contain;
   animation: pulseGlow 3s ease-out;
-  border: 3px solid #f4a259;
-  border-radius: 18px;
-  box-shadow: 0 0 30px rgba(255, 241, 179, 0.5);
 }
 
 .speech-box {
@@ -121,7 +120,7 @@
   margin-top: 1rem;
   padding: 1.2rem;
   border-radius: 12px;
-  max-width: 80vw;
+  max-width: 90vw;
   text-align: center;
   box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
@@ -270,6 +269,7 @@
   });
 </script>
 {% endblock %}
+
 
 
 
