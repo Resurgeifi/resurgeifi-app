@@ -35,6 +35,10 @@ body > * {
 body.flashing {
   overflow: hidden !important;
 }
+html, body {
+  overflow-x: hidden;
+}
+
 /* =========================
    STATE OF INNER CARD – Mobile Friendly
 =========================== */
@@ -286,8 +290,12 @@ button {
 
 .hero-arc-lineup .hero {
   position: absolute;
-  width: 90px;
-  height: 90px;
+  width: 24vw;
+  height: 24vw;
+  max-width: 120px;
+  max-height: 120px;
+  min-width: 80px;
+  min-height: 80px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -337,19 +345,39 @@ button {
 =========================== */
 @media (max-width: 600px) {
   .hero-arc-lineup {
-    width: 250px;
-    height: 250px;
+    width: 280px;
+    height: 280px;
   }
 
   .hero-arc-lineup .hero {
-    width: 70px;
-    height: 70px;
-  }
-
-  .hero-arc-lineup .hero img {
-    width: 100%;
+    width: 22vw;
+    height: 22vw;
+    max-width: 100px;
+    max-height: 100px;
+    min-width: 70px;
+    min-height: 70px;
   }
 }
+
+/* =========================
+   Inner Circle Layout Fixes
+=========================== */
+
+/* Stop page drift and cutoff */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Title image */
+.circle-title-img {
+  display: block;
+  width: 90%;
+  max-width: 420px;
+  margin: 2rem auto;
+  height: auto;
+  object-fit: contain;
+}
+
 
 /* =========================
    CIRCLE CHAT BOX
