@@ -2,88 +2,106 @@
 {% block title %}Settings | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="main-content" style="text-align: center;">
+<div class="main-content">
 
   <h1>⚙️ Settings</h1>
-  <p style="font-style: italic;">Adjust your preferences below.</p>
+  <p class="mantra">You can change your nickname and define when your journey began.</p>
 
-  <!-- 🧭 Example Option -->
-  <div class="card-dark">
-    <p><strong>🌎 Timezone:</strong> {{ timezone or "Not set" }}</p>
-    <p><strong>🎨 Theme:</strong> {{ theme_choice or "None" }}</p>
+  <!-- 🌱 Journey Type -->
+  <form method="POST" action="/settings">
+    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+      <label style="font-size: 1.1rem;"><strong>Choose your current journey:</strong></label>
+      <div class="settings-options" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+        <button type="submit" name="journey" value="grief" class="global-button">💔 Grief</button>
+        <button type="submit" name="journey" value="addiction" class="global-button">💊 Addiction</button>
+        <button type="submit" name="journey" value="mental_health" class="global-button">🧠 Mental Health</button>
+        <button type="submit" name="journey" value="trauma" class="global-button">🔥 Trauma</button>
+        <button type="submit" name="journey" value="anxiety" class="global-button">🌪️ Anxiety</button>
+      </div>
+      <p style="margin-top: 1rem;">Current Journey: <strong>{{ session.get('journey', 'Not selected') | replace('_', ' ') | title }}</strong></p>
+    </div>
+  </form>
+
+  <!-- 📅 Journey Start Date -->
+  <form method="POST" action="/settings">
+    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+      <label for="journey_start_date" style="font-size: 1.1rem;"><strong>🌄 When did your journey begin?</strong></label>
+      <input type="date" name="journey_start_date" value="{{ journey_start_date }}" style="margin-top: 0.5rem; padding: 0.8rem; width: 100%; font-size: 1rem; border-radius: 8px;">
+      <p class="mantra" style="margin-top: 0.5rem;">This could be your sobriety date, surrender moment, or reset day.</p>
+      <button type="submit" class="global-button" style="margin-top: 1rem;">Save Journey Start Date</button>
+    </div>
+  </form>
+
+  <!-- 📝 Nickname -->
+  <form method="POST" action="/settings">
+    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+      <label for="nickname" style="font-size: 1.1rem;"><strong>📝 Update your nickname</strong></label>
+      <input type="text" name="nickname" value="{{ nickname }}" placeholder="Enter nickname" style="margin-top: 0.5rem; padding: 0.8rem; width: 100%; font-size: 1rem; border-radius: 8px;">
+      <button type="submit" class="global-button" style="margin-top: 1rem;">Save Nickname</button>
+    </div>
+  </form>
+
+  <!-- 💬 Feedback Link -->
+  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+    <p class="mantra">Want to help us improve Resurgifi?</p>
+    <a href="/feedback" class="global-button">📣 Leave Feedback</a>
   </div>
 
-  <!-- 👆 Grace Trigger Button -->
-  <button id="triggerGrace" class="global-button" style="margin-top: 2rem;">
-    🌟 Trigger Grace
-  </button>
-
+  <!-- 🔓 Logout -->
+  <form action="{{ url_for('logout') }}" method="get">
+    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+      <button type="submit" class="global-button" style="background-color: #880e4f; color: #fff;">Log Out</button>
+    </div>
+  </form>
 </div>
 
-<!-- 🌟 Grace Flash (inline) -->
+<!-- 🌟 Grace Flash -->
 <div id="graceFlash" class="hero-flash">
-  <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace Flash" />
+  <img src="{{ url_for('static', filename='images/heroes/grace_transparent.png') }}" alt="Grace Flash" />
   <div class="speech-box">
-    <p class="hero-quote">“You didn’t skip the journey. You lived it.”</p>
+    <p class="hero-quote">“Settings saved. You’re building a real path here.”</p>
   </div>
 </div>
 <audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
-{% endblock %}
 
-{% block scripts %}
+<!-- 🎬 Flash Script -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
+  const forms = document.querySelectorAll("form");
   const flash = document.getElementById("graceFlash");
-  const button = document.getElementById("triggerGrace");
-  const audio = document.getElementById("graceSound");
+  const sound = document.getElementById("graceSound");
 
-  flash.style.display = "none";
-  flash.style.opacity = 0;
+  forms.forEach(form => {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault(); // stop instant reload
 
-  button.addEventListener("click", () => {
-    try {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.volume = 1.0;
-      audio.play().catch(err => {
-        console.warn("Grace sound failed to play:", err);
-      });
-    } catch (e) {
-      console.warn("Audio error:", e);
-    }
-
-    requestAnimationFrame(() => {
       flash.style.display = "flex";
-      setTimeout(() => {
-        flash.style.opacity = 1;
+      flash.style.opacity = 1;
+      flash.style.transform = "scale(1.03)";
+      sound.pause();
+sound.currentTime = 0;
+sound.load();
+sound.volume = 1.0;
+sound.play().catch(err => {
+  console.warn("Grace sound was blocked in settings page:", err);
+});
 
+
+      // Grace fade-out, then submit form
+      setTimeout(() => {
+        flash.style.opacity = 0;
+        flash.style.transform = "scale(1)";
         setTimeout(() => {
-          flash.style.opacity = 0;
-          setTimeout(() => {
-            flash.style.display = "none";
-          }, 600);
-        }, 3000);
-      }, 50);
+          flash.style.display = "none";
+          form.submit(); // submit after fade
+        }, 500);
+      }, 3000);
     });
   });
 });
 </script>
-{% endblock %}
 
-{% block styles %}
 <style>
-.card-dark {
-  font-size: 1.25rem;
-  line-height: 1.7;
-  background: rgba(0,0,0,0.6);
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin: 2rem auto;
-  width: 90%;
-  max-width: 420px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.4);
-}
-
 .hero-flash {
   position: fixed;
   top: 50%;
@@ -97,16 +115,15 @@ document.addEventListener("DOMContentLoaded", () => {
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.4s ease, transform 0.4s ease;
   opacity: 0;
 }
 
 .hero-flash img {
-  width: 90vw;
-  max-width: 460px;
+  width: 80vw;
+  max-width: 400px;
   animation: pulseGlow 2.5s ease-out;
 }
-
 .speech-box {
   margin-top: 1.5rem;
   background: #000;
@@ -115,17 +132,10 @@ document.addEventListener("DOMContentLoaded", () => {
   text-align: center;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
-
 .hero-quote {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: #f6e7c1;
   line-height: 1.6;
 }
-
-@keyframes pulseGlow {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px #fefae0); }
-  50%      { transform: scale(1.02); filter: drop-shadow(0 0 16px #fff8c1); }
-}
 </style>
 {% endblock %}
-
