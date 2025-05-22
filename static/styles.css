@@ -377,6 +377,13 @@ button {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
+@media (max-width: 600px) {
+  .hero-flash img {
+    width: auto;
+    max-width: 90vw;
+    max-height: 70vh;
+  }
+}
 
 
 /* =========================
