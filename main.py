@@ -231,6 +231,29 @@ Now write a realistic journal entry that sounds like the user wrote it in their 
     # Redirect with draft text preloaded
     return redirect(url_for("journal", auto_summarize="true", summary_text=journal_text))
 
+
+from flask import jsonify
+from db import SessionLocal
+from models import JournalEntry
+
+@app.route("/test-db")
+def test_db():
+    try:
+        db = SessionLocal()
+        entries = db.query(JournalEntry).order_by(JournalEntry.timestamp.desc()).limit(5).all()
+        result = [
+            {
+                "id": entry.id,
+                "content": entry.content,
+                "timestamp": entry.timestamp.strftime("%Y-%m-%d %H:%M")
+            }
+            for entry in entries
+        ]
+        db.close()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 @app.route("/about")
 @login_required
 def about():
@@ -598,6 +621,7 @@ def dashboard():
 
 
 from rams import build_context, select_heroes, build_prompt
+
 @app.route("/journal", methods=["GET", "POST"])
 @login_required
 def journal():
@@ -641,8 +665,8 @@ def journal():
                 "timestamp": "Unknown"
             })
 
-    # ✅ Auto-summarize content from today's Circle (if requested)
-    summary_text = request.args.get("summary_text", "")
+    # ✅ Auto-summarize content from today's Circle (if passed in)
+    summary_text = request.args.get("summary_text", "")  # ← This is safe even if empty
 
     db.close()
     current_ring = "The Spark"
@@ -650,7 +674,7 @@ def journal():
         'journal.html',
         entries=localized_entries,
         current_ring=current_ring,
-        summary_text=summary_text
+        summary_text=summary_text  # ← This enables prefill in template
     )
 
 @app.route('/ask', methods=['POST'])
