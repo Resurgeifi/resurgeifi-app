@@ -50,6 +50,7 @@
     const form = document.getElementById("circleForm");
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("userMessage");
+    const reflectBtn = document.getElementById("reflectBtn");
 
     chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -98,7 +99,7 @@
       }
     });
 
-    // Idle check ping
+    // 🔄 Idle check every 15s
     setInterval(async () => {
       try {
         const res = await fetch("/idle-check");
@@ -115,12 +116,17 @@
       }
     }, 15000);
 
-    document.getElementById("reflectBtn").addEventListener("click", () => {
-      window.location.href = "/summarize-journal";
-    });
+    // ✅ Reflect summary redirect
+    if (reflectBtn) {
+      reflectBtn.addEventListener("click", () => {
+        window.location.href = "/summarize-journal";
+      });
+    }
   });
 </script>
 {% endblock %}
+
+
 
 
 

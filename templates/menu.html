@@ -48,7 +48,7 @@
   </div>
 </div>
 
-<audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
+<audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='levelup.mp3') }}"></audio>
 {% endblock %}
 
 {% block scripts %}
@@ -59,6 +59,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const flash = document.getElementById("graceFlash");
   const audio = document.getElementById("graceSound");
 
+  // Hide Grace fully on initial render
+  function resetFlash() {
+    flash.style.display = "none";
+    flash.style.opacity = 0;
+  }
+
+  resetFlash();
+
   const actual = {{ days_on_journey or 0 }};
   localStorage.removeItem("lastDaysCount");
   const stored = "0";
@@ -67,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
   button.addEventListener("click", () => {
     let counter = parseInt(stored) || 0;
 
+    // 🔇 Audio setup
     try {
       audio.pause();
       audio.currentTime = 0;
@@ -86,16 +95,18 @@ document.addEventListener("DOMContentLoaded", () => {
         clearInterval(interval);
         localStorage.setItem("lastDaysCount", counter.toString());
 
+        // 🌟 Show Grace
         flash.style.display = "flex";
-        flash.style.opacity = 1;
-        flash.style.pointerEvents = "none";
+        requestAnimationFrame(() => {
+          flash.style.opacity = 1;
 
-        setTimeout(() => {
-          flash.style.opacity = 0;
           setTimeout(() => {
-            flash.style.display = "none";
-          }, 600);
-        }, 3000);
+            flash.style.opacity = 0;
+            setTimeout(() => {
+              flash.style.display = "none";
+            }, 600);
+          }, 3000);
+        });
       }
     }, 20);
   });
@@ -147,9 +158,12 @@ document.addEventListener("DOMContentLoaded", () => {
   color: #f6e7c1;
   line-height: 1.6;
 }
+#graceFlash {
+  display: flex !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
+  background: rgba(255, 0, 0, 0.7); /* Temporary red tint to prove layer */
+}
+
 </style>
 {% endblock %}
-
-
-
-

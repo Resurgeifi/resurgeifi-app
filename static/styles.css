@@ -362,6 +362,22 @@ button {
   bottom: 15%;
   right: 20%;
 } /* Sir Renity - lower right */
+#graceFlash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999 !important;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
 
 /* =========================
    MOBILE HERO LAYOUT
