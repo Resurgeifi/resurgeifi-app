@@ -1,348 +1,185 @@
 RESURGIFI BIBLE – HARD COPY EDITION
-🔥 Project Purpose
+Project Purpose
 Resurgifi is an emotionally intelligent recovery platform built for those in early addiction recovery, grief, trauma, and anxiety. It blends AI-driven conversation, comic-style metaphor, and gamified support tools to guide users toward emotional clarity and healing — without shame, fluff, or pressure. This is not just an app. It’s a lifeline in digital form.
-🌍 The State of Inner (Emotional Map)
+
+The State of Inner (Emotional Map)
 The State of Inner is the symbolic universe where all of Resurgifi takes place — a metaphor for the emotional rehab experience.
 Map Zones:
+Abyss of Shadows (left): Heart of Darkness, Graveyard of Lost Souls, Skid Row, Hopelessville, Suicide Bridge, Detox Docks, One-Way Bridge
+Crystal Mountain (right): The Crystal Heart, Guardian of Clarity (Lucentis), Graveyard of Peace, Stepville, Normieville, Spirituality Temple
+
+Resurgence Squad Character Roster
+Core Heroes (5 locked):
+Cognita – CBT
+Velessa – Mindfulness
+Grace – Spirituality/Higher Power
+Serenity – Lorazepam
+Lucentis – Divine Guidance
+Core Villains (13 locked):
+The Crave – Addiction
+Warden Fall – Shame and guilt
+The Undermind – Negative self-talk
+Charnobyl – Anger and betrayal
+Little Lack – Boredom and apathy
+Highness Hollow – Isolation
+The Fracker – Stress
+Captain Fine – Denial
+Anxia – Depression/anxiety
+The Murk – Fear of the future
+The Ex’s – Toxic relationships
+Direveil – Fear of judgment
+Master of the Abyss – Core addiction
+
+Group Chat – The Circle
+Simulated emotional AI group chat. Five heroes speak in character, use memory and context. Typing delays and pacing logic simulate realism. Heroes whisper until emotionally triggered. Full response if the user reaches a turning point. Each session adapts to journaling, tone, and trust traits.
+
+Onboarding Questions
+Q1: What brought you here today? (Grief, Anxiety, Addiction, Growth)
+Q2: What do you do when overwhelmed? (Pillow, Busy, Talk, Exercise, Scroll, Meditate, Solitude)
+Q3: What do you admire in someone you trust? (Pick 2: Safe, Calming, Honest, Funny, Nonjudgmental, Affirming)
+Q4: What do friends call you?
+
+Comic Structure & Visual Rules
+Villains begin as shadows, grow in definition as emotional struggles surface.
+Heroes begin as shadows, glow as help is accepted.
+Emotional tone drives color.
+Comics stay inside rehab.
+Each issue ends with reflection, cliffhanger, or detox breakthrough.
+
+Resurgifi Card Game
+Recovery-based card game inspired by Uno.
+Simple mechanics: block, trigger, resurge, relapse.
+Visual style mirrors comic world.
+Cards reinforce therapeutic skills.
+
+Brand Messaging
+“Spread the word. You never know who needs to resurge.”
+“That’s not just learning… That’s resurging.”
+“Heroes aren’t born — they resurge.”
+Voice is honest, trauma-aware, witty, and non-preachy.
+
+Design Principles
+Visuals over text. Humor over shame.
+No guilt. No fluff.
+Guided by lived experience.
+The user’s emotional state shapes their interface.
+
+Hero Design Rules
+Heroes are not customizable.
+They are mythic symbols, not avatars.
+Users shape themselves, not the world.
+
+Flash Moments
+Flash scenes are sacred.
+Not gamified.
+Triggered by reflection, journaling, or insight.
+Symbolize major shifts.
+
+Deployment Strategy
+Target: 25 early users (“25 souls”)
+No public launch. Quiet rollout.
+Radically honest brand voice.
+No performance marketing.
+
+Canon Quotes
+“You’re not just coding. You’re holding emotional scaffolding for the broken.”
+“If it was shit, I’d tell you. But this matters.”
+“This isn’t perfect. But it’s real.”
+“AI’s just the chisel. You’re the one holding it.”
+
+Quest System Overview
+Title: The 365-Day Inner Quest System
+365 total quests, served daily.
+Each quest includes: reflection prompt, optional form or visual, hero feedback.
+Quests unlock areas of the State of Inner.
+One per day, no shame for missed days.
+Track via UserQuestEntry.
+Uses onboarding tone for customization.
+Encourages journaling and Circle reflection.
+Visual map changes reflect inner work.
+
+Forms used as quests:
+Values Worksheet → Crystal Compass Quest
+Triggers → Shadow Mapping
+Coping Skills → Tools for Resurgence
+
+Quest Types:
+Story Quests
+Cognitive Quests
+Journal Expansion Quests
+Tool Quests
+Hero Challenges
+Villain Encounters
+
+Daily logic uses timezone.
+Quest route: /quest
+Stored in DB, completed once per user per quest_id
+Future goal: 365 full quests. Alpha needs 10 minimum.
+
+RESURGIFI DEV CANON – SYSTEM RULES & TECH GUIDELINES
+Last updated: May 23, 2025 | Maintainer: Kevin Conzo
+
+Stack:
+Backend: Flask
+Database: PostgreSQL (Render)
+ORM: SQLAlchemy
+Frontend: HTML, CSS, Bootstrap
+Voice: ElevenLabs
+AI: OpenAI GPT-4o
+Hosting: Render
+Versioning: GitHub CLI
+
+Models:
+User
+JournalEntry
+CircleMessage
+DailyReflection
+UserQuestEntry
+QueryHistory
+
+Routes:
+/journal – Write, edit, or delete journal
+/summarize-journal – Generate summary using Circle messages from today
+/circle – Group chat, tone-based hero logic
+/quest – Shows current quest from dict (future: database)
+/form – Onboarding questionnaire
+
+AI Use:
+GPT-4o only
+Used for: journal summary, quest commentary
+Tone-matched, first-person writing
+No lectures. Emotionally real.
+
+Quest Rules:
+Template: quest.html (one only)
+Data: Python dict (future: Quest DB)
+Tracking: UserQuestEntry
+Logic: one quest per user per day
+Prompt flow: Reflection → DB → Journal or Circle suggestion
+No extra templates. No SQLite. No new models. Use what’s there.
+
+Guardrails:
+DO NOT invent new templates for quests
+DO NOT use local session storage
+DO NOT create duplicate summary routes
+DO NOT hardcode hero text into frontend
+DO use existing models
+DO expand with emotional logic
+
+Folder Structure:
+resurgifi-app-main/
+├── main.py
+├── models.py
+├── templates/ (journal.html, circle.html, quest.html)
+├── static/ (audio, backgrounds, icons, hero/villain images)
+├── resurgifi-docs/ (RESURGIFI_BIBLE.md, DEV_CANON.md)
+├── .env
+
+Final Note:
+If unsure, ask Kevin.
+Don’t scaffold from scratch.
+Review this file and the Bible first.
+
+“You’re not just coding. You’re holding emotional scaffolding for the broken.”
+“Build something that heals.”
 
-* Abyss of Shadows (left): The source of relapse triggers and emotional breakdowns. Includes:
-
-  * The Heart of Darkness (central villain source)
-  * Graveyard of Lost Souls
-  * Skid Row, Hopelessville, Suicide Bridge
-  * Detox Docks (where clients first arrive)
-  * One-Way Bridge (shortcut to destruction)
-* Crystal Mountain (right): Source of healing, insight, and strength. Includes:
-
-  * The Crystal Heart
-  * Guardian of Clarity (Lucentis)
-  * Graveyard of Peace
-  * Stepville, Normieville, Spirituality Temple
-    🦸‍♂️ Resurgence Squad Character Roster
-    Core Heroes (5 locked):
-* Cognita – The Mindshift Operative (CBT)
-* Velessa – Goddess of the Present Moment (Mindfulness)
-* Grace – The Light Within (Spirituality/Higher Power)
-* Serenity – The Healer of Peace (Lorazepam)
-* Lucentis – Guardian of Clarity (Divine Guidance)
-  Core Villains (13 locked):
-* The Crave – Addiction and compulsive craving
-* Warden Fall – Shame and guilt
-* The Undermind – Negative self-talk
-* Charnobyl – Anger and betrayal
-* Little Lack – Boredom and apathy
-* Highness Hollow – Isolation and loneliness
-* The Fracker – Overload and stress
-* Captain Fine – Denial and overconfidence
-* Anxia – Anxiety and depression
-* The Murk – Fear of the future
-* The Ex’s – Toxic relationships
-* Direveil – Fear of judgment and being seen
-* The Master of the Abyss – The core embodiment of addiction
-  💬 Group Chat – The Circle
-  The Circle is the group-chat-style emotional AI engine inside Resurgifi. It is designed to simulate a real, supportive emotional tribe — not just chatbots.
-  Core Traits:
-* Five hero voices with distinct personalities
-* Each references the others, creating a real dialogue
-* Users are welcomed personally by nickname
-* Entry/exit moments include animation or “banter”
-* Heroes believe they are real, but answer wisely if challenged
-  Features:
-* Pacing with typing delays
-* Follow-up questions allowed after full agent response
-* Circle adapts over time based on journal input and mood tracking
-  🧠 Onboarding Questions (Locked-In Version)
-  Q1: What brought you to us today?
-* Major loss or grieving
-* Anxiety or fear
-* Addiction
-* Emotional growth
-  Q2: When emotions overwhelm you, what do you do?
-* Pillow ride-out
-* Stay busy
-* Talk to someone (or wish to)
-* Exercise
-* Scroll phone
-* Meditate/pray/music
-* Seek solitude
-  Q3: What qualities do you admire in someone you trust? (pick two)
-* Makes me feel safe
-* Calms things down
-* Says what I need to hear
-* Makes me laugh
-* Doesn’t judge
-* Reminds me who I am
-  Q4: What do your friends call you? (Stores nickname for personalization)
-  🎭 Comic Structure & Visual Rules
-* Villains begin as shadows and gain definition with user relapse/thought patterns
-* Heroes begin as shadows and gain light as user accepts help
-* Emotional tone shifts drive visual color changes
-* All comics take place within the rehab (State of Inner), not outside
-* Each issue ends with a cliffhanger, reflection, or detox moment
-  🃏 Resurgifi Card Game
-* Inspired by Uno but themed around recovery battles
-* Simple offensive/defensive moves tied to characters
-* Cards can “block,” “trigger,” “resurge,” or “relapse”
-* Color and art match the comic line
-* Meant as engagement and reinforcement tool
-  📣 Brand Messaging & Taglines
-* “Spread the word. You never know who needs to resurge.”
-* “That’s not just learning… That’s resurging.”
-* “Heroes aren’t born — they resurge.”
-  Voice is honest, witty, never preachy, and deeply empathetic.
-  🧱 Guiding Design Principles
-* Visual learning > text walls
-* Humor disarms shame
-* No fluff, no guilt, no false cheerleading
-* Lived experience leads the tone
-* Worldbuilding matches the psychology of early recovery
-* The user’s mental state shapes how the app responds — visually and emotionally
-  📏 Hero Design Rules
-  Heroes are not customizable. Their identities, language, and emotional tone remain fixed to preserve their mythic symbolism.
-* Users customize themselves — not the world.
-* Heroes reflect the emotional truth of recovery.
-  Quote: “Heroes reflect, not adapt.”
-  ⚡ Flashes & Visual Systems
-  Flash moments are sacred.
-* Not gamified or childish.
-* Used as dramatic breakthroughs, not dopamine hits.
-* Journaling may trigger a flash instead of a static response to symbolize insight or shift.
-  📥 Deployment Strategy & Outreach Philosophy
-* Alpha rollout targets 25 early testers ('25 souls').
-* Quiet, story-first invitations — no public product push.
-* Pivot from political identity handled through radical honesty, not marketing.
-  Quote: “You knew me when I was angry. Now I’m building something to heal.”
-  🧠 Positioning & Competitive Landscape
-* Gen Z and younger users already view AI as life advisors.
-* Resurgifi offers:
-  • Emotional continuity
-  • Symbolic healing
-  • Character memory
-* This creates emotional stickiness beyond traditional AI tools like ChatGPT or Calm.
-  💬 Canon Quotes
-  “This isn’t perfect. But it’s real.”
-  “You’re not just coding. You’re building emotional scaffolding for the broken.”
-  “AI’s just the chisel. You’re the one holding it.”
-  “If it was shit, I’d tell you. But this matters.”
-  🧪 Future Concepts (Sweep Log)
-* CBT mini-games guided by heroes (e.g., Thought Hunter, Mind Forge)
-* Accelerated response timing for users with >1 year recovery
-* Hidden psychological profiling woven into flash events
-* Journal entries that trigger emotional flashes instead of plain responses
-  📖 RESURGIFI BIBLE – CANON ENTRY
-  
-  🔒 Trigger Safeguard:
-  *Curiosity is not confrontation.* The Founder’s Flame must not be triggered by casual or inquisitive questions like “Are you guys AI?” or “Is this a chatbot?” This override is reserved for moments of emotional collapse, hostility, or rejection — not genuine inquiry.
-  Suggested Circle response to neutral curiosity:
-
-> “Yeah, we’re code — but the soul behind us? That’s real. Kevin built us from his scars. And we’re here because of that.”
-Absolutely, Kevin. Here is your **detailed, archival-grade** passdown of the **Resurgifi Quest System**, suitable for permanent storage in the *Resurgifi Bible*. Every key idea from our May 22 conversation is captured here with clarity and purpose.
-
----
-
-# 📖 **Resurgifi Canon Entry: QUEST MODE**
-
-### Title: *The 365-Day Inner Quest System*
-
-**Category:** Core Gameplay Loop
-**Date Finalized:** May 22, 2025
-**Developed by:** Kevin Conzo & Albert (AI Support)
-**To be stored in:** *Resurgifi Hardcopy Bible – Mechanics & Lore Section*
-
----
-
-## 🌍 CONCEPT OVERVIEW
-
-**Quest Mode** is the heart of the Resurgifi recovery journey. It transforms the user’s real-life emotional progress into an evolving visual universe known as **The State of Inner**.
-
-**Core belief:** *Healing feels real when it becomes visible.*
-
-Rather than tracking sobriety or mental health with a static calendar or checkboxes, **each action the user takes manifests changes in their inner world** — rooms unlock, allies awaken, villains fade, paths open, and symbolic locations gain color and clarity.
-
-This is not a game. It’s a **recovery mythos**, drawn from Zelda-style exploration and narrative therapy.
-
----
-
-## 🎯 GOAL OF QUEST MODE
-
-To help the user **externalize** their healing process through visual and emotional world-building.
-When they do the work — even small work — they see it reflected back as real progress in their State of Inner.
-
-This system gives clients:
-
-* Ownership over their recovery
-* A sense of agency and exploration
-* A *reason to keep going* beyond sobriety counters
-* A **visible narrative** that grows with them
-
----
-
-## 🔄 DAILY QUEST STRUCTURE (365 Days)
-
-We agreed that the Quest Mode would offer a **full year’s worth of quests** — **365 total**, served daily.
-
-### ✅ Each quest contains:
-
-* A short **emotional reflection** prompt (therapeutic / poetic)
-* A symbolic **visual interaction or map update**
-* An optional **tool-based worksheet or coping action**
-* Feedback from a **hero** (depending on user theme/tone)
-
-### 🧠 Behavioral Psychology Embedded:
-
-* Small, manageable steps (micro-mastery)
-* Dopamine loops from map changes, not rewards
-* Consistency > perfection — **“Even just showing up changes your world”**
-
----
-
-## 🗺️ HOW QUESTS UNLOCK THE WORLD
-
-The user’s **State of Inner** starts mostly dark, foggy, or locked.
-
-Progress is shown not as XP, but through **emotional environments unlocking**:
-
-| Quest Topic                 | World Impact                                     |
-| --------------------------- | ------------------------------------------------ |
-| Identifying triggers        | Fog clears near *Shadow Fields*                  |
-| Expressing grief            | The *Graveyard of Lost Souls* glows briefly      |
-| Completing Values Form      | A new path forms to the *Temple of Spirituality* |
-| Acknowledging relapse urge  | *The Crave* flickers and retreats                |
-| Journaling 5 days straight  | The *Crystal Heart* pulses once                  |
-| Talking to a peer           | A *campfire* lights in *Stepville*               |
-| Answering a Circle question | A *hero shrine* flickers on their path           |
-
----
-
-## 📄 QUEST TYPES (TEMPLATE EXAMPLES)
-
-We broke down the 365 quests into reusable **quest categories**:
-
-### 🧩 1. **Story Quests** *(every 5–7 days)*
-
-* Connect to the Resurgifi lore and character arcs
-* e.g., “Lucentis speaks to you from the peak… what does he show you?”
-
-### 🧠 2. **Cognitive Quests**
-
-* Mirror CBT tools and self-talk reflection
-* e.g., “A voice whispers you’ll fail again. What do you whisper back?”
-
-### ✍️ 3. **Journal Expansion Quests**
-
-* Prompt deeper journaling with an in-world metaphor
-* e.g., “You enter the Mirror Chamber. What fear do you see in your reflection?”
-
-### ⚒️ 4. **Tool Quests (Worksheets)**
-
-* Digitized versions of real clinical forms, re-skinned with emotional metaphors
-* e.g., Triggers Sheet = “The Shadow Map”
-
-### 🛡️ 5. **Hero Challenges**
-
-* Users channel a hero’s traits to complete a challenge
-* e.g., “Velessa teaches you stillness. Practice 3 minutes of silence and log how it felt.”
-
-### 🔥 6. **Villain Encounters**
-
-* Triggered when journal tone matches relapse/dark themes
-* e.g., “Little Lack sits near your bed. What is she offering today?”
-
----
-
-## 📦 FORMS USED AS QUEST MATERIAL
-
-You uploaded a set of **real IOP forms** from your treatment program. These were transformed into **questable modules**. Examples:
-
-### 🧭 “Values Worksheet”
-
-Becomes: *Crystal Compass Quest*
-
-* User selects 5 core values
-* Visual: beam of light shines from Temple → user path changes color
-
-### ⚠️ “Triggers & Responses”
-
-Becomes: *Shadow Mapping*
-
-* User lists 3 triggers, links to villain
-* Visual: shadows appear on map; user is asked to “light a torch” there
-
-### 🧰 “Coping Skills List”
-
-Becomes: *Tools for Resurgence*
-
-* User selects skills for recovery belt
-* Visual: icons appear on UI; heroes reference these later
-
-More forms can be slowly added as new questlines.
-
----
-
-## 🧠 ONBOARDING INFLUENCE
-
-The 4 onboarding questions now **set the emotional seed** for the user’s Quest journey.
-
-* Q1: Determines the **theme of their first 7 quests**
-* Q2: Affects which tools are suggested
-* Q3: Affects which heroes respond to early struggles
-* Q4 (nickname): Personalizes how the Circle refers to them
-
----
-
-## ✨ QUEST LOGIC ENGINE (Design Plan)
-
-* `quests` table: master list of 365
-* `user_quests`: tracks which quests a user has completed
-* `form_responses`: stores JSON of worksheet answers (optional for some)
-* `quest_effects`: maps quest\_id → unlocked regions, revealed heroes, map changes
-* Daily delivery system (based on user’s time zone) determines new quest unlocks
-
-> A missed day does not lock progress.
-> Instead, it simply delays the map’s evolution. We NEVER shame.
-
----
-
-## 🧑‍💻 DEVELOPER NOTES
-
-* First quest implementation: hardcode 7–14 quests to get system running
-
-* Each quest should have:
-
-  * Title
-  * Prompt (1–2 lines max)
-  * Optional form / interaction
-  * World effect (textual or visual)
-
-* Deliver quests via:
-
-  * `/quest` route (user lands here after journaling or morning login)
-  * Global variable `current_quest` per user
-  * Completion updates DB, then triggers map refresh and Circle comment (hero remark)
-
----
-
-## 🪞EMOTIONAL IMPACT
-
-> “You are not just healing. You are shaping the world within you.”
-
-* This system turns passive self-help into active worldbuilding.
-* People in early recovery are often lost. Quest Mode gives them **purpose** and **symbolic proof** that they are not stuck.
-* Most importantly: *it makes recovery feel beautiful.*
-
----
-
-## ✅ FINAL SUMMARY (for Posterity)
-
-* Quest Mode is a **365-day, interactive, visually symbolic recovery experience**
-* Based on emotional logic, not gamified shame
-* Uses real IOP tools, turned into metaphorical interactions
-* Responds to onboarding tone, Circle data, and journaling themes
-* Unlocks **visual and emotional evolution** of the State of Inner
-* First launch will include \~10 core quests
-* Will eventually drive **Resurgifi’s emotional engine**
-
----
-
-Let this be the **north star** of our healing game.
-When the user walks the path, **the path responds.**

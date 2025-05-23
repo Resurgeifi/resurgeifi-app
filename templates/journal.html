@@ -6,14 +6,12 @@
      alt="Journal Title" 
      style="display: block; max-width: 250px; margin: 2rem auto;" />
 
-<!-- 🔄 Current Ring Status -->
 <div class="ring-status">
   <p style="font-size: 1.1rem; color: #e0d4b2;">
     🔄 Current Ring: <strong>{{ current_ring }}</strong>
   </p>
 </div>
 
-<!-- ⚡ Flash Messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <div class="flash-container">
@@ -24,13 +22,12 @@
   {% endif %}
 {% endwith %}
 
-<!-- ✍️ Journal Form -->
 <form id="journalForm" method="POST" action="/journal" style="margin-top: 1.5rem;">
   <label for="entry" style="font-size: 1.2rem;"><strong>What’s on your mind today?</strong></label><br><br>
   <textarea 
     id="entry"
     name="entry" 
-    rows="6" 
+    rows="6"
     placeholder="Just write what you feel. What did or do I want to accomplish today?"
     style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #f6e7c1; color: #1f3e36;"
   >{{ summary_text|e }}</textarea><br><br>
@@ -39,7 +36,6 @@
 
 <hr class="section-divider" style="margin: 2.5rem 0; border: 1px solid #444;">
 
-<!-- 📜 Previous Journal Entries -->
 {% if entries %}
   <h2 style="text-align: center; color: #f6e7c1;">Previous Entries</h2>
   {% for entry in entries %}
@@ -63,109 +59,141 @@
   <p style="color: #f6e7c1;">No entries yet. Your story starts now.</p>
 {% endif %}
 
-<!-- 🌟 Cognita Flash -->
-<div id="cognitaFlash" class="hero-flash" style="display: none;">
+<!-- Hero Flash: Cognita -->
+<div id="cognitaFlash" class="hero-flash">
   <img src="{{ url_for('static', filename='images/heroes/cognita/cognita_writing.png') }}" alt="Cognita Writing" />
   <div class="speech-box">
     <p class="hero-quote">“Every time you reflect, you rewire. You just grew.”</p>
   </div>
 </div>
 
-<!-- 🚩 Warden Fall Flash -->
-<div id="wardenFlash" class="hero-flash" style="display: none;">
-  <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}"
-       alt="Warden Fall" />
+<!-- Villain Flash: Warden Fall -->
+<div id="wardenFlash" class="hero-flash">
+  <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}" alt="Warden Fall" />
   <div class="speech-box">
     <p class="hero-quote">“Some sins echo forever…”</p>
   </div>
 </div>
 
-<!-- 🔊 AUDIO -->
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
 
-<script>
-function bindJournalFlash() {
-  const journalForm = document.getElementById("journalForm");
-  const cognitaFlash = document.getElementById("cognitaFlash");
-  const cognitaAudio = document.getElementById("flashSound");
+<style>
+.hero-flash {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.75);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.hero-flash img {
+  width: 80vw;
+  max-width: 400px;
+  animation: pulseGlow 3s ease-out;
+}
+.speech-box {
+  background: #000;
+  margin-top: 1.5rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  color: #f6e7c1;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+}
+.entry-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+.entry-button {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+.entry-button.edit {
+  background-color: #f4a259;
+  color: #1f3e36;
+}
+.entry-button.delete {
+  background-color: #e11d48;
+  color: #fff;
+}
+</style>
 
-  if (journalForm && cognitaFlash && cognitaAudio) {
-    journalForm.addEventListener("submit", function (e) {
+<script>
+function fadeAudio(audio) {
+  setTimeout(() => {
+    const fade = setInterval(() => {
+      if (audio.volume > 0.05) {
+        audio.volume -= 0.1;
+      } else {
+        audio.volume = 0;
+        audio.pause();
+        clearInterval(fade);
+      }
+    }, 100);
+  }, 3000);
+}
+
+function bindJournalFlash() {
+  const form = document.getElementById("journalForm");
+  const flash = document.getElementById("cognitaFlash");
+  const audio = document.getElementById("flashSound");
+
+  if (form && flash && audio) {
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
-      cognitaFlash.style.display = "flex";
-      cognitaFlash.style.opacity = 1;
-      cognitaAudio.pause();
-      cognitaAudio.currentTime = 0;
-      cognitaAudio.volume = 1.0;
-      cognitaAudio.play().catch(() => {});
+      flash.style.display = "flex";
+      audio.currentTime = 0;
+      audio.volume = 1.0;
+      audio.play().catch(() => {});
+      fadeAudio(audio);
       setTimeout(() => {
-        const fade = setInterval(() => {
-          if (cognitaAudio.volume > 0.05) {
-            cognitaAudio.volume -= 0.1;
-          } else {
-            cognitaAudio.volume = 0;
-            cognitaAudio.pause();
-            clearInterval(fade);
-          }
-        }, 100);
-      }, 3000);
-      setTimeout(() => {
-        cognitaFlash.style.opacity = 0;
-        cognitaFlash.style.display = "none";
-        journalForm.submit();
+        flash.style.display = "none";
+        form.submit();
       }, 5000);
     });
   }
 }
 
 function bindDeleteFlash() {
-  const deleteForms = document.querySelectorAll(".delete-form");
-  const wardenFlash = document.getElementById("wardenFlash");
-  const wardenAudio = document.getElementById("wardenSound");
+  const forms = document.querySelectorAll(".delete-form");
+  const flash = document.getElementById("wardenFlash");
+  const audio = document.getElementById("wardenSound");
 
-  deleteForms.forEach(form => {
+  forms.forEach(form => {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      wardenFlash.style.display = "flex";
-      wardenFlash.style.opacity = 1;
-      if (wardenAudio) {
-        wardenAudio.pause();
-        wardenAudio.currentTime = 0;
-        wardenAudio.volume = 1.0;
-        wardenAudio.play().catch(() => {});
-        setTimeout(() => {
-          const fade = setInterval(() => {
-            if (wardenAudio.volume > 0.05) {
-              wardenAudio.volume -= 0.1;
-            } else {
-              wardenAudio.volume = 0;
-              wardenAudio.pause();
-              clearInterval(fade);
-            }
-          }, 100);
-        }, 3000);
-      }
+      flash.style.display = "flex";
+      audio.currentTime = 0;
+      audio.volume = 1.0;
+      audio.play().catch(() => {});
+      fadeAudio(audio);
       setTimeout(() => {
-        wardenFlash.style.opacity = 0;
-        wardenFlash.style.display = "none";
+        flash.style.display = "none";
         form.submit();
       }, 5000);
     });
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const cf = document.getElementById("cognitaFlash");
-  const wf = document.getElementById("wardenFlash");
-  if (cf) cf.style.display = "none";
-  if (wf) wf.style.display = "none";
-
+document.addEventListener("DOMContentLoaded", () => {
   bindJournalFlash();
   bindDeleteFlash();
 });
 </script>
 {% endblock %}
+
 
 
 
