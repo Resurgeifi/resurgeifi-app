@@ -35,7 +35,7 @@
     style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #f6e7c1; color: #1f3e36;"
   >{{ summary_text|e }}</textarea><br><br>
   <button type="submit" class="global-button">Save Entry</button>
-  </form>
+</form>
 
 <hr class="section-divider" style="margin: 2.5rem 0; border: 1px solid #444;">
 
@@ -64,7 +64,7 @@
 {% endif %}
 
 <!-- 🌟 Cognita Flash -->
-<div id="cognitaFlash" class="hero-flash">
+<div id="cognitaFlash" class="hero-flash" style="display: none;">
   <img src="{{ url_for('static', filename='images/heroes/cognita/cognita_writing.png') }}" alt="Cognita Writing" />
   <div class="speech-box">
     <p class="hero-quote">“Every time you reflect, you rewire. You just grew.”</p>
@@ -72,7 +72,7 @@
 </div>
 
 <!-- 🚩 Warden Fall Flash -->
-<div id="wardenFlash" class="hero-flash">
+<div id="wardenFlash" class="hero-flash" style="display: none;">
   <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}"
        alt="Warden Fall" />
   <div class="speech-box">
@@ -83,8 +83,6 @@
 <!-- 🔊 AUDIO -->
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
-
-<style>/* All your original CSS styles remain unchanged */</style>
 
 <script>
 function bindJournalFlash() {
@@ -158,11 +156,17 @@ function bindDeleteFlash() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const cf = document.getElementById("cognitaFlash");
+  const wf = document.getElementById("wardenFlash");
+  if (cf) cf.style.display = "none";
+  if (wf) wf.style.display = "none";
+
   bindJournalFlash();
   bindDeleteFlash();
 });
 </script>
 {% endblock %}
+
 
 
 
