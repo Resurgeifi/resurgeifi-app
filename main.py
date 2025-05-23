@@ -78,6 +78,21 @@ client = OpenAI(api_key=api_key)
 # ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
 
+from flask import g
+from models import User
+
+@app.before_request
+def load_logged_in_user():
+    user_id = session.get("user_id")
+    if user_id is None:
+        g.user = None
+    else:
+        db = SessionLocal()
+        try:
+            g.user = db.query(User).filter_by(id=user_id).first()
+        finally:
+            db.close()
+
 
 
 
