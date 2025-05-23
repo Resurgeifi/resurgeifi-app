@@ -3,16 +3,14 @@ from datetime import datetime
 from collections import Counter
 from db import SessionLocal
 from models import User, JournalEntry, QueryHistory
-from prompts import HERO_PROMPTS  # ✅ imported directly
+from prompts import HERO_PROMPTS
+from flask import session
 
-# ✅ Hero pool
 HERO_NAMES = ["Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"]
 
-# 🧠 Optional future journal integration
 def pull_recent_journal_summary(user_id):
     return None
 
-# 🚨 Detect active crisis tone
 def detect_crisis_tone(thread):
     crisis_keywords = [
         "don’t want to live", "give up", "relapse", "hopeless", "done",
@@ -21,7 +19,6 @@ def detect_crisis_tone(thread):
     user_messages = [msg["text"].lower() for msg in thread[-4:] if msg["speaker"] == "User"]
     return any(any(kw in msg for kw in crisis_keywords) for msg in user_messages)
 
-# 🍺 Detect romanticizing relapse
 def detect_relapse_fantasy(thread):
     relapse_phrases = [
         "i miss drinking", "i need a drink", "just one", "cold beer",
@@ -31,7 +28,6 @@ def detect_relapse_fantasy(thread):
     user_messages = [msg["text"].lower() for msg in thread[-3:] if msg["speaker"] == "User"]
     return any(any(p in msg for p in relapse_phrases) for msg in user_messages)
 
-# 😒 Dry or deflective tone
 def detect_playful_or_dry(thread):
     if not thread:
         return False
@@ -45,13 +41,11 @@ def detect_playful_or_dry(thread):
     ]
     return len(text) <= 12 or any(trigger in text for trigger in dry_triggers)
 
-# 🔁 Metaphor loops
 def detect_repetitive_phrases(thread):
     words = ["sock", "laundry", "fold", "cold beer", "pill", "monster", "ghost", "fog", "reset"]
     all_text = " ".join(msg["text"].lower() for msg in thread[-6:])
     return {w: all_text.count(w) for w in words if all_text.count(w) > 1}
 
-# 🎯 Hero selector
 def select_heroes(tone, thread):
     is_crisis = detect_crisis_tone(thread)
     is_relapse = detect_relapse_fantasy(thread)
@@ -74,7 +68,6 @@ def select_heroes(tone, thread):
     print(f"[RAMS] Tone: {tone} | Crisis: {is_crisis} | Relapse: {is_relapse} | Mentioned: {mentioned}")
     return forced + normal
 
-# 🧠 Context + onboarding builder
 def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
     db = SessionLocal()
     user = db.query(User).filter_by(id=user_id).first() if user_id else None
@@ -89,6 +82,12 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
                 formatted_thread += f"{speaker}: \"{text}\"\n"
     else:
         formatted_thread = "The Circle has just begun. This may be the user’s first interaction.\n"
+
+    # ⬇️ Quest injection logic
+    quest_data = session.pop("from_quest", None)
+    quest_reflection = quest_data.get("reflection") if quest_data else None
+    if quest_reflection:
+        formatted_thread = f'Grace: "The user has just completed a quest. They wrote: \'{quest_reflection}\'"\n\n' + formatted_thread
 
     if user:
         reason = user.theme_choice or "an unknown reason"
@@ -156,5 +155,7 @@ You are not a bot. You are a voice in the Circle.
 """.strip()
 
     return prompt
+
+
 
 
