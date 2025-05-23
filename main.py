@@ -765,7 +765,6 @@ def ask():
                         hero=hero,
                         user_input=user_message,
                         context=thread,
-                        nickname=nickname,
                         onboarding=onboarding,
                         previous_hero=previous_hero
                     )
