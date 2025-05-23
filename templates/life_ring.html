@@ -23,10 +23,12 @@
 
   <!-- 🎯 Final Match Display -->
   <div id="rescueResult" class="entry-box" style="display: none; margin-top: 3rem;">
-    <h3 id="matchName">Rescue Ally</h3>
-    <p><strong>Type:</strong> <span id="matchType">Integrated Recovery Support</span></p>
-    <p><strong>Location:</strong> <span id="matchLocation">Undisclosed</span></p>
-    <p id="matchQuote" style="font-style: italic;">“They show up when the world goes quiet.”</p>
+    <img id="matchLogo" src="" alt="Facility Logo" style="max-height: 100px; margin-bottom: 1rem;">
+    <h3 id="matchName"></h3>
+    <p><strong>Type:</strong> <span id="matchType"></span></p>
+    <p><strong>Location:</strong> <span id="matchLocation"></span></p>
+    <p id="matchQuote" style="font-style: italic;"></p>
+    <p id="matchReview" style="font-style: italic; color: #ccc;"></p>
     <div class="final-action-buttons">
       <a id="matchCall" class="global-button">📞 Call Now</a>
       <a id="matchVisit" class="global-button" target="_blank">🌐 Visit Website</a>
@@ -96,14 +98,7 @@ function showQuestion() {
 }
 
 function showRescueMatch() {
-  let match = {
-    name: "Rescue Ally",
-    type: "Integrated Recovery Support",
-    location: "Undisclosed",
-    quote: "They show up when the world goes quiet.",
-    phone: "#",
-    website: "#"
-  };
+  let match;
 
   if (userAnswers.care_type === "Inpatient") {
     match = {
@@ -111,8 +106,10 @@ function showRescueMatch() {
       type: "Inpatient Detox & Treatment",
       location: "Cathedral City, CA",
       quote: "They helped me detox safely and reminded me I still had a future.",
+      review: "⭐️⭐️⭐️⭐️⭐️ 'I was seen — not just treated.'",
       phone: "tel:+18883551676",
-      website: "https://cabehavioral.com/?src=resurgifi"
+      website: "https://cabehavioral.com/?src=resurgifi",
+      logo: "/static/images/partners/cbh-logo.png"
     };
   } else if (userAnswers.care_type === "Outpatient") {
     match = {
@@ -120,23 +117,39 @@ function showRescueMatch() {
       type: "Intensive Outpatient Program (IOP)",
       location: "Acton, MA",
       quote: "Engage gave me structure without walls. I felt supported and still got to rebuild life on the outside.",
+      review: "⭐️⭐️⭐️⭐️⭐️ 'They actually listened. That saved my life.'",
       phone: "tel:+19786999786",
-      website: "https://engagewellnessnow.com/?src=resurgifi"
+      website: "https://engagewellnessnow.com/?src=resurgifi",
+      logo: "/static/images/partners/engage-logo.png"
     };
+  } else {
+    alert("We recommend selecting either Inpatient or Outpatient to match you with a real provider.");
+    document.getElementById("rescueModal").style.display = "none";
+    return;
   }
 
   document.getElementById("rescueModal").style.display = "none";
   document.getElementById("rescueResult").style.display = "block";
+
   document.getElementById("matchName").textContent = match.name;
   document.getElementById("matchType").textContent = match.type;
   document.getElementById("matchLocation").textContent = match.location;
   document.getElementById("matchQuote").textContent = "“" + match.quote + "”";
+  document.getElementById("matchReview").textContent = match.review;
   document.getElementById("matchCall").setAttribute("href", match.phone);
   document.getElementById("matchVisit").setAttribute("href", match.website);
+  document.getElementById("matchLogo").src = match.logo;
 }
 </script>
 
 <style>
+   #matchLogo {
+  max-height: 80px;
+  max-width: 100%;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+ 
 .modal-overlay {
   position: fixed;
   top: 0; left: 0;
