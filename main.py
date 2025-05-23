@@ -1038,6 +1038,42 @@ def submit_onboarding():
 @login_required
 def onboarding():
     return render_template("onboarding.html")
+@app.route("/quest", methods=["GET", "POST"])
+@login_required
+def quest():
+    from models import UserQuestEntry
+    from db import SessionLocal
+    from datetime import datetime, date
+
+    user_id = session.get("user_id")
+    db = SessionLocal()
+
+    if request.method == "POST":
+        reflection = request.form.get("reflection", "").strip()
+        if reflection:
+            # Save quest result
+            new_entry = UserQuestEntry(
+                user_id=user_id,
+                quest_id=1,
+                completed=True,
+                timestamp=datetime.utcnow()
+            )
+            db.add(new_entry)
+            db.commit()
+            session["last_quest_completed"] = 1
+        db.close()
+        return redirect(url_for("circle"))
+
+    # Only allow 1 quest per day
+    today = date.today()
+    existing = db.query(UserQuestEntry).filter_by(user_id=user_id, quest_id=1).first()
+    if existing and existing.timestamp.date() == today:
+        db.close()
+        flash("You’ve already completed today’s quest. Come back tomorrow.", "info")
+        return redirect(url_for("circle"))
+
+    db.close()
+    return render_template("quest.html")
 
 
 if __name__ == '__main__':
