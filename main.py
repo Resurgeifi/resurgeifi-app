@@ -185,7 +185,8 @@ def circle():
 def summarize_journal():
     from openai import OpenAI
     from datetime import datetime, date
-    from models import db, User, UserQuestEntry, DailyReflection
+    from models import User, UserQuestEntry, DailyReflection
+    from db import SessionLocal
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -210,8 +211,9 @@ def summarize_journal():
     formatted = "\n".join([f'User: "{msg["text"]}"' for msg in user_only])
 
     # 🔄 Pull onboarding and quest context
-    user = db.session.query(User).filter_by(id=user_id).first()
-    latest_quest = db.session.query(UserQuestEntry)\
+    db = SessionLocal()
+    user = db.query(User).filter_by(id=user_id).first()
+    latest_quest = db.query(UserQuestEntry)\
         .filter_by(user_id=user_id)\
         .order_by(UserQuestEntry.created_at.desc())\
         .first()
@@ -250,21 +252,20 @@ Length: 1–3 paragraphs.
         )
         journal_text = response.choices[0].message.content.strip()
 
-        # 💾 Store in DailyReflection
         reflection = DailyReflection(
             user_id=user_id,
             date=datetime.utcnow(),
             summary_text=journal_text
         )
-        db.session.add(reflection)
-        db.session.commit()
+        db.add(reflection)
+        db.commit()
+        db.close()
 
     except Exception as e:
         print("🔥 Journal summarization error:", str(e))
         flash("Something went wrong while generating your summary.", "error")
         return redirect(url_for("journal"))
 
-    # ✅ Redirect with summary preloaded
     return redirect(url_for("journal", auto_summarize="true", summary_text=journal_text))
 
 @app.route("/test-db")

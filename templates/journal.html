@@ -24,6 +24,15 @@
   {% endif %}
 {% endwith %}
 
+<!-- 🧠 Auto Summary Preview -->
+{% if summary_text %}
+<div class="entry-box" style="background-color: #2a2d3a; border-left: 6px solid #f6e7c1; padding: 1.2rem 1rem; margin: 2rem 0; border-radius: 12px; box-shadow: 0 0 6px rgba(0,0,0,0.3);">
+  <h3 style="color: #f6e7c1;">📝 Journal Summary</h3>
+  <p style="white-space: pre-wrap; font-size: 1rem; line-height: 1.6; color: #e0d4b2;">{{ summary_text }}</p>
+</div>
+{% endif %}
+
+<!-- ✍️ Journal Form -->
 <form id="journalForm" method="POST" action="/journal" style="margin-top: 1.5rem;">
   <label for="entry" style="font-size: 1.2rem;"><strong>What’s on your mind today?</strong></label><br><br>
   <textarea 
@@ -34,8 +43,8 @@
     style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #f6e7c1; color: #1f3e36;"
   >{{ summary_text|e }}</textarea><br><br>
   <button type="submit" class="global-button">Save Entry</button>
+  <a href="{{ url_for('summarize_journal') }}" class="global-button" style="margin-left: 1rem; background-color: #4a5568;">🧠 Summarize from Circle</a>
 </form>
-
 
 <hr class="section-divider" style="margin: 2.5rem 0; border: 1px solid #444;">
 
@@ -242,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 {% endblock %}
+
 
 
 
