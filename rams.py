@@ -114,11 +114,11 @@ Let this shape your tone. Do not reference this directly.
         "nickname": nickname
     }
 
-# 🗣️ Prompt generator
 def build_prompt(hero, user_input, context, next_hero=None, previous_hero=None, onboarding=None):
-    is_playful = detect_playful_or_dry(context)
-    is_relapse = detect_relapse_fantasy(context)
-    repeated = detect_repetitive_phrases(context)
+    thread = context.get("thread", []) if isinstance(context, dict) else []
+    is_playful = detect_playful_or_dry(thread)
+    is_relapse = detect_relapse_fantasy(thread)
+    repeated = detect_repetitive_phrases(thread)
     nickname = context.get("nickname", "Friend")
 
     loop_note = ""
@@ -156,7 +156,5 @@ You are not a bot. You are a voice in the Circle.
 """.strip()
 
     return prompt
-
-
 
 

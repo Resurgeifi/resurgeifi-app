@@ -714,7 +714,7 @@ def journal():
 @login_required
 def ask():
     try:
-        from models import CircleMessage
+        from models import CircleMessage, QueryHistory
         from rams import build_prompt, select_heroes, build_context
 
         data = request.get_json()
@@ -745,8 +745,9 @@ def ask():
         # 🔁 Determine who last spoke
         previous_hero = next((msg["speaker"] for msg in reversed(thread[:-1]) if msg["speaker"] != "User"), None)
 
-        # 🧠 Build full context
+        # 🧠 Build full context + inject thread for prompt logic
         context_data = build_context(user_id=user.id, session_data=thread, onboarding=onboarding)
+        context_data["thread"] = thread  # ⬅️ THIS FIX PREVENTS THE CRASH
 
         # 🎯 Choose heroes
         selected_heroes = select_heroes(tone, thread)
