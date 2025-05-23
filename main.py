@@ -184,55 +184,46 @@ def circle():
 @login_required
 def summarize_journal():
     from openai import OpenAI
-    from datetime import datetime, date
-    from models import User, UserQuestEntry, DailyReflection
+    from datetime import datetime, timedelta
+    from models import User, DailyReflection, CircleMessage
     from db import SessionLocal
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
     user_id = session.get("user_id")
-    thread = session.get("circle_thread", [])
 
-    if not thread or not user_id:
-        flash("No Circle data available for today.", "warning")
+    if not user_id:
+        flash("User not logged in.", "error")
         return redirect(url_for("journal"))
 
-    user_only = [
-        msg for msg in thread
-        if msg["speaker"] == "User"
-        and "timestamp" in msg
-        and datetime.fromisoformat(msg["timestamp"]).date() == date.today()
-    ]
-
-    if not user_only:
-        flash("Say something in the Circle before summarizing. Your journal should reflect your own voice.", "warning")
-        return redirect(url_for("journal"))
-
-    formatted = "\n".join([f'User: "{msg["text"]}"' for msg in user_only])
-
-    # 🔄 Pull onboarding and quest context
     db = SessionLocal()
-    user = db.query(User).filter_by(id=user_id).first()
-    latest_quest = db.query(UserQuestEntry)\
-        .filter_by(user_id=user_id)\
-        .order_by(UserQuestEntry.created_at.desc())\
-        .first()
 
+    # ⏳ Last 24 hours of Circle messages from the user
+    since = datetime.utcnow() - timedelta(hours=24)
+    messages = db.query(CircleMessage).filter(
+        CircleMessage.user_id == user_id,
+        CircleMessage.speaker.ilike("user"),
+        CircleMessage.timestamp >= since
+    ).order_by(CircleMessage.timestamp).all()
+
+    if not messages:
+        flash("Say something in the Circle before summarizing. Your journal should reflect your own voice.", "warning")
+        db.close()
+        return redirect(url_for("journal"))
+
+    formatted = "\n".join([f'User: "{msg.text}"' for msg in messages])
+
+    # 🧠 Pull onboarding context
+    user = db.query(User).filter_by(id=user_id).first()
     nickname = user.nickname or "Friend"
     theme = user.theme_choice or "self-discovery"
     display_name = user.display_name or "compassionate people"
-    quest_summary = latest_quest.summary_text if latest_quest else "None"
 
-    # 🧠 Prompt for journal summary
     prompt = f"""
 You are Resurgifi, a recovery-focused journaling assistant.
 
 The user goes by the nickname: {nickname}
 Their theme for joining Resurgifi is: {theme}
 They admire people who are: {display_name}
-
-Their most recent personal reflection was:
-"{quest_summary}"
 
 Here’s what they said in today’s Circle:
 ---
@@ -259,13 +250,14 @@ Length: 1–3 paragraphs.
         )
         db.add(reflection)
         db.commit()
-        db.close()
+        flash("Journal summary saved successfully.", "success")
 
     except Exception as e:
         print("🔥 Journal summarization error:", str(e))
         flash("Something went wrong while generating your summary.", "error")
-        return redirect(url_for("journal"))
+        db.rollback()
 
+    db.close()
     return redirect(url_for("journal", auto_summarize="true", summary_text=journal_text))
 
 @app.route("/test-db")

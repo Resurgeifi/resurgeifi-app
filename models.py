@@ -64,3 +64,13 @@ class CircleMessage(db.Model):
 
     user = db.relationship("User", backref="circle_messages")
 
+class UserQuestEntry(db.Model):
+    __tablename__ = "user_quest_entries"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    quest_id = db.Column(db.Integer, nullable=False)
+    completed = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="quest_entries")
