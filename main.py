@@ -737,14 +737,18 @@ def ask():
         tone = session.get("tone", "neutral")
         onboarding = session.get("onboarding_data", {})
 
+        # 🧠 Add Quest reflection if available
+        recent_quest = session.pop("from_quest", None)
+
         # 🔁 Determine who last spoke
         previous_hero = next((msg["speaker"] for msg in reversed(thread[:-1]) if msg["speaker"] != "User"), None)
 
-        # 🧠 Build full context + inject thread for prompt logic
+        # 🧠 Build context for hero prompt
         context_data = build_context(user_id=user.id, session_data=thread, onboarding=onboarding)
-        context_data["thread"] = thread  # ⬅️ THIS FIX PREVENTS THE CRASH
+        context_data["thread"] = thread
+        if recent_quest:
+            context_data["recent_quest"] = recent_quest
 
-        # 🎯 Choose heroes
         selected_heroes = select_heroes(tone, thread)
         results = []
 
@@ -1044,33 +1048,56 @@ def quest():
     from models import UserQuestEntry
     from db import SessionLocal
     from datetime import datetime, date
+    import openai
 
     user_id = session.get("user_id")
     db = SessionLocal()
 
     if request.method == "POST":
         reflection = request.form.get("reflection", "").strip()
+        summary_text = ""
+
         if reflection:
-            # Save quest result
+            # 🧠 Generate a summary using GPT
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "Summarize this quest reflection in one short, emotional sentence. Do not sound robotic."
+                        },
+                        {
+                            "role": "user",
+                            "content": reflection
+                        }
+                    ],
+                    temperature=0.7
+                )
+                summary_text = response.choices[0].message.content.strip()
+            except Exception as e:
+                print("⚠️ GPT summarization failed:", e)
+                summary_text = ""
+
+            # 💾 Save to DB
             new_entry = UserQuestEntry(
                 user_id=user_id,
                 quest_id=1,
                 completed=True,
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
+                summary_text=summary_text
             )
             db.add(new_entry)
             db.commit()
-            session["last_quest_completed"] = 1
+
+            # 🧠 Pass to Circle (if summary exists)
+            if summary_text:
+                session["last_quest_reflection"] = summary_text
+            else:
+                session["last_quest_reflection"] = reflection  # fallback
+
         db.close()
         return redirect(url_for("circle"))
-
-    # Only allow 1 quest per day
-    #today = date.today()
-    #existing = db.query(UserQuestEntry).filter_by(user_id=user_id, quest_id=1).first()
-    #if existing and existing.timestamp.date() == today:
-       # db.close()
-      #  flash("You’ve already completed today’s quest. Come back tomorrow.", "info")
-     #   return redirect(url_for("circle"))
 
     db.close()
     return render_template("quest.html")
