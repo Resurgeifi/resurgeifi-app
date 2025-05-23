@@ -1,3 +1,4 @@
+
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
@@ -27,7 +28,7 @@ class User(db.Model):
     circle_message_count = db.Column(db.Integer, default=0)
     last_journal_entry = db.Column(db.Text, nullable=True)
     last_circle_msg = db.Column(db.Text, nullable=True)
-
+    points = db.Column(db.Integer, default=0)  # 🎮 Gamification points field
 
 class JournalEntry(db.Model):
     __tablename__ = "journal_entries"
@@ -38,7 +39,6 @@ class JournalEntry(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="journal_entries")
-
 
 class QueryHistory(db.Model):
     __tablename__ = "query_history"
@@ -52,7 +52,6 @@ class QueryHistory(db.Model):
 
     user = db.relationship("User", backref="query_history")
 
-
 class CircleMessage(db.Model):
     __tablename__ = "circle_messages"
 
@@ -64,7 +63,6 @@ class CircleMessage(db.Model):
 
     user = db.relationship("User", backref="circle_messages")
 
-
 class UserQuestEntry(db.Model):
     __tablename__ = "user_quest_entries"
 
@@ -72,11 +70,10 @@ class UserQuestEntry(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     quest_id = db.Column(db.Integer, nullable=False)
     completed = db.Column(db.Boolean, default=False)
-    summary_text = db.Column(db.Text, nullable=True)  # ✅ Safe to leave empty
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    summary_text = db.Column(db.Text, nullable=True)
 
     user = db.relationship("User", backref="quest_entries")
-
 
 class DailyReflection(db.Model):
     __tablename__ = "daily_reflections"
@@ -87,3 +84,5 @@ class DailyReflection(db.Model):
     summary_text = db.Column(db.Text, nullable=False)
 
     user = db.relationship("User", backref="daily_reflections")
+
+
