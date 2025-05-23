@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div id="onboardingContainer" class="onboarding-card" style="max-width: 600px; margin: 2rem auto; padding: 2rem; background-color: #1f2230; border-radius: 15px; color: #fff; text-align: center;">
+  <h2 id="onboardingTitle">Welcome to Resurgifi</h2>
+  <p id="onboardingQuestion" style="font-size: 1.1rem; margin: 1.5rem 0;"></p>
+
+  <div id="onboardingOptions" style="margin-bottom: 2rem;"></div>
+
+  <button id="nextButton" class="global-button" style="display: none;">Next</button>
+</div>
+
+<script>
+  const questions = [
+    {
+      title: "What brought you to us today?",
+      name: "q1",
+      options: [
+        "Major loss or grieving",
+        "Anxiety or fear",
+        "Addiction",
+        "Emotional growth"
+      ]
+    },
+    {
+      title: "When emotions overwhelm you, what do you do?",
+      name: "q2",
+      options: [
+        "Pillow ride-out",
+        "Stay busy",
+        "Talk to someone (or wish to)",
+        "Exercise",
+        "Scroll phone",
+        "Meditate/pray/music",
+        "Seek solitude"
+      ]
+    },
+    {
+      title: "What qualities do you admire in someone you trust? (Pick two)",
+      name: "q3",
+      options: [
+        "Makes me feel safe",
+        "Calms things down",
+        "Says what I need to hear",
+        "Makes me laugh",
+        "Doesn’t judge",
+        "Reminds me who I am"
+      ],
+      allowMultiple: true,
+      limit: 2
+    },
+    {
+      title: "What do your friends call you?",
+      name: "nickname",
+      isText: true
+    }
+  ];
+
+  let currentIndex = 0;
+  let responses = {};
+
+  const titleEl = document.getElementById("onboardingTitle");
+  const questionEl = document.getElementById("onboardingQuestion");
+  const optionsEl = document.getElementById("onboardingOptions");
+  const nextBtn = document.getElementById("nextButton");
+
+  function renderQuestion() {
+    const current = questions[currentIndex];
+    questionEl.textContent = current.title;
+    optionsEl.innerHTML = "";
+    nextBtn.style.display = "none";
+
+    if (current.isText) {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.name = current.name;
+      input.placeholder = "Enter your nickname...";
+      input.style = "padding: 0.5rem; width: 80%; border-radius: 10px; border: none;";
+      input.oninput = () => {
+        responses[current.name] = input.value;
+        nextBtn.style.display = input.value.trim() ? "inline-block" : "none";
+      };
+      optionsEl.appendChild(input);
+    } else {
+      current.options.forEach((option) => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.className = "global-button";
+        btn.style = "margin: 0.5rem;";
+        btn.onclick = () => {
+          if (current.allowMultiple) {
+            btn.classList.toggle("selected");
+            const selected = [...optionsEl.querySelectorAll(".selected")].map(el => el.textContent);
+            if (selected.length <= current.limit) {
+              responses[current.name] = selected;
+              nextBtn.style.display = selected.length === current.limit ? "inline-block" : "none";
+            } else {
+              btn.classList.remove("selected"); // unselect extra
+            }
+          } else {
+            responses[current.name] = option;
+            nextBtn.style.display = "inline-block";
+          }
+        };
+        optionsEl.appendChild(btn);
+      });
+    }
+  }
+
+  nextBtn.onclick = () => {
+    currentIndex++;
+    if (currentIndex < questions.length) {
+      renderQuestion();
+    } else {
+      // Finish onboarding – submit to Flask
+      fetch("/submit-onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(responses)
+      }).then(() => {
+        window.location.href = "/menu";
+      });
+    }
+  };
+
+  renderQuestion();
+</script>
+
+{% endblock %}

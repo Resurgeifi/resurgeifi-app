@@ -1,17 +1,17 @@
 # 🧱 Standard Library
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 # 🌐 Timezone Handling
 import pytz
 from pytz import timezone as tz, all_timezones
-from pytz import utc  # ✅ Utility to handle timestamp localization
+from pytz import utc
 
 def localize_time(utc_time, user_timezone):
     if not user_timezone:
-        user_timezone = "America/New_York"  # fallback timezone
+        user_timezone = "America/New_York"
     return utc_time.replace(tzinfo=utc).astimezone(tz(user_timezone))
 
 # 🔒 Auth + Security
@@ -21,8 +21,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # 🌍 Flask Core
 from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_mail import Mail, Message
-from flask_cors import CORS  # ✅ Add this to support cross-origin POSTs
-from datetime import datetime, timedelta  # Required for idle logic
+from flask_cors import CORS
 
 # 🧪 Environment Config
 from dotenv import load_dotenv
@@ -31,16 +30,20 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 # 🧩 Resurgifi Internal
-from db import SessionLocal, engine
-from models import Base, User, JournalEntry, QueryHistory
+from models import db, User, JournalEntry, QueryHistory
+from flask_migrate import Migrate
+from sqlalchemy.orm import scoped_session, sessionmaker
 from rams import HERO_NAMES, build_context, select_heroes, build_prompt
 from markupsafe import Markup
 
 # ✅ Load environment variables
 load_dotenv()
 
-# ✅ Initialize Flask app
+# ✅ Initialize Flask App
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
+
+# ✅ CORS for cross-origin POSTs
 CORS(app, supports_credentials=True, resources={
     r"/contact": {
         "origins": ["https://resurgelabs.com"],
@@ -48,25 +51,36 @@ CORS(app, supports_credentials=True, resources={
     }
 })
 
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
-
-# ✅ Configure Flask-Mail
+# ✅ Email Config
 app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
 app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
 app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS") == "True"
 app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
-
 mail = Mail(app)
 
-# ✅ Create tables if they don't exist
-Base.metadata.create_all(bind=engine)
+# ✅ Database Config
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///resurgifi.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db.init_app(app)
+migrate = Migrate(app, db)
 
-# ✅ Load OpenAI credentials
+# ✅ SessionLocal for manual queries (inside app context)
+with app.app_context():
+    engine = db.get_engine()
+    SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+
+# ✅ OpenAI Setup
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
+
+# ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
+
+
+
+
 def get_mock_conversation(absence_minutes):
     # Skip if gone for less than an hour
     if absence_minutes < 60:
@@ -171,6 +185,8 @@ def circle():
 def summarize_journal():
     from openai import OpenAI
     from datetime import datetime, date
+    from models import db, User, UserQuestEntry, DailyReflection
+
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     user_id = session.get("user_id")
@@ -180,7 +196,6 @@ def summarize_journal():
         flash("No Circle data available for today.", "warning")
         return redirect(url_for("journal"))
 
-    # 🔒 Only summarize user messages from TODAY
     user_only = [
         msg for msg in thread
         if msg["speaker"] == "User"
@@ -192,28 +207,39 @@ def summarize_journal():
         flash("Say something in the Circle before summarizing. Your journal should reflect your own voice.", "warning")
         return redirect(url_for("journal"))
 
-    # Format user-only content
     formatted = "\n".join([f'User: "{msg["text"]}"' for msg in user_only])
 
-    # ✍️ Prompt
+    # 🔄 Pull onboarding and quest context
+    user = db.session.query(User).filter_by(id=user_id).first()
+    latest_quest = db.session.query(UserQuestEntry)\
+        .filter_by(user_id=user_id)\
+        .order_by(UserQuestEntry.created_at.desc())\
+        .first()
+
+    nickname = user.nickname or "Friend"
+    theme = user.theme_choice or "self-discovery"
+    display_name = user.display_name or "compassionate people"
+    quest_summary = latest_quest.summary_text if latest_quest else "None"
+
+    # 🧠 Prompt for journal summary
     prompt = f"""
-You are a compassionate and emotionally intelligent summarizer.
+You are Resurgifi, a recovery-focused journaling assistant.
 
-Your job is to write a short first-person journal entry based ONLY on what the user shared today.
+The user goes by the nickname: {nickname}
+Their theme for joining Resurgifi is: {theme}
+They admire people who are: {display_name}
 
-Use the user's tone. Reflect their emotional state honestly — even if it's scattered, sarcastic, or numb. Do not lecture. Do not over-explain. Do not write like a therapist or give advice.
+Their most recent personal reflection was:
+"{quest_summary}"
 
-NEVER summarize what other characters said. Focus ONLY on the user’s own words.
-
-Do NOT mention "the Circle," "heroes," or anything the user didn’t say. You are writing AS the user, TO themselves.
-
-Length: 1–3 short paragraphs max. Tone: authentic, imperfect, emotionally raw or chill.
-
-Here is the full record of what the user said today:
+Here’s what they said in today’s Circle:
 ---
 {formatted}
 ---
-Now write a realistic journal entry that sounds like the user wrote it in their own words.
+
+Write a first-person journal entry that reflects what they’re going through. Match their emotional tone. Don’t lecture, don’t sound like a therapist. Be emotionally real.
+
+Length: 1–3 paragraphs.
     """.strip()
 
     try:
@@ -223,18 +249,23 @@ Now write a realistic journal entry that sounds like the user wrote it in their 
             temperature=0.65
         )
         journal_text = response.choices[0].message.content.strip()
+
+        # 💾 Store in DailyReflection
+        reflection = DailyReflection(
+            user_id=user_id,
+            date=datetime.utcnow(),
+            summary_text=journal_text
+        )
+        db.session.add(reflection)
+        db.session.commit()
+
     except Exception as e:
         print("🔥 Journal summarization error:", str(e))
         flash("Something went wrong while generating your summary.", "error")
         return redirect(url_for("journal"))
 
-    # Redirect with draft text preloaded
+    # ✅ Redirect with summary preloaded
     return redirect(url_for("journal", auto_summarize="true", summary_text=journal_text))
-
-
-from flask import jsonify
-from db import SessionLocal
-from models import JournalEntry
 
 @app.route("/test-db")
 def test_db():
@@ -259,17 +290,15 @@ def test_db():
 def about():
     return render_template("about.html")
 
-
 @app.route('/')
 def landing():
     return render_template('landing.html')
-
 
 @app.route("/menu")
 @login_required
 def menu():
     db = SessionLocal()
-    user = db.query(User).filter_by(username=session['username']).first()
+    user = db.query(User).filter_by(id=session['user_id']).first()
 
     if not user:
         db.close()
@@ -334,7 +363,7 @@ def form():
 @login_required
 def settings():
     db = SessionLocal()
-    user = db.query(User).filter_by(username=session['username']).first()
+    user = db.query(User).filter_by(id=session['user_id']).first()
 
     if not user:
         db.close()
@@ -423,7 +452,7 @@ def settings():
 @login_required
 def delete_entry(id):
     db = SessionLocal()
-    user = db.query(User).filter_by(username=session['username']).first()
+    user = db.query(User).filter_by(id=session['user_id']).first()
 
     entry = db.query(JournalEntry).filter_by(id=id, user_id=user.id).first()
     if entry:
@@ -432,7 +461,6 @@ def delete_entry(id):
 
     db.close()
     return redirect(url_for('journal'))
-
 
 @app.route("/edit_entry/<int:id>", methods=["GET", "POST"])
 @login_required
@@ -457,13 +485,16 @@ def edit_entry(id):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get("username")
         email = request.form.get("email")
         password = request.form.get("password")
-        nickname = request.form.get("nickname")  # ✅ Optional nickname
+        confirm_password = request.form.get("confirm_password")
 
-        if not username or not email or not password or not nickname:
+        if not email or not password or not confirm_password:
             flash("Please fill in all fields.", "warning")
+            return redirect(url_for("register"))
+
+        if password != confirm_password:
+            flash("Passwords do not match.", "error")
             return redirect(url_for("register"))
 
         db = SessionLocal()
@@ -476,54 +507,58 @@ def register():
         hashed_pw = generate_password_hash(password)
 
         new_user = User(
-            username=username,
             email=email,
             password_hash=hashed_pw,
-            display_name=nickname,
-            nickname=nickname,
+            nickname=None,
+            display_name=None,
             theme_choice=None,
+            consent=None,
+            journey_start_date=None,
             timezone=None
         )
 
         db.add(new_user)
         db.commit()
 
-        # ✅ Initialize session and set defaults
         session['user_id'] = new_user.id
-        session['username'] = new_user.username
         session['journey'] = "Not Selected"
         session['timezone'] = "America/New_York"
 
         db.close()
 
         flash("Registration successful. Let’s begin your journey.", "success")
-        return redirect(url_for("settings"))  # Go to settings right after register
+        return redirect(url_for("onboarding"))
 
     return render_template("register.html")
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
+        email = request.form.get("email")  # ✅ This was missing
         password = request.form.get("password")
 
         db = SessionLocal()
-        user = db.query(User).filter_by(username=username).first()
+        user = db.query(User).filter_by(email=email).first()
 
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
-            session['username'] = user.username
             session['journey'] = user.theme_choice or "Not Selected"
             session['timezone'] = user.timezone or "America/New_York"
+
+            # ✅ Redirect to onboarding if missing nickname or theme_choice
+            if not user.nickname or not user.theme_choice:
+                db.close()
+                return redirect(url_for("onboarding"))
+
             db.close()
             flash("Login successful. Welcome back.", "success")
             return redirect(url_for("menu"))
 
         db.close()
-        flash("Incorrect username or password.", "error")
+        flash("Incorrect email or password.", "error")
         return render_template("login.html")
 
     return render_template("login.html")
+
 
 @app.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
@@ -549,6 +584,7 @@ def reset_password():
             db.close()
 
     return render_template("reset_password.html", message=message)
+
 @app.route("/reset-confirm", methods=["GET", "POST"])
 def reset_confirm():
     message = ""
@@ -576,7 +612,6 @@ def reset_confirm():
 
     return render_template("reset_confirm.html", message=message)
 
-
 @app.route("/logout")
 @login_required
 def logout():
@@ -595,7 +630,6 @@ def admin_logs():
     except FileNotFoundError:
         content = "No logs available."
     return render_template('admin_logs.html', logs=content)
-
 
 @app.route('/dashboard')
 @login_required
@@ -619,14 +653,13 @@ def dashboard():
     streak = len(streak_days)
     return render_template('dashboard.html', entry_count=entry_count, streak=streak)
 
-
 from rams import build_context, select_heroes, build_prompt
 
 @app.route("/journal", methods=["GET", "POST"])
 @login_required
 def journal():
     db = SessionLocal()
-    user = db.query(User).filter_by(username=session['username']).first()
+    user = db.query(User).filter_by(id=session['user_id']).first()
     if not user:
         db.close()
         return redirect(url_for('register'))
@@ -852,7 +885,7 @@ def idle_check():
 def feedback():
     if request.method == "POST":
         message = request.form.get("message")
-        user = session.get("username", "Unknown User")
+        user = session.get("nickname", f"User ID {session.get('user_id', 'Unknown')}")
 
         if message:
             email = Message(
@@ -874,7 +907,7 @@ def history():
         return redirect(url_for('register'))
 
     db = SessionLocal()
-    user = db.query(User).filter_by(username=session['username']).first()
+    user = db.query(User).filter_by(id=session['user_id']).first()
 
     if not user:
         db.close()
@@ -927,6 +960,95 @@ def set_timezone():
 def life_ring():
     return render_template("life_ring.html")
 
+@app.route("/reset-test-user")
+def reset_test_user():
+    from models import User, JournalEntry, CircleMessage
+    db = SessionLocal()
+
+    # Try to find the test user
+    user = db.query(User).filter_by(id=session['user_id']).first()
+
+    if not user:
+        # ✅ Auto-create TestUser
+        user = User(
+            username="test_user",
+            email="test@resurgifi.com",
+            password_hash="dev-mode",  # Bypass login logic
+            display_name="Testy",
+            consent="yes",
+            theme_choice="default",
+            timezone="America/New_York"
+        )
+        db.add(user)
+        db.commit()
+        flash("TestUser created successfully.", "info")
+
+    # Now wipe any existing data
+    db.query(JournalEntry).filter_by(user_id=user.id).delete()
+    db.query(CircleMessage).filter_by(user_id=user.id).delete()
+
+    # Reset flags
+    user.nickname = None
+    user.journey_start_date = None
+    user.journal_count = 0
+    user.circle_message_count = 0
+    user.last_journal_entry = None
+    user.last_circle_msg = None
+    db.commit()
+
+    # ✅ Pull values BEFORE closing session
+    user_id = user.id
+    username = user.username
+    db.close()
+
+    # Log them in
+    session.clear()
+
+    session["user_id"] = user_id
+
+    flash("TestUser created/reset. Starting onboarding.", "success")
+    return redirect(url_for("onboarding"))
+@app.route("/onboarding")
+@login_required
+def onboarding():
+    return render_template("onboarding.html")
+
+@app.route("/submit-onboarding", methods=["POST"])
+@login_required
+def submit_onboarding():
+    import json
+    from models import User
+    db = SessionLocal()
+
+    user_id = session.get("user_id")
+    if not user_id:
+        db.close()
+        return "Unauthorized", 401
+
+    try:
+        data = request.get_json()
+        user = db.query(User).filter_by(id=user_id).first()
+
+        if not user:
+            db.close()
+            return "User not found", 404
+
+        # Save responses into appropriate fields
+        user.theme_choice = data.get("q1")
+        user.consent = data.get("q2")  # You can change where this stores
+        user.display_name = ", ".join(data.get("q3", []))  # trust traits
+        user.nickname = data.get("nickname")
+        user.journey_start_date = datetime.utcnow()
+
+        db.commit()
+        db.close()
+        return "Success", 200
+
+    except Exception as e:
+        print("🔥 Onboarding submission error:", str(e))
+        db.rollback()
+        db.close()
+        return "Error processing onboarding", 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)

@@ -76,6 +76,10 @@ def select_heroes(tone, thread):
 
 # 🧠 Context + onboarding builder
 def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
+    db = SessionLocal()
+    user = db.query(User).filter_by(id=user_id).first() if user_id else None
+    db.close()
+
     formatted_thread = ""
     if session_data and isinstance(session_data, list):
         for msg in session_data[-10:]:
@@ -86,37 +90,36 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
     else:
         formatted_thread = "The Circle has just begun. This may be the user’s first interaction.\n"
 
-    if onboarding:
-        reason = onboarding.get("emotional_reason", "an unknown reason")
-        coping = onboarding.get("coping_style", "unspecified coping style")
-        traits = onboarding.get("trusted_traits", [])
-        trait_text = ", ".join(traits) if traits else "unknown trust preferences"
+    if user:
+        reason = user.theme_choice or "an unknown reason"
+        coping = user.consent or "an unspecified coping style"
+        traits = user.display_name or "unknown trust preferences"
+        nickname = user.nickname or "Friend"
+    else:
+        reason = coping = traits = nickname = "Unknown"
 
-        emotional_profile = f"""
+    emotional_profile = f"""
 The user’s emotional profile includes:
 
 - They came to us due to: {reason}.
 - When overwhelmed, they typically: {coping}.
-- In someone they trust, they look for: {trait_text}.
+- In someone they trust, they look for: {traits}.
 
 Let this shape your tone. Do not reference this directly.
-"""
-    else:
-        emotional_profile = """
-The user’s emotional profile is not fully known.
-Speak gently, with emotional awareness, as if meeting someone for the first time.
 """
 
     return {
         "formatted_thread": formatted_thread.strip(),
-        "emotional_profile": emotional_profile.strip()
+        "emotional_profile": emotional_profile.strip(),
+        "nickname": nickname
     }
 
 # 🗣️ Prompt generator
-def build_prompt(hero, user_input, context, nickname="Friend", next_hero=None, previous_hero=None, onboarding=None):
+def build_prompt(hero, user_input, context, next_hero=None, previous_hero=None, onboarding=None):
     is_playful = detect_playful_or_dry(context)
     is_relapse = detect_relapse_fantasy(context)
     repeated = detect_repetitive_phrases(context)
+    nickname = context.get("nickname", "Friend")
 
     loop_note = ""
     if repeated:
@@ -139,11 +142,13 @@ The user, {nickname}, didn’t ask a question. They said something — you're re
 This is not therapy. This is emotional presence.
 
 Here's what was said:
-{context}
+{context['formatted_thread']}
 
 {"The user seems dry or sarcastic — match that lightly. Don't overanalyze." if is_playful else ""}
 {relapse_note}
 {loop_note}
+
+{context['emotional_profile']}
 
 Keep it short — 1–2 lines. Don’t try to be wise. Be real.
 
@@ -151,6 +156,7 @@ You are not a bot. You are a voice in the Circle.
 """.strip()
 
     return prompt
+
 
 
 

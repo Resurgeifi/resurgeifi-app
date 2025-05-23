@@ -1,58 +1,66 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
-from sqlalchemy.orm import relationship
-from db import Base
+from flask_sqlalchemy import SQLAlchemy
 
-class User(Base):
+db = SQLAlchemy()
+
+class User(db.Model):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(150), unique=True, nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    display_name = Column(String(150), nullable=True)
-    theme_choice = Column(String(100), nullable=True)
-    consent = Column(String(10), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    nickname = Column(String(50), nullable=True)
-    timezone = Column(String(50), default="UTC")
+    id = db.Column(db.Integer, primary_key=True, index=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    display_name = db.Column(db.String(150), nullable=True)
+    theme_choice = db.Column(db.String(100), nullable=True)
+    consent = db.Column(db.String(10), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    nickname = db.Column(db.String(50), nullable=True)
+    timezone = db.Column(db.String(50), default="UTC")
 
-    # ✅ NEW tracking fields
-    journey_start_date = Column(DateTime, nullable=True)
-    journal_count = Column(Integer, default=0)
-    circle_message_count = Column(Integer, default=0)
-    last_journal_entry = Column(Text, nullable=True)
-    last_circle_msg = Column(Text, nullable=True)
+    # ✅ NEW onboarding fields
+    core_trigger = db.Column(db.String(100), nullable=True)        # Q1
+    default_coping = db.Column(db.String(100), nullable=True)      # Q2
+    hero_traits = db.Column(db.JSON, nullable=True)                # Q3 (list of 2 traits)
 
-class JournalEntry(Base):
+    # ✅ Tracking fields
+    journey_start_date = db.Column(db.DateTime, nullable=True)
+    journal_count = db.Column(db.Integer, default=0)
+    circle_message_count = db.Column(db.Integer, default=0)
+    last_journal_entry = db.Column(db.Text, nullable=True)
+    last_circle_msg = db.Column(db.Text, nullable=True)
+
+
+class JournalEntry(db.Model):
     __tablename__ = "journal_entries"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    content = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = relationship("User", backref="journal_entries")
+    user = db.relationship("User", backref="journal_entries")
 
-class QueryHistory(Base):
+
+class QueryHistory(db.Model):
     __tablename__ = "query_history"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    question = Column(Text, nullable=False)
-    response = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-    agent_name = Column(String(100))
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    question = db.Column(db.Text, nullable=False)
+    response = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    agent_name = db.Column(db.String(100))
 
-    user = relationship("User", backref="query_history")
+    user = db.relationship("User", backref="query_history")
 
-class CircleMessage(Base):
+
+class CircleMessage(db.Model):
     __tablename__ = "circle_messages"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    speaker = Column(String(100), nullable=False)
-    text = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    speaker = db.Column(db.String(100), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = relationship("User", backref="circle_messages")
+    user = db.relationship("User", backref="circle_messages")
+

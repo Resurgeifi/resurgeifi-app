@@ -1,8 +1,8 @@
-"""Add journey_start_date to User model
+"""Rebuild clean state
 
-Revision ID: e63125b8bf91
-Revises: ddf17de157be
-Create Date: 2025-05-20 17:16:32.223423
+Revision ID: f622b70e6e42
+Revises: 
+Create Date: 2025-05-22 16:10:48.691878
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e63125b8bf91'
-down_revision: Union[str, None] = 'ddf17de157be'
+revision: str = 'f622b70e6e42'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
