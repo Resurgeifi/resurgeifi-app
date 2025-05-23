@@ -11,6 +11,10 @@
 </head>
 <body>
 
+  <!-- 🌟 Floating Points Badge -->
+  <div id="points-badge">⭐ {{ g.user.points or 0 }}</div>
+  <div id="points-float" class="points-float">+3</div>
+
   <!-- 🔥 Main Container -->
   <div class="main-content">
 
@@ -91,7 +95,98 @@
         }, 600);
       }, 3000);
     }
+
+    function flashPoints() {
+      const badge = document.getElementById("points-badge");
+      const float = document.getElementById("points-float");
+
+      if (badge) {
+        badge.classList.add("flash-badge");
+        setTimeout(() => badge.classList.remove("flash-badge"), 800);
+      }
+
+      if (float) {
+        float.style.display = "block";
+        float.textContent = "+3";
+        float.classList.remove("floatUp");
+        void float.offsetWidth;
+        float.classList.add("floatUp");
+        setTimeout(() => {
+          float.style.display = "none";
+        }, 900);
+      }
+    }
   </script>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      {% if category == "points" %}
+        <script>flashPoints();</script>
+      {% endif %}
+    {% endfor %}
+  {% endwith %}
+
+  <style>
+    #points-badge {
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      background-color: rgba(0, 0, 0, 0.85);
+      color: #f6e7c1;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      z-index: 9999;
+      font-family: 'Oswald', sans-serif;
+      transition: transform 0.3s ease;
+    }
+
+    .points-float {
+      position: fixed;
+      top: 10px;
+      right: 32px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #f6e7c1;
+      opacity: 0;
+      z-index: 10000;
+      pointer-events: none;
+      animation: floatUp 0.9s ease-out forwards;
+      display: none;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+    }
+
+    .flash-badge {
+      animation: badgePulse 0.8s ease;
+    }
+
+    @keyframes badgePulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+      50% {
+        transform: scale(1.2);
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      }
+    }
+  </style>
 </body>
 </html>
 

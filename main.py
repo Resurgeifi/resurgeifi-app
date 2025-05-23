@@ -666,6 +666,18 @@ def journal():
         entry = request.form['entry']
         new_entry = JournalEntry(user_id=user.id, content=entry)
         db.add(new_entry)
+
+        # ✅ Count journal entries today
+        today = datetime.utcnow().date()
+        entries_today = db.query(JournalEntry).filter(
+            JournalEntry.user_id == user.id,
+            JournalEntry.timestamp >= datetime.combine(today, datetime.min.time())
+        ).count()
+
+        if entries_today <= 3:
+            user.points = (user.points or 0) + 1
+            session["points_just_added"] = 1
+
         db.commit()
 
     # ✅ Get past entries
@@ -686,31 +698,30 @@ def journal():
                 "content": entry.content,
                 "timestamp": local_time.strftime("%b %d, %I:%M %p")
             })
-        except Exception as e:
+        except Exception:
             localized_entries.append({
                 "id": entry.id,
                 "content": entry.content,
                 "timestamp": "Unknown"
             })
 
-    # ✅ Auto-summarize content from today's Circle (if passed in)
-    summary_text = request.args.get("summary_text", "")  # ← This is safe even if empty
-
+    summary_text = request.args.get("summary_text", "")
     db.close()
-    current_ring = "The Spark"
     return render_template(
         'journal.html',
         entries=localized_entries,
-        current_ring=current_ring,
-        summary_text=summary_text  # ← This enables prefill in template
+        current_ring="The Spark",
+        summary_text=summary_text
     )
 
 @app.route('/ask', methods=['POST'])
 @login_required
 def ask():
     try:
-        from models import CircleMessage, QueryHistory
+        from models import User, CircleMessage, QueryHistory, db
         from rams import build_prompt, select_heroes, build_context
+        from datetime import datetime, date
+        import random
 
         data = request.get_json()
         user_message = data.get("message", "").strip()
@@ -722,32 +733,32 @@ def ask():
             session['session_id'] = str(uuid4())
 
         user_id = session.get("user_id")
-        db = SessionLocal()
-        user = db.query(User).filter_by(id=user_id).first()
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
 
-        # 🧠 Pull thread from session
+        # 🧠 Circle memory
         thread = session.get("circle_thread", [])
         thread.append({"speaker": "User", "text": user_message})
-        thread = thread[-20:]
+        thread = thread[-20:]  # Keep it lean
 
-        # ✅ Save to DB
-        db.add(CircleMessage(user_id=user_id, speaker="User", text=user_message))
+        # ✅ Save user message to DB
+        db.session.add(CircleMessage(user_id=user_id, speaker="User", text=user_message))
         session["last_input_ts"] = datetime.utcnow().isoformat()
 
         tone = session.get("tone", "neutral")
         onboarding = session.get("onboarding_data", {})
 
-        # 🧠 Add Quest reflection if available
+        # 🧠 Quest reflection link
         recent_quest = session.pop("from_quest", None)
 
-        # 🔁 Determine who last spoke
-        previous_hero = next((msg["speaker"] for msg in reversed(thread[:-1]) if msg["speaker"] != "User"), None)
-
-        # 🧠 Build context for hero prompt
+        # 🧠 Prompt context
         context_data = build_context(user_id=user.id, session_data=thread, onboarding=onboarding)
         context_data["thread"] = thread
         if recent_quest:
             context_data["recent_quest"] = recent_quest
+
+        previous_hero = next((msg["speaker"] for msg in reversed(thread[:-1]) if msg["speaker"] != "User"), None)
 
         selected_heroes = select_heroes(tone, thread)
         results = []
@@ -786,10 +797,10 @@ def ask():
                 else:
                     continue
 
-                db.add(CircleMessage(user_id=user_id, speaker=hero, text=reply))
+                db.session.add(CircleMessage(user_id=user_id, speaker=hero, text=reply))
                 thread.append({"speaker": hero, "text": reply})
 
-                db.add(QueryHistory(
+                db.session.add(QueryHistory(
                     user_id=user.id,
                     question=user_message,
                     agent_name=hero,
@@ -811,10 +822,17 @@ def ask():
                     "delay_ms": 1500 + i * 700
                 })
 
-        session["circle_thread"] = thread[-20:]
-        db.commit()
-        db.close()
+        # ✅ Reward points for Circle use — once per day
+        user_messages = [m for m in thread if m["speaker"] == "User"]
+        today_key = f"circle_points_awarded_{date.today().isoformat()}"
 
+        if len(user_messages) >= 3 and not session.get(today_key):
+            user.points = (user.points or 0) + 3
+            session[today_key] = True
+            session["points_just_added"] = 3  # Optional: used for UI flash
+
+        session["circle_thread"] = thread[-20:]
+        db.session.commit()
         return jsonify({"messages": results})
 
     except Exception as e:
@@ -1045,20 +1063,35 @@ def onboarding():
 @app.route("/quest", methods=["GET", "POST"])
 @login_required
 def quest():
-    from models import UserQuestEntry
-    from db import SessionLocal
-    from datetime import datetime, date
+    from models import User, UserQuestEntry, db
+    from datetime import datetime, timedelta
     import openai
 
     user_id = session.get("user_id")
-    db = SessionLocal()
+    user = User.query.get(user_id)
+    now = datetime.utcnow()
 
     if request.method == "POST":
         reflection = request.form.get("reflection", "").strip()
         summary_text = ""
 
+        # 🔒 Fetch today’s quest history
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        todays_quests = UserQuestEntry.query.filter_by(user_id=user_id).filter(UserQuestEntry.timestamp >= today_start).all()
+
+        # ❌ Too many quests today?
+        if len(todays_quests) >= 3:
+            flash("You’ve already completed the maximum of 3 quests today.", "info")
+            return redirect(url_for("circle"))
+
+        # ⏱️ Check last quest time
+        if todays_quests:
+            last_time = max(q.timestamp for q in todays_quests)
+            if (now - last_time) < timedelta(hours=4):
+                flash("You can only complete one quest every 4 hours. Try again later.", "warning")
+                return redirect(url_for("circle"))
+
         if reflection:
-            # 🧠 Generate a summary using GPT
             try:
                 response = client.chat.completions.create(
                     model="gpt-4o",
@@ -1079,29 +1112,31 @@ def quest():
                 print("⚠️ GPT summarization failed:", e)
                 summary_text = ""
 
-            # 💾 Save to DB
+            # 💾 Save quest
             new_entry = UserQuestEntry(
                 user_id=user_id,
                 quest_id=1,
                 completed=True,
-                timestamp=datetime.utcnow(),
+                timestamp=now,
                 summary_text=summary_text
             )
-            db.add(new_entry)
-            db.commit()
+            db.session.add(new_entry)
 
-            # 🧠 Pass to Circle (if summary exists)
-            if summary_text:
-                session["last_quest_reflection"] = summary_text
-            else:
-                session["last_quest_reflection"] = reflection  # fallback
+            # 🧠 Reward if not already maxed
+            if len(todays_quests) < 3:
+                user.points = (user.points or 0) + 5
+                session["points_just_added"] = 5
 
-        db.close()
+            db.session.commit()
+
+            session["from_quest"] = {
+                "quest_id": 1,
+                "reflection": summary_text or reflection
+            }
+
         return redirect(url_for("circle"))
 
-    db.close()
     return render_template("quest.html")
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
