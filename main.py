@@ -1008,16 +1008,10 @@ def reset_test_user():
 
     flash("TestUser created/reset. Starting onboarding.", "success")
     return redirect(url_for("onboarding"))
-@app.route("/onboarding")
-@login_required
-def onboarding():
-    return render_template("onboarding.html")
-
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
     import json
-    from models import User
     db = SessionLocal()
 
     user_id = session.get("user_id")
@@ -1033,11 +1027,11 @@ def submit_onboarding():
             db.close()
             return "User not found", 404
 
-        # Save responses into appropriate fields
-        user.theme_choice = data.get("q1")
-        user.consent = data.get("q2")  # You can change where this stores
-        user.display_name = ", ".join(data.get("q3", []))  # trust traits
-        user.nickname = data.get("nickname")
+        # 🎯 Store answers using correct model fields
+        user.core_trigger = data.get("q1")                   # What brought you here
+        user.default_coping = data.get("q2")                 # Coping mechanism
+        user.hero_traits = data.get("q3", [])                # Trusted traits (list)
+        user.nickname = data.get("nickname")                 # Chosen nickname
         user.journey_start_date = datetime.utcnow()
 
         db.commit()
@@ -1049,6 +1043,7 @@ def submit_onboarding():
         db.rollback()
         db.close()
         return "Error processing onboarding", 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
