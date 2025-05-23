@@ -715,7 +715,7 @@ def journal():
 def ask():
     try:
         from models import CircleMessage
-        from rams import build_prompt, select_heroes
+        from rams import build_prompt, select_heroes, build_context
 
         data = request.get_json()
         user_message = data.get("message", "").strip()
@@ -729,30 +729,27 @@ def ask():
         user_id = session.get("user_id")
         db = SessionLocal()
         user = db.query(User).filter_by(id=user_id).first()
-        nickname = user.nickname if user and user.nickname else user.username
 
-        # 🧠 Pull thread from session (for memory + context)
+        # 🧠 Pull thread from session
         thread = session.get("circle_thread", [])
         thread.append({"speaker": "User", "text": user_message})
         thread = thread[-20:]
 
-        # 🧠 Save user message to DB
+        # ✅ Save to DB
         db.add(CircleMessage(user_id=user_id, speaker="User", text=user_message))
         session["last_input_ts"] = datetime.utcnow().isoformat()
 
         tone = session.get("tone", "neutral")
         onboarding = session.get("onboarding_data", {})
 
-        # ➕ Track continuity — who last spoke?
-        previous_hero = None
-        for msg in reversed(thread[:-1]):
-            if msg["speaker"] != "User":
-                previous_hero = msg["speaker"]
-                break
+        # 🔁 Determine who last spoke
+        previous_hero = next((msg["speaker"] for msg in reversed(thread[:-1]) if msg["speaker"] != "User"), None)
 
-        # 🔁 Choose heroes
+        # 🧠 Build full context
+        context_data = build_context(user_id=user.id, session_data=thread, onboarding=onboarding)
+
+        # 🎯 Choose heroes
         selected_heroes = select_heroes(tone, thread)
-
         results = []
 
         for i, hero_plan in enumerate(selected_heroes):
@@ -764,7 +761,7 @@ def ask():
                     prompt = build_prompt(
                         hero=hero,
                         user_input=user_message,
-                        context=thread,
+                        context=context_data,
                         onboarding=onboarding,
                         previous_hero=previous_hero
                     )
@@ -792,13 +789,12 @@ def ask():
                 db.add(CircleMessage(user_id=user_id, speaker=hero, text=reply))
                 thread.append({"speaker": hero, "text": reply})
 
-                if user and mode == "speak":
-                    db.add(QueryHistory(
-                        user_id=user.id,
-                        question=user_message,
-                        agent_name=hero,
-                        response=reply
-                    ))
+                db.add(QueryHistory(
+                    user_id=user.id,
+                    question=user_message,
+                    agent_name=hero,
+                    response=reply
+                ))
 
                 results.append({
                     "hero": hero,
