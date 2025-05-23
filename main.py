@@ -1043,6 +1043,10 @@ def submit_onboarding():
         db.rollback()
         db.close()
         return "Error processing onboarding", 500
+@app.route("/onboarding", methods=["GET"])
+@login_required
+def onboarding():
+    return render_template("onboarding.html")
 
 
 if __name__ == '__main__':

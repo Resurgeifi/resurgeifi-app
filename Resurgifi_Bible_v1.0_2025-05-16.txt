@@ -136,3 +136,213 @@ Map Zones:
   Suggested Circle response to neutral curiosity:
 
 > “Yeah, we’re code — but the soul behind us? That’s real. Kevin built us from his scars. And we’re here because of that.”
+Absolutely, Kevin. Here is your **detailed, archival-grade** passdown of the **Resurgifi Quest System**, suitable for permanent storage in the *Resurgifi Bible*. Every key idea from our May 22 conversation is captured here with clarity and purpose.
+
+---
+
+# 📖 **Resurgifi Canon Entry: QUEST MODE**
+
+### Title: *The 365-Day Inner Quest System*
+
+**Category:** Core Gameplay Loop
+**Date Finalized:** May 22, 2025
+**Developed by:** Kevin Conzo & Albert (AI Support)
+**To be stored in:** *Resurgifi Hardcopy Bible – Mechanics & Lore Section*
+
+---
+
+## 🌍 CONCEPT OVERVIEW
+
+**Quest Mode** is the heart of the Resurgifi recovery journey. It transforms the user’s real-life emotional progress into an evolving visual universe known as **The State of Inner**.
+
+**Core belief:** *Healing feels real when it becomes visible.*
+
+Rather than tracking sobriety or mental health with a static calendar or checkboxes, **each action the user takes manifests changes in their inner world** — rooms unlock, allies awaken, villains fade, paths open, and symbolic locations gain color and clarity.
+
+This is not a game. It’s a **recovery mythos**, drawn from Zelda-style exploration and narrative therapy.
+
+---
+
+## 🎯 GOAL OF QUEST MODE
+
+To help the user **externalize** their healing process through visual and emotional world-building.
+When they do the work — even small work — they see it reflected back as real progress in their State of Inner.
+
+This system gives clients:
+
+* Ownership over their recovery
+* A sense of agency and exploration
+* A *reason to keep going* beyond sobriety counters
+* A **visible narrative** that grows with them
+
+---
+
+## 🔄 DAILY QUEST STRUCTURE (365 Days)
+
+We agreed that the Quest Mode would offer a **full year’s worth of quests** — **365 total**, served daily.
+
+### ✅ Each quest contains:
+
+* A short **emotional reflection** prompt (therapeutic / poetic)
+* A symbolic **visual interaction or map update**
+* An optional **tool-based worksheet or coping action**
+* Feedback from a **hero** (depending on user theme/tone)
+
+### 🧠 Behavioral Psychology Embedded:
+
+* Small, manageable steps (micro-mastery)
+* Dopamine loops from map changes, not rewards
+* Consistency > perfection — **“Even just showing up changes your world”**
+
+---
+
+## 🗺️ HOW QUESTS UNLOCK THE WORLD
+
+The user’s **State of Inner** starts mostly dark, foggy, or locked.
+
+Progress is shown not as XP, but through **emotional environments unlocking**:
+
+| Quest Topic                 | World Impact                                     |
+| --------------------------- | ------------------------------------------------ |
+| Identifying triggers        | Fog clears near *Shadow Fields*                  |
+| Expressing grief            | The *Graveyard of Lost Souls* glows briefly      |
+| Completing Values Form      | A new path forms to the *Temple of Spirituality* |
+| Acknowledging relapse urge  | *The Crave* flickers and retreats                |
+| Journaling 5 days straight  | The *Crystal Heart* pulses once                  |
+| Talking to a peer           | A *campfire* lights in *Stepville*               |
+| Answering a Circle question | A *hero shrine* flickers on their path           |
+
+---
+
+## 📄 QUEST TYPES (TEMPLATE EXAMPLES)
+
+We broke down the 365 quests into reusable **quest categories**:
+
+### 🧩 1. **Story Quests** *(every 5–7 days)*
+
+* Connect to the Resurgifi lore and character arcs
+* e.g., “Lucentis speaks to you from the peak… what does he show you?”
+
+### 🧠 2. **Cognitive Quests**
+
+* Mirror CBT tools and self-talk reflection
+* e.g., “A voice whispers you’ll fail again. What do you whisper back?”
+
+### ✍️ 3. **Journal Expansion Quests**
+
+* Prompt deeper journaling with an in-world metaphor
+* e.g., “You enter the Mirror Chamber. What fear do you see in your reflection?”
+
+### ⚒️ 4. **Tool Quests (Worksheets)**
+
+* Digitized versions of real clinical forms, re-skinned with emotional metaphors
+* e.g., Triggers Sheet = “The Shadow Map”
+
+### 🛡️ 5. **Hero Challenges**
+
+* Users channel a hero’s traits to complete a challenge
+* e.g., “Velessa teaches you stillness. Practice 3 minutes of silence and log how it felt.”
+
+### 🔥 6. **Villain Encounters**
+
+* Triggered when journal tone matches relapse/dark themes
+* e.g., “Little Lack sits near your bed. What is she offering today?”
+
+---
+
+## 📦 FORMS USED AS QUEST MATERIAL
+
+You uploaded a set of **real IOP forms** from your treatment program. These were transformed into **questable modules**. Examples:
+
+### 🧭 “Values Worksheet”
+
+Becomes: *Crystal Compass Quest*
+
+* User selects 5 core values
+* Visual: beam of light shines from Temple → user path changes color
+
+### ⚠️ “Triggers & Responses”
+
+Becomes: *Shadow Mapping*
+
+* User lists 3 triggers, links to villain
+* Visual: shadows appear on map; user is asked to “light a torch” there
+
+### 🧰 “Coping Skills List”
+
+Becomes: *Tools for Resurgence*
+
+* User selects skills for recovery belt
+* Visual: icons appear on UI; heroes reference these later
+
+More forms can be slowly added as new questlines.
+
+---
+
+## 🧠 ONBOARDING INFLUENCE
+
+The 4 onboarding questions now **set the emotional seed** for the user’s Quest journey.
+
+* Q1: Determines the **theme of their first 7 quests**
+* Q2: Affects which tools are suggested
+* Q3: Affects which heroes respond to early struggles
+* Q4 (nickname): Personalizes how the Circle refers to them
+
+---
+
+## ✨ QUEST LOGIC ENGINE (Design Plan)
+
+* `quests` table: master list of 365
+* `user_quests`: tracks which quests a user has completed
+* `form_responses`: stores JSON of worksheet answers (optional for some)
+* `quest_effects`: maps quest\_id → unlocked regions, revealed heroes, map changes
+* Daily delivery system (based on user’s time zone) determines new quest unlocks
+
+> A missed day does not lock progress.
+> Instead, it simply delays the map’s evolution. We NEVER shame.
+
+---
+
+## 🧑‍💻 DEVELOPER NOTES
+
+* First quest implementation: hardcode 7–14 quests to get system running
+
+* Each quest should have:
+
+  * Title
+  * Prompt (1–2 lines max)
+  * Optional form / interaction
+  * World effect (textual or visual)
+
+* Deliver quests via:
+
+  * `/quest` route (user lands here after journaling or morning login)
+  * Global variable `current_quest` per user
+  * Completion updates DB, then triggers map refresh and Circle comment (hero remark)
+
+---
+
+## 🪞EMOTIONAL IMPACT
+
+> “You are not just healing. You are shaping the world within you.”
+
+* This system turns passive self-help into active worldbuilding.
+* People in early recovery are often lost. Quest Mode gives them **purpose** and **symbolic proof** that they are not stuck.
+* Most importantly: *it makes recovery feel beautiful.*
+
+---
+
+## ✅ FINAL SUMMARY (for Posterity)
+
+* Quest Mode is a **365-day, interactive, visually symbolic recovery experience**
+* Based on emotional logic, not gamified shame
+* Uses real IOP tools, turned into metaphorical interactions
+* Responds to onboarding tone, Circle data, and journaling themes
+* Unlocks **visual and emotional evolution** of the State of Inner
+* First launch will include \~10 core quests
+* Will eventually drive **Resurgifi’s emotional engine**
+
+---
+
+Let this be the **north star** of our healing game.
+When the user walks the path, **the path responds.**
