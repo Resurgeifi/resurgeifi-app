@@ -22,13 +22,13 @@
   </div>
 
   <!-- 🎯 Final Match Display -->
-  <div id="rescueResult" class="entry-box" style="display: none; margin-top: 3rem; background: #f6e7c1; color: #1f1f1f; padding: 2rem; border-radius: 14px; box-shadow: 0 0 12px rgba(0,0,0,0.3);">
-    <img id="matchLogo" src="" alt="Facility Logo" style="max-height: 100px; max-width: 100%; object-fit: contain; margin-bottom: 1rem;">
-    <h3 id="matchName"></h3>
-    <p><strong>Type:</strong> <span id="matchType"></span></p>
-    <p><strong>Location:</strong> <span id="matchLocation"></span></p>
-    <p id="matchQuote" style="font-style: italic;"></p>
-    <p id="matchReview" style="font-style: italic; color: #333;"></p>
+  <div id="rescueResult" class="entry-box facility-box">
+    <img id="matchLogo" src="" alt="Facility Logo" class="facility-logo">
+    <h3 id="matchName" class="facility-text"></h3>
+    <p class="facility-text"><strong>Type:</strong> <span id="matchType"></span></p>
+    <p class="facility-text"><strong>Location:</strong> <span id="matchLocation"></span></p>
+    <p id="matchQuote" class="facility-text" style="font-style: italic;"></p>
+    <p id="matchReview" class="facility-text" style="font-style: italic;"></p>
     <div class="final-action-buttons">
       <a id="matchCall" class="global-button">📞 Call Now</a>
       <a id="matchVisit" class="global-button" target="_blank">🌐 Visit Website</a>
@@ -40,26 +40,10 @@
 {% block scripts %}
 <script>
 const rescueQuestions = [
-  {
-    key: "need",
-    q: "What are you seeking help for?",
-    options: ["Detox", "Mental Health", "Substance Use", "Grief / Loss", "Just Exploring"]
-  },
-  {
-    key: "care_type",
-    q: "What level of care do you think you need?",
-    options: ["Inpatient", "Outpatient", "Not Sure"]
-  },
-  {
-    key: "insurance",
-    q: "Do you have insurance?",
-    options: ["Yes", "No", "Not Sure"]
-  },
-  {
-    key: "region",
-    q: "Where are you located?",
-    options: ["East Coast", "Midwest", "West Coast", "South", "Nationwide"]
-  }
+  { key: "need", q: "What are you seeking help for?", options: ["Detox", "Mental Health", "Substance Use", "Grief / Loss", "Just Exploring"] },
+  { key: "care_type", q: "What level of care do you think you need?", options: ["Inpatient", "Outpatient", "Not Sure"] },
+  { key: "insurance", q: "Do you have insurance?", options: ["Yes", "No", "Not Sure"] },
+  { key: "region", q: "Where are you located?", options: ["East Coast", "Midwest", "West Coast", "South", "Nationwide"] }
 ];
 
 let currentStep = 0;
@@ -191,8 +175,29 @@ function showRescueMatch() {
   text-align: center;
   max-width: 240px;
 }
+
+.facility-box {
+  margin-top: 3rem;
+  background: #f6e7c1;
+  color: #1a1a1a;
+  padding: 2rem;
+  border-radius: 14px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+}
+
+.facility-logo {
+  max-height: 100px;
+  max-width: 100%;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+.facility-text {
+  color: #1f1f1f !important;
+}
 </style>
 {% endblock %}
+
 
 
 
