@@ -1065,12 +1065,12 @@ def quest():
         return redirect(url_for("circle"))
 
     # Only allow 1 quest per day
-    today = date.today()
-    existing = db.query(UserQuestEntry).filter_by(user_id=user_id, quest_id=1).first()
-    if existing and existing.timestamp.date() == today:
-        db.close()
-        flash("You’ve already completed today’s quest. Come back tomorrow.", "info")
-        return redirect(url_for("circle"))
+    #today = date.today()
+    #existing = db.query(UserQuestEntry).filter_by(user_id=user_id, quest_id=1).first()
+    #if existing and existing.timestamp.date() == today:
+       # db.close()
+      #  flash("You’ve already completed today’s quest. Come back tomorrow.", "info")
+     #   return redirect(url_for("circle"))
 
     db.close()
     return render_template("quest.html")
