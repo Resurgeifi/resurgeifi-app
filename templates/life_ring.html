@@ -22,13 +22,13 @@
   </div>
 
   <!-- 🎯 Final Match Display -->
-  <div id="rescueResult" class="entry-box" style="display: none; margin-top: 3rem;">
-    <img id="matchLogo" src="" alt="Facility Logo" style="max-height: 100px; margin-bottom: 1rem;">
+  <div id="rescueResult" class="entry-box" style="display: none; margin-top: 3rem; background: #f6e7c1; color: #1f1f1f; padding: 2rem; border-radius: 14px; box-shadow: 0 0 12px rgba(0,0,0,0.3);">
+    <img id="matchLogo" src="" alt="Facility Logo" style="max-height: 100px; max-width: 100%; object-fit: contain; margin-bottom: 1rem;">
     <h3 id="matchName"></h3>
     <p><strong>Type:</strong> <span id="matchType"></span></p>
     <p><strong>Location:</strong> <span id="matchLocation"></span></p>
     <p id="matchQuote" style="font-style: italic;"></p>
-    <p id="matchReview" style="font-style: italic; color: #ccc;"></p>
+    <p id="matchReview" style="font-style: italic; color: #333;"></p>
     <div class="final-action-buttons">
       <a id="matchCall" class="global-button">📞 Call Now</a>
       <a id="matchVisit" class="global-button" target="_blank">🌐 Visit Website</a>
@@ -111,7 +111,7 @@ function showRescueMatch() {
       website: "https://cabehavioral.com/?src=resurgifi",
       logo: "/static/images/partners/cbh-logo.png"
     };
-  } else if (userAnswers.care_type === "Outpatient") {
+  } else if (userAnswers.care_type === "Outpatient" || userAnswers.care_type === "Not Sure") {
     match = {
       name: "Engage Wellness",
       type: "Intensive Outpatient Program (IOP)",
@@ -143,13 +143,6 @@ function showRescueMatch() {
 </script>
 
 <style>
-   #matchLogo {
-  max-height: 80px;
-  max-width: 100%;
-  object-fit: contain;
-  margin-bottom: 1rem;
-}
- 
 .modal-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -200,6 +193,7 @@ function showRescueMatch() {
 }
 </style>
 {% endblock %}
+
 
 
 
