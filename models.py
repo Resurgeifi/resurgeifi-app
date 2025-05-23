@@ -74,3 +74,12 @@ class UserQuestEntry(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="quest_entries")
+class DailyReflection(db.Model):
+    __tablename__ = "daily_reflections"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    summary_text = db.Column(db.Text, nullable=False)
+
+    user = db.relationship("User", backref="daily_reflections")
