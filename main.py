@@ -230,10 +230,12 @@ Here’s what they said in today’s Circle:
 {formatted}
 ---
 
-Write a first-person journal entry that reflects what they’re going through. Match their emotional tone. Don’t lecture, don’t sound like a therapist. Be emotionally real.
-
-Length: 1–3 paragraphs.
-    """.strip()
+Write a short, first-person journal entry that reflects their emotional state and current inner experience. 
+Keep it to a single paragraph (about 4–5 sentences). 
+Do not mention or reference any heroes by name — this is a personal reflection, not a game recap.
+Focus on their real emotions, not casual questions or playful comments.
+Be emotionally honest but brief. Avoid advice or therapy-speak.
+""".strip()
 
     try:
         response = client.chat.completions.create(
