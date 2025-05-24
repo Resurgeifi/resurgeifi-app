@@ -14,7 +14,7 @@
 {% if g.user %}
   <div id="top-bar">
     <a href="/profile" id="profile-icon" title="Your Profile">
-      <img src="{{ url_for('static', filename='images/icons/profileicon.png') }}" alt="Profile Icon" />
+      <img src="{{ url_for('static', filename='icons/profileicon.png') }}" alt="Profile Icon" />
     </a>
     <div id="points-badge">⭐ {{ g.user.points or 0 }}</div>
     <div id="points-float" class="points-float">+3</div>
