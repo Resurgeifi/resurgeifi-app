@@ -7,20 +7,23 @@
   <h1>⚙️ Settings</h1>
   <p class="mantra">You can change your nickname and define when your journey began.</p>
 
-  <!-- 🌱 Journey Type -->
-  <form method="POST" action="/settings">
-    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
-      <label style="font-size: 1.1rem;"><strong>Choose your current journey:</strong></label>
-      <div class="settings-options" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
-        <button type="submit" name="journey" value="grief" class="global-button">💔 Grief</button>
-        <button type="submit" name="journey" value="addiction" class="global-button">💊 Addiction</button>
-        <button type="submit" name="journey" value="mental_health" class="global-button">🧠 Mental Health</button>
-        <button type="submit" name="journey" value="trauma" class="global-button">🔥 Trauma</button>
-        <button type="submit" name="journey" value="anxiety" class="global-button">🌪️ Anxiety</button>
-      </div>
-      <p style="margin-top: 1rem;">Current Journey: <strong>{{ session.get('journey', 'Not selected') | replace('_', ' ') | title }}</strong></p>
+<!-- 🌱 Journey Type -->
+<form method="POST" action="/settings">
+  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+    <label style="font-size: 1.1rem;"><strong>Choose your current journey:</strong></label>
+    <div class="settings-options" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+      <button type="submit" name="journey" value="Major loss or grieving" class="global-button">💔 Grief</button>
+      <button type="submit" name="journey" value="Anxiety or fear" class="global-button">🌪️ Anxiety</button>
+      <button type="submit" name="journey" value="Addiction" class="global-button">💊 Addiction</button>
+      <button type="submit" name="journey" value="Emotional growth" class="global-button">🌱 Emotional Growth</button>
     </div>
-  </form>
+    <p style="margin-top: 1rem;">Current Journey: 
+      <strong>{{ g.user.theme_choice or 'Not selected' }}</strong>
+    </p>    
+  </div>
+</form>
+
+
 
   <!-- 📅 Journey Start Date -->
   <form method="POST" action="/settings">
