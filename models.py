@@ -17,7 +17,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     display_name = db.Column(db.String(150), nullable=True)
-    theme_choice = db.Column(db.String(100), nullable=True)
+    theme_choice = db.Column(db.JSON, nullable=True)
     consent = db.Column(db.String(10), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     nickname = db.Column(db.String(50), nullable=True)
