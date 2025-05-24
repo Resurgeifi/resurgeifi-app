@@ -13,7 +13,9 @@
 
 {% if g.user %}
   <div id="top-bar">
-    <a href="/profile" id="profile-icon" title="Your Profile">👤</a>
+    <a href="/profile" id="profile-icon" title="Your Profile">
+      <img src="{{ url_for('static', filename='images/icons/profileicon.png') }}" alt="Profile Icon" />
+    </a>
     <div id="points-badge">⭐ {{ g.user.points or 0 }}</div>
     <div id="points-float" class="points-float">+3</div>
     <div class="sparkle-container" id="sparkle-container"></div>
@@ -151,16 +153,14 @@ function flashPoints() {
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-#profile-icon {
-  font-size: 1.6rem;
-  color: #f6e7c1;
-  text-decoration: none;
-  padding-left: 1rem;
-  font-family: 'Oswald', sans-serif;
+#profile-icon img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-left: 1rem;
   transition: transform 0.3s ease;
 }
-#profile-icon:hover {
-  color: white;
+#profile-icon img:hover {
   transform: scale(1.15);
 }
 
@@ -228,8 +228,3 @@ function flashPoints() {
 
 </body>
 </html>
-
-
-
-
-
