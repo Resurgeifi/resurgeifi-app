@@ -2,35 +2,105 @@
 {% block title %}Your Profile | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="profile-container" style="max-width: 600px; margin: 2rem auto; text-align: center;">
-  <h1 style="font-size: 2rem; margin-bottom: 1rem;">{{ user.nickname or "Your" }}’s Profile</h1>
+<div class="profile-container" style="max-width: 600px; margin: 2rem auto; text-align: center; padding: 0 1rem;">
+  <h1 class="profile-header">{{ user.nickname or "Your" }}’s Profile</h1>
 
-  <div style="background: #2b2b2b; padding: 1rem; border-radius: 10px; box-shadow: 0 0 12px rgba(255,255,255,0.05);">
-    <p style="font-size: 1.2rem; margin: 0.5rem 0;">
-      <strong>⭐ Points:</strong> {{ user.points or 0 }}
-    </p>
-    <p style="font-size: 1.2rem; margin: 0.5rem 0;">
-      <strong>📅 Days on Journey:</strong> {{ user.journey_start_date.strftime('%b %d, %Y') if user.journey_start_date else "—" }}
-    </p>
-    <p style="font-size: 1.2rem; margin: 0.5rem 0;">
-      <strong>🌀 Current Ring:</strong> The Spark
-    </p>
+  <div class="profile-stats">
+    <p><strong>⭐ Points:</strong> {{ user.points or 0 }}</p>
+    <p><strong>📅 Days on Journey:</strong> {{ user.journey_start_date.strftime('%b %d, %Y') if user.journey_start_date else "—" }}</p>
+    <p><strong>🌀 Current Ring:</strong> The Spark</p>
   </div>
 
-  <div style="margin-top: 2rem;">
-    <h2 style="margin-bottom: 0.5rem;">🔗 Your Resurgitag</h2>
-    <div style="font-size: 1.5rem; background: #444; padding: 0.5rem 1rem; display: inline-block; border-radius: 8px; color: #ffebbc;">
-      {{ user.resurgitag }}
-    </div>
-    <p style="font-size: 0.9rem; color: #aaa; margin-top: 0.5rem;">This tag is permanent and used to connect with others.</p>
+  <div class="resurgitag-section">
+    <h2>🔗 Your Resurgitag</h2>
+    <div class="resurgitag-box">{{ user.resurgitag }}</div>
+    <p class="resurgitag-note">This tag is permanent and used to connect with others.</p>
   </div>
+
   <div class="qr-section">
     <h3>Share Your Resurgitag</h3>
     <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code for your Resurgitag" />
     <p>Let others follow your journey. Share your tag or scan the code.</p>
   </div>
   
-  <a href="/menu" class="btn" style="margin-top: 2rem; display: inline-block;">⬅️ Back to Menu</a>
+  <a href="/menu" class="btn back-btn">⬅️ Back to Menu</a>
 </div>
+
+<style>
+.profile-header {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.profile-stats {
+  background: #2b2b2b;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(255,255,255,0.05);
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+.profile-stats p {
+  margin: 0.5rem 0;
+}
+
+.resurgitag-section h2 {
+  margin-bottom: 0.5rem;
+}
+
+.resurgitag-box {
+  font-size: 1.5rem;
+  background: #444;
+  padding: 0.5rem 1rem;
+  display: inline-block;
+  border-radius: 8px;
+  color: #ffebbc;
+}
+
+.resurgitag-note {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-top: 0.5rem;
+}
+
+.qr-section img {
+  width: 100%;
+  max-width: 280px;
+  margin: 1rem auto;
+  display: block;
+}
+
+.back-btn {
+  margin-top: 2rem;
+  display: inline-block;
+  font-size: 1.1rem;
+  padding: 0.6rem 1.2rem;
+  background-color: #444;
+  color: #f6e7c1;
+  border-radius: 8px;
+  text-decoration: none;
+}
+.back-btn:hover {
+  background-color: #555;
+}
+
+@media (max-width: 600px) {
+  .profile-header {
+    font-size: 1.5rem;
+  }
+  .profile-stats {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+  .resurgitag-box {
+    font-size: 1.2rem;
+  }
+  .back-btn {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+  }
+}
+</style>
 {% endblock %}
+
 
