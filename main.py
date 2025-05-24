@@ -150,7 +150,7 @@ def login_required(f):
 def profile():
     user_id = session.get("user_id")
     db = SessionLocal()
-    
+
     try:
         user = db.query(User).filter_by(id=user_id).first()
 
@@ -158,29 +158,31 @@ def profile():
             user.resurgitag = generate_resurgitag(user.display_name or "User")
             db.commit()
 
-        qr_data = f"https://resurgifi-app.onrender.com/friends/{user.resurgitag}"
+        # ✅ Remove @ for clean public profile URL
+        clean_tag = user.resurgitag.lstrip("@")
+        qr_data = f"https://resurgifi-app.onrender.com/profile/public/{clean_tag}"
+
         qr_img = qrcode.make(qr_data)
         buffer = io.BytesIO()
         qr_img.save(buffer, format="PNG")
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
+
         return render_template("profile.html", user=user,
                                resurgitag=user.resurgitag,
                                points=user.points or 0,
                                days_on_journey=days_on_journey,
                                qr_code_base64=qr_code_base64)
-    
+
     except SQLAlchemyError as e:
         db.rollback()
         flash("Something went wrong loading your profile. Please try again.")
         return redirect(url_for('login'))
-    
+
     finally:
         db.close()
-
-
-
+        
 @app.route("/circle")
 @login_required
 def circle():
@@ -515,22 +517,24 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
-@app.route("/friends/<resurgitag>")
-def view_friend(resurgitag):
+@app.route("/profile/public/<resurgitag>")
+def view_public_profile(resurgitag):
     db = SessionLocal()
     try:
-        user = db.query(User).filter_by(resurgitag=resurgitag).first()
+        # Normalize tag: remove leading @ if present, and lowercase it
+        clean_tag = f"@{resurgitag.lstrip('@').lower()}"
+
+        user = db.query(User).filter(User.resurgitag.ilike(clean_tag)).first()
+
         if not user:
             flash("No user found with that Resurgitag.")
             return render_template("not_found.html", message="This profile doesn't exist."), 404
 
-        return render_template("friend_view.html", user=user)
+        # Used to calculate days on journey
+        return render_template("public_profile.html", friend=user, current_time=datetime.utcnow())
 
     finally:
         db.close()
-
-
-
 
 
 @app.route("/delete-entry/<int:id>", methods=["GET", "POST"])
