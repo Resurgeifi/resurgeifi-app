@@ -983,7 +983,7 @@ def feedback():
         return redirect(url_for("feedback"))
 
     return render_template("feedback.html")
-    
+
 @app.route("/history")
 @login_required
 def history():
@@ -1210,6 +1210,35 @@ def quest():
         return redirect(url_for("circle"))
     finally:
         db_session.close()
+@app.route("/change-tag", methods=["GET", "POST"])
+@login_required
+def change_resurgitag():
+    user_id = session.get("user_id")
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter_by(id=user_id).first()
+
+        if user.resurgitag_locked:
+            flash("You can only change your Resurgitag once.")
+            return redirect(url_for("profile"))
+
+        if request.method == "POST":
+            new_tag = request.form.get("new_tag", "").strip()
+            if new_tag and new_tag.startswith("@") and len(new_tag) <= 32:
+                existing = db.query(User).filter_by(resurgitag=new_tag).first()
+                if existing:
+                    flash("That tag is already taken. Try another.")
+                else:
+                    user.resurgitag = new_tag
+                    user.resurgitag_locked = True
+                    db.commit()
+                    flash("Your Resurgitag has been updated!")
+                    return redirect(url_for("profile"))
+            else:
+                flash("Tag must start with @ and be less than 32 characters.")
+        return render_template("change_tag.html", current_tag=user.resurgitag)
+    finally:
+        db.close()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)

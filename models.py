@@ -23,6 +23,7 @@ class User(db.Model):
     nickname = db.Column(db.String(50), nullable=True)
     timezone = db.Column(db.String(50), default="UTC")
     resurgitag = db.Column(db.String(32), unique=True, nullable=True)
+    resurgitag_locked = db.Column(db.Boolean, default=False)
 
     # Onboarding fields
     core_trigger = db.Column(db.String(100), nullable=True)

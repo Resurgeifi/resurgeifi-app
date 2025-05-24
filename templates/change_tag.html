@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Change Your Resurgitag{% endblock %}
+
+{% block content %}
+<div class="main-content" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+  <h2>✏️ Change Your Resurgitag</h2>
+  <p class="mantra">Choose wisely. You can only change this once.</p>
+
+  <form method="POST" action="/change-tag" style="margin-top: 2rem;">
+    <input type="text" name="new_tag" placeholder="@YourNewTag"
+           value="{{ current_tag }}"
+           style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #fef9e7; color: #1f3e36;"><br><br>
+    <button type="submit" class="global-button">Change Tag</button>
+  </form>
+
+  <a href="/profile" class="btn" style="margin-top: 2rem; display: inline-block;">⬅️ Back to Profile</a>
+</div>
+{% endblock %}
