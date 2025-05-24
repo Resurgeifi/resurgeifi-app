@@ -13,6 +13,11 @@ def localize_time(utc_time, user_timezone):
     if not user_timezone:
         user_timezone = "America/New_York"
     return utc_time.replace(tzinfo=utc).astimezone(tz(user_timezone))
+def generate_resurgitag(base_name):
+    """Generate a Resurgifi handle like @Jonas_23"""
+    base = ''.join(c for c in base_name if c.isalnum())[:10].capitalize()
+    suffix = ''.join(random.choices("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", k=2))
+    return f"@{base}_{suffix}"
 
 # 🔒 Auth + Security
 from functools import wraps
