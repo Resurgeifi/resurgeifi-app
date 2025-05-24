@@ -394,11 +394,6 @@ def menu():
     finally:
         db.close()
 
-@app.route("/home1")
-@login_required
-def home1():
-    return render_template("home1.html")
-
 @app.route('/form', methods=['GET', 'POST'])
 @login_required
 def form():
@@ -439,17 +434,27 @@ def settings():
             "America/Honolulu"
         ]
 
+        journey_options = [
+            "Major loss or grieving",
+            "Anxiety or fear",
+            "Addiction",
+            "Depression or emptiness",
+            "Low self-worth",
+            "Trauma or PTSD",
+            "Emotional growth"
+        ]
+
         if request.method == "POST":
             form = request.form
 
             # ✅ Journey selection
             if 'journey' in form:
                 journey = form.get("journey")
-                if journey:
+                if journey in journey_options:
                     user.theme_choice = journey
                     session['journey'] = journey
                     db.commit()
-                    flash("Journey updated to: " + journey.replace("_", " ").title(), "success")
+                    flash("Journey updated to: " + journey, "success")
                     return redirect(url_for('settings'))
 
             # ✅ Timezone selection
@@ -510,6 +515,7 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
+
 
 @app.route("/delete-entry/<int:id>", methods=["GET", "POST"])
 @login_required
@@ -730,28 +736,6 @@ def admin_logs():
     except FileNotFoundError:
         content = "No logs available."
     return render_template('admin_logs.html', logs=content)
-
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    if 'session_id' not in session:
-        return redirect(url_for('register'))
-
-    session_id = session.get('session_id')
-    journal_path = f"logs/journals/{session_id}.txt"
-    entry_count = 0
-    streak_days = set()
-
-    if os.path.exists(journal_path):
-        with open(journal_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.startswith('['):
-                    entry_count += 1
-                    date_str = line[1:11]
-                    streak_days.add(date_str)
-
-    streak = len(streak_days)
-    return render_template('dashboard.html', entry_count=entry_count, streak=streak)
 
 from rams import build_context, select_heroes, build_prompt
 
