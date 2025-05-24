@@ -150,6 +150,7 @@ def login_required(f):
 def profile():
     user_id = session.get("user_id")
     db = SessionLocal()
+    
     try:
         user = db.query(User).filter_by(id=user_id).first()
 
@@ -165,16 +166,20 @@ def profile():
 
         days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
         return render_template("profile.html", user=user,
-                       resurgitag=user.resurgitag,
-                       points=user.points or 0,
-                       days_on_journey=days_on_journey,
-                       qr_code_base64=qr_code_base64)
-except SQLAlchemyError as e:
+                               resurgitag=user.resurgitag,
+                               points=user.points or 0,
+                               days_on_journey=days_on_journey,
+                               qr_code_base64=qr_code_base64)
+    
+    except SQLAlchemyError as e:
         db.rollback()
         flash("Something went wrong loading your profile. Please try again.")
         return redirect(url_for('login'))
+    
     finally:
         db.close()
+
+
 
 @app.route("/circle")
 @login_required
