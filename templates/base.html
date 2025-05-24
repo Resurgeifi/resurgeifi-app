@@ -11,9 +11,10 @@
 </head>
 <body>
 
-  <!-- 🌟 Floating Points Badge -->
+  {% if g.user %}
   <div id="points-badge">⭐ {{ g.user.points or 0 }}</div>
   <div id="points-float" class="points-float">+3</div>
+{% endif %}
 
   <!-- 🔥 Main Container -->
   <div class="main-content">
