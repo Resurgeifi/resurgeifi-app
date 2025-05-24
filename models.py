@@ -16,11 +16,14 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     nickname = db.Column(db.String(50), nullable=True)
     timezone = db.Column(db.String(50), default="UTC")
+    
+    # ✅ NEW custom tag users can share
+    resurgitag = db.Column(db.String(32), unique=True, nullable=True)  # e.g. "kevin42" or "grace_23"
 
-    # ✅ NEW onboarding fields
-    core_trigger = db.Column(db.String(100), nullable=True)        # Q1
-    default_coping = db.Column(db.String(100), nullable=True)      # Q2
-    hero_traits = db.Column(db.JSON, nullable=True)                # Q3 (list of 2 traits)
+    # ✅ Onboarding fields
+    core_trigger = db.Column(db.String(100), nullable=True)
+    default_coping = db.Column(db.String(100), nullable=True)
+    hero_traits = db.Column(db.JSON, nullable=True)  # list of 2 traits
 
     # ✅ Tracking fields
     journey_start_date = db.Column(db.DateTime, nullable=True)
@@ -28,7 +31,7 @@ class User(db.Model):
     circle_message_count = db.Column(db.Integer, default=0)
     last_journal_entry = db.Column(db.Text, nullable=True)
     last_circle_msg = db.Column(db.Text, nullable=True)
-    points = db.Column(db.Integer, default=0)  # 🎮 Gamification points field
+    points = db.Column(db.Integer, default=0)
 
 class JournalEntry(db.Model):
     __tablename__ = "journal_entries"
@@ -84,5 +87,21 @@ class DailyReflection(db.Model):
     summary_text = db.Column(db.Text, nullable=False)
 
     user = db.relationship("User", backref="daily_reflections")
+friend_association = db.Table('friend_association',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id')),
+    db.Column('friend_id', db.Integer, db.ForeignKey('users.id'))
+)
+
+class User(db.Model):
+    __tablename__ = "users"
+    # ... existing fields ...
+    
+    friends = db.relationship(
+        "User",
+        secondary=friend_association,
+        primaryjoin=id==friend_association.c.user_id,
+        secondaryjoin=id==friend_association.c.friend_id,
+        backref="friend_of"
+    )
 
 

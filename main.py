@@ -35,6 +35,9 @@ from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
 from rams import HERO_NAMES, build_context, select_heroes, build_prompt
 from markupsafe import Markup
+import qrcode
+import io
+import base64
 
 # ✅ Load environment variables
 load_dotenv()
@@ -93,9 +96,6 @@ def load_logged_in_user():
         finally:
             db.close()
 
-
-
-
 def get_mock_conversation(absence_minutes):
     # Skip if gone for less than an hour
     if absence_minutes < 60:
@@ -144,6 +144,36 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+@app.route("/profile")
+@login_required
+def profile():
+    user_id = session.get("user_id")
+    db = SessionLocal()
+    user = db.query(User).filter_by(id=user_id).first()
+
+    # Generate Resurgitag if missing
+    if not user.resurgitag:
+        user.resurgitag = generate_resurgitag(user.display_name or "User")
+        db.commit()
+
+    # QR Code logic
+    qr_data = f"https://resurgifi-app.onrender.com/friends/{user.resurgitag}"
+    qr_img = qrcode.make(qr_data)
+    buffer = io.BytesIO()
+    qr_img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    # Stats
+    days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
+    db.close()
+
+    return render_template("profile.html", nickname=user.nickname or "Friend",
+                           resurgitag=user.resurgitag,
+                           points=user.points or 0,
+                           days_on_journey=days_on_journey,
+                           qr_code_base64=qr_code_base64)
+
 @app.route("/circle")
 @login_required
 def circle():

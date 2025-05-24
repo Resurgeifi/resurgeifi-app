@@ -12,6 +12,7 @@
 <body>
 
 {% if g.user %}
+  <a href="/profile" id="profile-icon" title="Your Profile">👤</a>
   <div id="points-badge">⭐ {{ g.user.points or 0 }}</div>
   <div id="points-float" class="points-float">+3</div>
   <div class="sparkle-container" id="sparkle-container"></div>
@@ -112,7 +113,6 @@ function flashPoints() {
     audio.play().catch(err => console.warn("Points audio failed:", err));
   }
 
-  // 🌟 Star Sparkles
   if (sparkle) {
     for (let i = 0; i < 6; i++) {
       const star = document.createElement("div");
@@ -151,6 +151,21 @@ function flashPoints() {
   transition: transform 0.3s ease;
 }
 
+#profile-icon {
+  position: fixed;
+  top: 16px;
+  right: 100px;
+  font-size: 1.4rem;
+  text-decoration: none;
+  z-index: 9999;
+  color: #f6e7c1;
+  font-family: 'Oswald', sans-serif;
+}
+#profile-icon:hover {
+  color: white;
+  transform: scale(1.1);
+}
+
 .points-float {
   position: fixed;
   top: 10px;
@@ -163,11 +178,9 @@ function flashPoints() {
   pointer-events: none;
   display: none;
 }
-
 .points-float.floatUp {
   animation: floatUp 0.9s ease-out forwards;
 }
-
 @keyframes floatUp {
   0% { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(-20px); opacity: 0; }
@@ -176,7 +189,6 @@ function flashPoints() {
 .flash-badge {
   animation: badgePulse 0.8s ease;
 }
-
 @keyframes badgePulse {
   0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
   50% { transform: scale(1.2); box-shadow: 0 0 25px rgba(255, 255, 255, 0.5); }
@@ -190,7 +202,6 @@ function flashPoints() {
   z-index: 10001;
   pointer-events: none;
 }
-
 .sparkle-star {
   position: absolute;
   width: 8px;
@@ -199,7 +210,6 @@ function flashPoints() {
   border-radius: 50%;
   animation: sparkle 0.9s ease-out forwards;
 }
-
 @keyframes sparkle {
   0% { transform: scale(1) translateY(0); opacity: 1; }
   100% { transform: scale(0.4) translateY(-20px); opacity: 0; }
@@ -208,6 +218,7 @@ function flashPoints() {
 
 </body>
 </html>
+
 
 
 
