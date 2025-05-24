@@ -25,6 +25,9 @@ class User(db.Model):
     resurgitag = db.Column(db.String(32), unique=True, nullable=True)
     resurgitag_locked = db.Column(db.Boolean, default=False)
 
+    # 🔐 Privacy toggle for public profile
+    show_journey_publicly = db.Column(db.Boolean, default=False)
+
     # Onboarding fields
     core_trigger = db.Column(db.String(100), nullable=True)
     default_coping = db.Column(db.String(100), nullable=True)
@@ -46,6 +49,7 @@ class User(db.Model):
         secondaryjoin=id == friend_association.c.friend_id,
         backref="friend_of"
     )
+
 
 class JournalEntry(db.Model):
     __tablename__ = "journal_entries"

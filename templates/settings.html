@@ -20,11 +20,32 @@
       <button type="submit" name="journey" value="Trauma or PTSD" class="global-button">🔥 Trauma</button>
       <button type="submit" name="journey" value="Emotional growth" class="global-button">🌱 Emotional Growth</button>
     </div>
+
     <p style="margin-top: 1rem;">Current Journey: 
       <strong>{{ g.user.theme_choice or 'Not selected' }}</strong>
     </p>    
+
+    <!-- ✅ Add Privacy Toggle -->
+    <div class="form-check mt-4 mb-2">
+      <input 
+        class="form-check-input" 
+        type="checkbox" 
+        name="show_journey_publicly" 
+        id="show_journey_publicly"
+        style="transform: scale(1.4); margin-right: 12px;"
+        {% if g.user.show_journey_publicly %}checked{% endif %}>
+      <label 
+        class="form-check-label" 
+        for="show_journey_publicly"
+        style="font-size: 1.25rem; cursor: pointer; color: #e0d4b2;">
+        Let others see my <strong>journey type</strong> on my public profile
+      </label>
+    </div>
+
+    <button type="submit" class="global-button mt-3">Save Settings</button>
   </div>
 </form>
+
 
   <!-- 📅 Journey Start Date -->
   <form method="POST" action="/settings">
