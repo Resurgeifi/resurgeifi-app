@@ -33,6 +33,7 @@ from openai import OpenAI
 from models import db, User, JournalEntry, QueryHistory
 from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.exc import SQLAlchemyError  # ✅ NEW: Handle rollback issues
 from rams import HERO_NAMES, build_context, select_heroes, build_prompt
 from markupsafe import Markup
 import qrcode
@@ -97,42 +98,36 @@ def load_logged_in_user():
             db.close()
 
 def get_mock_conversation(absence_minutes):
-    # Skip if gone for less than an hour
     if absence_minutes < 60:
         return []
 
-    # Cap total injected messages (e.g. 12 max)
     messages = []
 
-    if absence_minutes < 180:  # 1–3 hours
+    if absence_minutes < 180:
         messages += [
             {"speaker": "Grace", "text": "You ever just... sit in the quiet and let your heart catch up?"},
             {"speaker": "Lucentis", "text": "This stillness has weight. But not the heavy kind."},
             {"speaker": "Cognita", "text": "Silence is just unprocessed data."}
         ]
-
-    elif absence_minutes < 360:  # 3–6 hours
+    elif absence_minutes < 360:
         messages += [
             {"speaker": "Sir Renity", "text": "Remember that time at Stepville when we tried a group ice bath? Never again."},
             {"speaker": "Velessa", "text": "The laughter was worth the freeze though."},
             {"speaker": "Grace", "text": "Still got chills thinking about it."}
         ]
-
-    elif absence_minutes < 720:  # 6–12 hours
+    elif absence_minutes < 720:
         messages += [
             {"speaker": "Lucentis", "text": "If the wind could speak, I think it would sound like Grace when she’s thoughtful."},
             {"speaker": "Cognita", "text": "Don’t give her ideas. She’ll start rhyming again."},
             {"speaker": "Velessa", "text": "I’m just waiting for someone to bring snacks."}
         ]
-
-    elif absence_minutes < 4320:  # up to 3 days
+    elif absence_minutes < 4320:
         messages += [
             {"speaker": "Sir Renity", "text": "Three sunrises and no word. He’s got to be climbing his own mountain."},
             {"speaker": "Grace", "text": "Or maybe just sleeping in. That counts too."},
             {"speaker": "Cognita", "text": "We don’t disappear. We just pause the thread."}
         ]
 
-    # Cap it to max 12 lines
     return messages[:12]
 
 # ✅ Login required decorator
@@ -150,43 +145,44 @@ def login_required(f):
 def profile():
     user_id = session.get("user_id")
     db = SessionLocal()
-    user = db.query(User).filter_by(id=user_id).first()
+    try:
+        user = db.query(User).filter_by(id=user_id).first()
 
-    # Generate Resurgitag if missing
-    if not user.resurgitag:
-        user.resurgitag = generate_resurgitag(user.display_name or "User")
-        db.commit()
+        if not user.resurgitag:
+            user.resurgitag = generate_resurgitag(user.display_name or "User")
+            db.commit()
 
-    # QR Code logic
-    qr_data = f"https://resurgifi-app.onrender.com/friends/{user.resurgitag}"
-    qr_img = qrcode.make(qr_data)
-    buffer = io.BytesIO()
-    qr_img.save(buffer, format="PNG")
-    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        qr_data = f"https://resurgifi-app.onrender.com/friends/{user.resurgitag}"
+        qr_img = qrcode.make(qr_data)
+        buffer = io.BytesIO()
+        qr_img.save(buffer, format="PNG")
+        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-    # Stats
-    days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
-    db.close()
-
-    return render_template("profile.html", nickname=user.nickname or "Friend",
-                           resurgitag=user.resurgitag,
-                           points=user.points or 0,
-                           days_on_journey=days_on_journey,
-                           qr_code_base64=qr_code_base64)
+        days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
+        return render_template("profile.html", nickname=user.nickname or "Friend",
+                               resurgitag=user.resurgitag,
+                               points=user.points or 0,
+                               days_on_journey=days_on_journey,
+                               qr_code_base64=qr_code_base64)
+    except SQLAlchemyError as e:
+        db.rollback()
+        flash("Something went wrong loading your profile. Please try again.")
+        return redirect(url_for('login'))
+    finally:
+        db.close()
 
 @app.route("/circle")
 @login_required
 def circle():
-    from models import CircleMessage  # Make sure this import is at the top
+    from models import CircleMessage
+    from main import get_mock_conversation
 
     user_id = session.get("user_id")
     db = SessionLocal()
-
-    # 🧠 NEW: Check how long they've been gone
-    last_seen_str = session.get("last_seen_circle")
     now = datetime.utcnow()
     session["last_seen_circle"] = now.isoformat()
 
+    last_seen_str = session.get("last_seen_circle")
     absence_minutes = 0
     if last_seen_str:
         try:
@@ -195,36 +191,37 @@ def circle():
         except Exception as e:
             print("⚠️ Failed to parse last_seen_circle:", e)
 
-    # ✨ Inject mock banter if enough time has passed
-    from models import CircleMessage
-    from main import get_mock_conversation  # Ensure this function is added above
+    try:
+        mock_msgs = get_mock_conversation(absence_minutes)
+        for msg in mock_msgs:
+            db.add(CircleMessage(user_id=user_id, speaker=msg["speaker"], text=msg["text"]))
+        db.commit()
 
-    mock_msgs = get_mock_conversation(absence_minutes)
-    for msg in mock_msgs:
-        db.add(CircleMessage(user_id=user_id, speaker=msg["speaker"], text=msg["text"]))
-    db.commit()
+        messages = (
+            db.query(CircleMessage)
+            .filter_by(user_id=user_id)
+            .order_by(CircleMessage.timestamp.asc())
+            .limit(50)
+            .all()
+        )
 
-    # 🔁 Get latest 50 messages (includes any new mock ones)
-    messages = (
-        db.query(CircleMessage)
-        .filter_by(user_id=user_id)
-        .order_by(CircleMessage.timestamp.asc())
-        .limit(50)
-        .all()
-    )
+        thread = [{"speaker": msg.speaker, "text": msg.text} for msg in messages]
+        session["circle_thread"] = thread
 
-    # 🧠 Save to session thread memory
-    thread = [{"speaker": msg.speaker, "text": msg.text} for msg in messages]
-    session["circle_thread"] = thread
+        offset_min = session.get("tz_offset_min", 0)
+        local_now = now - timedelta(minutes=offset_min)
+        start_of_day = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+        session["start_of_day"] = start_of_day.isoformat()
 
-    # 🕓 Set "start of day" based on user timezone offset
-    offset_min = session.get("tz_offset_min", 0)
-    local_now = now - timedelta(minutes=offset_min)
-    start_of_day = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
-    session["start_of_day"] = start_of_day.isoformat()
+        return render_template("circle.html")
 
-    db.close()
-    return render_template("circle.html")
+    except SQLAlchemyError as e:
+        db.rollback()
+        flash("Trouble loading your Circle. Please try again in a moment.")
+        return redirect(url_for('profile'))
+    finally:
+        db.close()
+
 @app.route("/summarize-journal", methods=["GET"])
 @login_required
 def summarize_journal():
@@ -338,53 +335,54 @@ def landing():
 @login_required
 def menu():
     db = SessionLocal()
-    user = db.query(User).filter_by(id=session['user_id']).first()
+    try:
+        user = db.query(User).filter_by(id=session['user_id']).first()
 
-    if not user:
+        if not user:
+            flash("User not found.")
+            return redirect(url_for('login'))
+
+        days_on_journey = 0
+        if user.journey_start_date:
+            try:
+                days_on_journey = (datetime.now().date() - user.journey_start_date.date()).days
+            except Exception as e:
+                print("🔥 Error calculating journey days:", e)
+
+        journal_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()
+        journal_count = len(journal_entries)
+        last_journal = journal_entries[0].timestamp.strftime("%b %d, %Y") if journal_entries else None
+
+        from models import CircleMessage
+        now = datetime.utcnow()
+        start_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        circle_msgs = (
+            db.query(CircleMessage)
+            .filter(CircleMessage.user_id == user.id)
+            .filter(CircleMessage.timestamp >= start_today)
+            .filter(CircleMessage.speaker != "User")
+            .order_by(CircleMessage.timestamp.desc())
+            .all()
+        )
+        last_circle_msg = circle_msgs[0].text if circle_msgs else None
+
+        return render_template(
+            "menu.html",
+            current_ring=user.theme_choice or "Unranked",
+            days_on_journey=days_on_journey,
+            journal_count=journal_count,
+            last_journal=last_journal,
+            last_circle_msg=last_circle_msg,
+            streak=session.get('streak', 0)
+        )
+
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Could not load your menu. Try again soon.", "error")
+        return redirect(url_for("login"))
+    finally:
         db.close()
-        flash("User not found.")
-        return redirect(url_for('login'))
-
-    # ✅ Calculate journey days
-    days_on_journey = 0
-    if user.journey_start_date:
-        try:
-            days_on_journey = (datetime.now().date() - user.journey_start_date.date()).days
-        except Exception as e:
-            print("🔥 Error calculating journey days:", e)
-
-    # ✅ Journal entry count
-    journal_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()
-    journal_count = len(journal_entries)
-    last_journal = journal_entries[0].timestamp.strftime("%b %d, %Y") if journal_entries else None
-
-    # ✅ Circle message from DB (today only, excluding user posts)
-    from models import CircleMessage
-    now = datetime.utcnow()
-    start_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    circle_msgs = (
-        db.query(CircleMessage)
-        .filter(CircleMessage.user_id == user.id)
-        .filter(CircleMessage.timestamp >= start_today)
-        .filter(CircleMessage.speaker != "User")
-        .order_by(CircleMessage.timestamp.desc())
-        .all()
-    )
-    last_circle_msg = circle_msgs[0].text if circle_msgs else None
-
-    # ✅ Clean up
-    db.close()
-
-    return render_template(
-        "menu.html",
-        current_ring=user.theme_choice or "Unranked",
-        days_on_journey=days_on_journey,
-        journal_count=journal_count,
-        last_journal=last_journal,
-        last_circle_msg=last_circle_msg,
-        streak=session.get('streak', 0)
-    )
 
 @app.route("/home1")
 @login_required
@@ -394,133 +392,168 @@ def home1():
 @app.route('/form', methods=['GET', 'POST'])
 @login_required
 def form():
-    if request.method == 'POST':
-        question = request.form['question']
-        return redirect(url_for('ask'), code=307)
-    return render_template('form.html')
+    db = SessionLocal()
+    try:
+        if request.method == 'POST':
+            question = request.form['question']
+            db.close()  # No DB write here, but session was opened — so close cleanly
+            return redirect(url_for('ask'), code=307)
+
+        return render_template('form.html')
+
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Something went wrong loading the form.", "error")
+        return redirect(url_for("menu"))
+    finally:
+        db.close()
 
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
     db = SessionLocal()
-    user = db.query(User).filter_by(id=session['user_id']).first()
+    try:
+        user = db.query(User).filter_by(id=session['user_id']).first()
 
-    if not user:
-        db.close()
-        flash("User not found.")
-        return redirect(url_for('login'))
+        if not user:
+            flash("User not found.")
+            return redirect(url_for('login'))
 
-    # ✅ Short list of common U.S. timezones
-    common_timezones = [
-        "America/New_York",
-        "America/Chicago",
-        "America/Denver",
-        "America/Los_Angeles",
-        "America/Phoenix",
-        "America/Anchorage",
-        "America/Honolulu"
-    ]
+        common_timezones = [
+            "America/New_York",
+            "America/Chicago",
+            "America/Denver",
+            "America/Los_Angeles",
+            "America/Phoenix",
+            "America/Anchorage",
+            "America/Honolulu"
+        ]
 
-    if request.method == "POST":
-        form = request.form
+        if request.method == "POST":
+            form = request.form
 
-        # ✅ Journey selection
-        if 'journey' in form:
-            journey = form.get("journey")
-            if journey:
-                user.theme_choice = journey
-                session['journey'] = journey
-                db.commit()
-                flash("Journey updated to: " + journey.replace("_", " ").title(), "success")
-                return redirect(url_for('settings'))
-
-        # ✅ Timezone selection
-        if 'timezone' in form:
-            selected_tz = form.get("timezone")
-            if selected_tz in common_timezones:
-                user.timezone = selected_tz
-                session['timezone'] = selected_tz
-                db.commit()
-                flash("Time zone updated successfully.", "success")
-                return redirect(url_for('settings'))
-            else:
-                flash("Invalid time zone selected.", "error")
-                return redirect(url_for('settings'))
-
-        # ✅ Nickname update
-        if 'nickname' in form:
-            nickname = form.get("nickname")
-            if nickname:
-                user.nickname = nickname
-                user.display_name = nickname
-                session['nickname'] = nickname
-                db.commit()
-                flash("Nickname updated.", "success")
-                return redirect(url_for('settings'))
-
-        # ✅ Journey start date input
-        if 'journey_start_date' in form:
-            date_str = form.get("journey_start_date")
-            if date_str:
-                try:
-                    parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
-                    user.journey_start_date = parsed_date
+            # ✅ Journey selection
+            if 'journey' in form:
+                journey = form.get("journey")
+                if journey:
+                    user.theme_choice = journey
+                    session['journey'] = journey
                     db.commit()
-                    flash("Journey start date saved.", "success")
-                except ValueError:
-                    flash("Invalid date format.", "error")
-                return redirect(url_for('settings'))
+                    flash("Journey updated to: " + journey.replace("_", " ").title(), "success")
+                    return redirect(url_for('settings'))
 
-    # 🧠 Pull saved values
-    current_journey = user.theme_choice or "Not Selected"
-    timezone = user.timezone or ""
-    nickname = user.nickname or ""
-    journey_start_date = user.journey_start_date.strftime('%Y-%m-%d') if user.journey_start_date else ""
+            # ✅ Timezone selection
+            if 'timezone' in form:
+                selected_tz = form.get("timezone")
+                if selected_tz in common_timezones:
+                    user.timezone = selected_tz
+                    session['timezone'] = selected_tz
+                    db.commit()
+                    flash("Time zone updated successfully.", "success")
+                    return redirect(url_for('settings'))
+                else:
+                    flash("Invalid time zone selected.", "error")
+                    return redirect(url_for('settings'))
 
-    db.close()
+            # ✅ Nickname update
+            if 'nickname' in form:
+                nickname = form.get("nickname")
+                if nickname:
+                    user.nickname = nickname
+                    user.display_name = nickname
+                    session['nickname'] = nickname
+                    db.commit()
+                    flash("Nickname updated.", "success")
+                    return redirect(url_for('settings'))
 
-    return render_template(
-        "settings.html",
-        current_ring=current_journey,
-        timezone=timezone,
-        timezones=common_timezones,
-        nickname=nickname,
-        journey_start_date=journey_start_date
-    )
+            # ✅ Journey start date input
+            if 'journey_start_date' in form:
+                date_str = form.get("journey_start_date")
+                if date_str:
+                    try:
+                        parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
+                        user.journey_start_date = parsed_date
+                        db.commit()
+                        flash("Journey start date saved.", "success")
+                    except ValueError:
+                        flash("Invalid date format.", "error")
+                    return redirect(url_for('settings'))
+
+        # 🧠 Pull saved values
+        current_journey = user.theme_choice or "Not Selected"
+        timezone = user.timezone or ""
+        nickname = user.nickname or ""
+        journey_start_date = user.journey_start_date.strftime('%Y-%m-%d') if user.journey_start_date else ""
+
+        return render_template(
+            "settings.html",
+            current_ring=current_journey,
+            timezone=timezone,
+            timezones=common_timezones,
+            nickname=nickname,
+            journey_start_date=journey_start_date
+        )
+
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Error saving or loading settings. Try again.", "error")
+        return redirect(url_for("menu"))
+    finally:
+        db.close()
 
 @app.route("/delete-entry/<int:id>", methods=["GET", "POST"])
 @login_required
 def delete_entry(id):
     db = SessionLocal()
-    user = db.query(User).filter_by(id=session['user_id']).first()
+    try:
+        user = db.query(User).filter_by(id=session['user_id']).first()
+        if not user:
+            flash("User not found.")
+            return redirect(url_for('journal'))
 
-    entry = db.query(JournalEntry).filter_by(id=id, user_id=user.id).first()
-    if entry:
-        db.delete(entry)
-        db.commit()
+        entry = db.query(JournalEntry).filter_by(id=id, user_id=user.id).first()
+        if entry:
+            db.delete(entry)
+            db.commit()
+            flash("Entry deleted.", "success")
+        else:
+            flash("Entry not found.", "error")
 
-    db.close()
-    return redirect(url_for('journal'))
+        return redirect(url_for('journal'))
+
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Error deleting entry. Please try again.", "error")
+        return redirect(url_for('journal'))
+    finally:
+        db.close()
 
 @app.route("/edit_entry/<int:id>", methods=["GET", "POST"])
 @login_required
 def edit_entry(id):
     db = SessionLocal()
-    entry = db.query(JournalEntry).get(id)
+    try:
+        entry = db.query(JournalEntry).get(id)
 
-    if not entry:
-        db.close()
+        if not entry:
+            flash("Entry not found.", "error")
+            return redirect(url_for("journal"))
+
+        if request.method == "POST":
+            entry.content = request.form["content"]
+            db.commit()
+            entry_id = entry.id
+            flash("Entry updated.", "success")
+            return redirect(url_for("edit_entry", id=entry_id, saved="true"))
+
+        return render_template("edit_entry.html", entry=entry)
+
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Error editing entry. Please try again.", "error")
         return redirect(url_for("journal"))
-
-    if request.method == "POST":
-        entry.content = request.form["content"]
-        db.commit()
-        entry_id = entry.id  # Grab ID before closing session
+    finally:
         db.close()
-        return redirect(url_for("edit_entry", id=entry_id, saved="true"))
-
-    db.close()
-    return render_template("edit_entry.html", entry=entry)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -538,64 +571,71 @@ def register():
             return redirect(url_for("register"))
 
         db = SessionLocal()
-        existing_user = db.query(User).filter_by(email=email).first()
-        if existing_user:
+        try:
+            existing_user = db.query(User).filter_by(email=email).first()
+            if existing_user:
+                flash("Account with that email already exists. Please log in.", "error")
+                return redirect(url_for("login"))
+
+            hashed_pw = generate_password_hash(password)
+
+            new_user = User(
+                email=email,
+                password_hash=hashed_pw,
+                nickname=None,
+                display_name=None,
+                theme_choice=None,
+                consent=None,
+                journey_start_date=None,
+                timezone=None
+            )
+
+            db.add(new_user)
+            db.commit()
+
+            session['user_id'] = new_user.id
+            session['journey'] = "Not Selected"
+            session['timezone'] = "America/New_York"
+
+            flash("Registration successful. Let’s begin your journey.", "success")
+            return redirect(url_for("onboarding"))
+        except SQLAlchemyError as e:
+            db.rollback()
+            flash("Something went wrong while creating your account.", "error")
+            return redirect(url_for("register"))
+        finally:
             db.close()
-            flash("Account with that email already exists. Please log in.", "error")
-            return redirect(url_for("login"))
-
-        hashed_pw = generate_password_hash(password)
-
-        new_user = User(
-            email=email,
-            password_hash=hashed_pw,
-            nickname=None,
-            display_name=None,
-            theme_choice=None,
-            consent=None,
-            journey_start_date=None,
-            timezone=None
-        )
-
-        db.add(new_user)
-        db.commit()
-
-        session['user_id'] = new_user.id
-        session['journey'] = "Not Selected"
-        session['timezone'] = "America/New_York"
-
-        db.close()
-
-        flash("Registration successful. Let’s begin your journey.", "success")
-        return redirect(url_for("onboarding"))
 
     return render_template("register.html")
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")  # ✅ This was missing
+        email = request.form.get("email")
         password = request.form.get("password")
-
         db = SessionLocal()
-        user = db.query(User).filter_by(email=email).first()
+        try:
+            user = db.query(User).filter_by(email=email).first()
 
-        if user and check_password_hash(user.password_hash, password):
-            session['user_id'] = user.id
-            session['journey'] = user.theme_choice or "Not Selected"
-            session['timezone'] = user.timezone or "America/New_York"
+            if user and check_password_hash(user.password_hash, password):
+                session['user_id'] = user.id
+                session['journey'] = user.theme_choice or "Not Selected"
+                session['timezone'] = user.timezone or "America/New_York"
 
-            # ✅ Redirect to onboarding if missing nickname or theme_choice
-            if not user.nickname or not user.theme_choice:
-                db.close()
-                return redirect(url_for("onboarding"))
+                if not user.nickname or not user.theme_choice:
+                    return redirect(url_for("onboarding"))
 
+                flash("Login successful. Welcome back.", "success")
+                return redirect(url_for("menu"))
+
+            flash("Incorrect email or password.", "error")
+            return render_template("login.html")
+        except SQLAlchemyError as e:
+            db.rollback()
+            flash("Database error during login. Please try again.", "error")
+            return render_template("login.html")
+        finally:
             db.close()
-            flash("Login successful. Welcome back.", "success")
-            return redirect(url_for("menu"))
-
-        db.close()
-        flash("Incorrect email or password.", "error")
-        return render_template("login.html")
 
     return render_template("login.html")
 
@@ -603,54 +643,64 @@ def login():
 @app.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
     message = ""
-    if request.method == "POST":
-        email = request.form.get("email")
-        db = SessionLocal()
-        user = db.query(User).filter_by(email=email).first()
-        if user:
-            reset_code = str(random.randint(100000, 999999))
-            session["reset_code"] = reset_code
-            session["reset_email"] = email
+    db = SessionLocal()
+    try:
+        if request.method == "POST":
+            email = request.form.get("email")
+            user = db.query(User).filter_by(email=email).first()
+            if user:
+                reset_code = str(random.randint(100000, 999999))
+                session["reset_code"] = reset_code
+                session["reset_email"] = email
 
-            # Send the email
-            msg = Message("Your Resurgifi Password Reset Code", recipients=[email])
-            msg.body = f"Hi there,\n\nUse this code to reset your password: {reset_code}\n\n- The Resurgifi Team"
-            mail.send(msg)
+                msg = Message("Your Resurgifi Password Reset Code", recipients=[email])
+                msg.body = f"Hi there,\n\nUse this code to reset your password: {reset_code}\n\n- The Resurgifi Team"
+                mail.send(msg)
 
-            db.close()
-            return redirect(url_for("reset_confirm"))
-        else:
-            message = "No account found with that email."
-            db.close()
+                return redirect(url_for("reset_confirm"))
+            else:
+                message = "No account found with that email."
 
-    return render_template("reset_password.html", message=message)
+        return render_template("reset_password.html", message=message)
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Something went wrong. Try again.", "error")
+        return redirect(url_for("reset_password"))
+    finally:
+        db.close()
 
 @app.route("/reset-confirm", methods=["GET", "POST"])
 def reset_confirm():
     message = ""
-    if request.method == "POST":
-        code_entered = request.form.get("reset_code")
-        new_password = request.form.get("new_password")
+    db = SessionLocal()
+    try:
+        if request.method == "POST":
+            code_entered = request.form.get("reset_code")
+            new_password = request.form.get("new_password")
 
-        if code_entered == session.get("reset_code"):
-            db = SessionLocal()
-            user = db.query(User).filter_by(email=session.get("reset_email")).first()
-            if user:
-                user.password_hash = generate_password_hash(new_password)
-                db.commit()
-                db.close()
+            if code_entered == session.get("reset_code"):
+                user = db.query(User).filter_by(email=session.get("reset_email")).first()
+                if user:
+                    user.password_hash = generate_password_hash(new_password)
+                    db.commit()
 
-                session.pop("reset_code", None)
-                session.pop("reset_email", None)
+                    session.pop("reset_code", None)
+                    session.pop("reset_email", None)
 
-                flash("Your password has been reset. Please log in.")
-                return redirect(url_for("login"))
+                    flash("Your password has been reset. Please log in.")
+                    return redirect(url_for("login"))
+                else:
+                    message = "User not found."
             else:
-                message = "User not found."
-        else:
-            message = "Invalid code. Please try again."
+                message = "Invalid code. Please try again."
 
-    return render_template("reset_confirm.html", message=message)
+        return render_template("reset_confirm.html", message=message)
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Something went wrong during password reset.", "error")
+        return redirect(url_for("reset_password"))
+    finally:
+        db.close()
 
 @app.route("/logout")
 @login_required
@@ -699,65 +749,57 @@ from rams import build_context, select_heroes, build_prompt
 @login_required
 def journal():
     db = SessionLocal()
-    user = db.query(User).filter_by(id=session['user_id']).first()
-    if not user:
+    try:
+        user = db.query(User).filter_by(id=session['user_id']).first()
+        if not user:
+            return redirect(url_for('register'))
+
+        user_timezone = user.timezone if user.timezone in all_timezones else "America/New_York"
+
+        if request.method == 'POST':
+            entry = request.form['entry']
+            new_entry = JournalEntry(user_id=user.id, content=entry)
+            db.add(new_entry)
+
+            today = datetime.utcnow().date()
+            entries_today = db.query(JournalEntry).filter(
+                JournalEntry.user_id == user.id,
+                JournalEntry.timestamp >= datetime.combine(today, datetime.min.time())
+            ).count()
+
+            if entries_today <= 3:
+                user.points = (user.points or 0) + 1
+                session["points_just_added"] = 1
+
+            db.commit()
+
+        raw_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()
+
+        localized_entries = []
+        for entry in raw_entries:
+            try:
+                local_time = localize_time(entry.timestamp, user_timezone)
+                localized_entries.append({
+                    "id": entry.id,
+                    "content": entry.content,
+                    "timestamp": local_time.strftime("%b %d, %I:%M %p")
+                })
+            except Exception:
+                localized_entries.append({
+                    "id": entry.id,
+                    "content": entry.content,
+                    "timestamp": "Unknown"
+                })
+
+        summary_text = request.args.get("summary_text", "")
+        return render_template('journal.html', entries=localized_entries, current_ring="The Spark", summary_text=summary_text)
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        flash("Problem accessing journal. Try again soon.", "error")
+        return redirect(url_for("menu"))
+    finally:
         db.close()
-        return redirect(url_for('register'))
-
-    user_timezone = user.timezone if user.timezone in all_timezones else "America/New_York"
-
-    # ✅ Handle new journal submission
-    if request.method == 'POST':
-        entry = request.form['entry']
-        new_entry = JournalEntry(user_id=user.id, content=entry)
-        db.add(new_entry)
-
-        # ✅ Count journal entries today
-        today = datetime.utcnow().date()
-        entries_today = db.query(JournalEntry).filter(
-            JournalEntry.user_id == user.id,
-            JournalEntry.timestamp >= datetime.combine(today, datetime.min.time())
-        ).count()
-
-        if entries_today <= 3:
-            user.points = (user.points or 0) + 1
-            session["points_just_added"] = 1
-
-        db.commit()
-
-    # ✅ Get past entries
-    raw_entries = (
-        db.query(JournalEntry)
-        .filter_by(user_id=user.id)
-        .order_by(JournalEntry.timestamp.desc())
-        .all()
-    )
-
-    # ✅ Localize timestamps
-    localized_entries = []
-    for entry in raw_entries:
-        try:
-            local_time = localize_time(entry.timestamp, user_timezone)
-            localized_entries.append({
-                "id": entry.id,
-                "content": entry.content,
-                "timestamp": local_time.strftime("%b %d, %I:%M %p")
-            })
-        except Exception:
-            localized_entries.append({
-                "id": entry.id,
-                "content": entry.content,
-                "timestamp": "Unknown"
-            })
-
-    summary_text = request.args.get("summary_text", "")
-    db.close()
-    return render_template(
-        'journal.html',
-        entries=localized_entries,
-        current_ring="The Spark",
-        summary_text=summary_text
-    )
 
 @app.route('/ask', methods=['POST'])
 @login_required
@@ -1072,35 +1114,33 @@ def submit_onboarding():
     import json
     db = SessionLocal()
 
-    user_id = session.get("user_id")
-    if not user_id:
-        db.close()
-        return "Unauthorized", 401
-
     try:
+        user_id = session.get("user_id")
+        if not user_id:
+            return "Unauthorized", 401
+
         data = request.get_json()
         user = db.query(User).filter_by(id=user_id).first()
 
         if not user:
-            db.close()
             return "User not found", 404
 
-        # 🎯 Store answers using correct model fields
-        user.core_trigger = data.get("q1")                   # What brought you here
-        user.default_coping = data.get("q2")                 # Coping mechanism
-        user.hero_traits = data.get("q3", [])                # Trusted traits (list)
-        user.nickname = data.get("nickname")                 # Chosen nickname
+        user.core_trigger = data.get("q1")
+        user.default_coping = data.get("q2")
+        user.hero_traits = data.get("q3", [])
+        user.nickname = data.get("nickname")
         user.journey_start_date = datetime.utcnow()
 
         db.commit()
-        db.close()
         return "Success", 200
 
     except Exception as e:
         print("🔥 Onboarding submission error:", str(e))
         db.rollback()
-        db.close()
         return "Error processing onboarding", 500
+    finally:
+        db.close()
+
 @app.route("/onboarding", methods=["GET"])
 @login_required
 def onboarding():
@@ -1112,76 +1152,80 @@ def quest():
     from datetime import datetime, timedelta
     import openai
 
-    user_id = session.get("user_id")
-    user = User.query.get(user_id)
-    now = datetime.utcnow()
+    db_session = SessionLocal()
+    try:
+        user_id = session.get("user_id")
+        user = db_session.query(User).get(user_id)
+        now = datetime.utcnow()
 
-    if request.method == "POST":
-        reflection = request.form.get("reflection", "").strip()
-        summary_text = ""
+        if request.method == "POST":
+            reflection = request.form.get("reflection", "").strip()
+            summary_text = ""
 
-        # 🔒 Fetch today’s quest history
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        todays_quests = UserQuestEntry.query.filter_by(user_id=user_id).filter(UserQuestEntry.timestamp >= today_start).all()
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            todays_quests = db_session.query(UserQuestEntry).filter_by(user_id=user_id).filter(UserQuestEntry.timestamp >= today_start).all()
 
-        # ❌ Too many quests today?
-        if len(todays_quests) >= 3:
-            flash("You’ve already completed the maximum of 3 quests today.", "info")
-            return redirect(url_for("circle"))
-
-        # ⏱️ Check last quest time
-        if todays_quests:
-            last_time = max(q.timestamp for q in todays_quests)
-            if (now - last_time) < timedelta(hours=4):
-                flash("You can only complete one quest every 4 hours. Try again later.", "warning")
+            if len(todays_quests) >= 3:
+                flash("You’ve already completed the maximum of 3 quests today.", "info")
                 return redirect(url_for("circle"))
 
-        if reflection:
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "Summarize this quest reflection in one short, emotional sentence. Do not sound robotic."
-                        },
-                        {
-                            "role": "user",
-                            "content": reflection
-                        }
-                    ],
-                    temperature=0.7
+            if todays_quests:
+                last_time = max(q.timestamp for q in todays_quests)
+                if (now - last_time) < timedelta(hours=4):
+                    flash("You can only complete one quest every 4 hours. Try again later.", "warning")
+                    return redirect(url_for("circle"))
+
+            if reflection:
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "Summarize this quest reflection in one short, emotional sentence. Do not sound robotic."
+                            },
+                            {
+                                "role": "user",
+                                "content": reflection
+                            }
+                        ],
+                        temperature=0.7
+                    )
+                    summary_text = response.choices[0].message.content.strip()
+                except Exception as e:
+                    print("⚠️ GPT summarization failed:", e)
+                    summary_text = ""
+
+                new_entry = UserQuestEntry(
+                    user_id=user_id,
+                    quest_id=1,
+                    completed=True,
+                    timestamp=now,
+                    summary_text=summary_text
                 )
-                summary_text = response.choices[0].message.content.strip()
-            except Exception as e:
-                print("⚠️ GPT summarization failed:", e)
-                summary_text = ""
+                db_session.add(new_entry)
 
-            # 💾 Save quest
-            new_entry = UserQuestEntry(
-                user_id=user_id,
-                quest_id=1,
-                completed=True,
-                timestamp=now,
-                summary_text=summary_text
-            )
-            db.session.add(new_entry)
+                if len(todays_quests) < 3:
+                    user.points = (user.points or 0) + 5
+                    session["points_just_added"] = 5
 
-            # 🧠 Reward if not already maxed
-            if len(todays_quests) < 3:
-                user.points = (user.points or 0) + 5
-                session["points_just_added"] = 5
+                db_session.commit()
 
-            db.session.commit()
+                session["from_quest"] = {
+                    "quest_id": 1,
+                    "reflection": summary_text or reflection
+                }
 
-            session["from_quest"] = {
-                "quest_id": 1,
-                "reflection": summary_text or reflection
-            }
+            return redirect(url_for("circle"))
 
+        return render_template("quest.html")
+
+    except SQLAlchemyError:
+        db_session.rollback()
+        flash("Quest processing failed. Please try again.", "error")
         return redirect(url_for("circle"))
-
-    return render_template("quest.html")
+    finally:
+        db_session.close()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
