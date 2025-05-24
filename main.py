@@ -937,79 +937,53 @@ def ask():
         print("🔥 /ask route error:", traceback.format_exc())
         return jsonify({"error": "Server error", "details": str(e)}), 500
 
-@app.route('/idle-check', methods=['GET'])
-@login_required
-def idle_check():
-    from models import CircleMessage  # ensure this is imported
-    last_ts = session.get("last_input_ts")
-    if not last_ts:
-        return jsonify({"idle": False})
+import os
+import io
+import base64
+from flask import request, render_template, flash, redirect, url_for, session
+from flask_mail import Message
+from werkzeug.utils import secure_filename
+from sqlalchemy.exc import SQLAlchemyError
 
-    try:
-        last_time = datetime.fromisoformat(last_ts)
-    except:
-        return jsonify({"idle": False})
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+UPLOAD_FOLDER = '/tmp'
 
-    elapsed = datetime.utcnow() - last_time
-    if elapsed < timedelta(seconds=60):
-        return jsonify({"idle": False})
-
-    # Pull recent thread
-    thread = session.get("circle_thread", [])
-    thread_text = " ".join(msg["text"] for msg in thread[-6:] if msg["speaker"] != "System")
-
-    # Banter lines
-    banter_lines = {
-        "Grace": "I’m still here, Kevin. Just letting the moment breathe.",
-        "Sir Renity": "Sometimes silence is strategy. Or snacks. You back?",
-        "Lucentis": "If the wind shifts, I’ll know you’re nearby again.",
-        "Cognita": "Thinking time is still part of the process.",
-        "Velessa": "Even the breath between words has meaning."
-    }
-
-    # Avoid repeating last hero
-    last_hero = next((msg["speaker"] for msg in reversed(thread) if msg["speaker"] in banter_lines), None)
-    options = [h for h in banter_lines if h != last_hero]
-    chosen = random.choice(options)
-
-    new_entry = {"speaker": chosen, "text": banter_lines[chosen]}
-
-    # ✅ Save to DB
-    db = SessionLocal()
-    db.add(CircleMessage(
-        user_id=session.get("user_id"),
-        speaker=chosen,
-        text=banter_lines[chosen]
-    ))
-    db.commit()
-    db.close()
-
-    # ✅ Save to session
-    thread.append(new_entry)
-    session["circle_thread"] = thread[-20:]
-
-    return jsonify({"idle": True, "message": new_entry})
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required
 def feedback():
     if request.method == "POST":
         message = request.form.get("message")
+        file = request.files.get("screenshot")
         user = session.get("nickname", f"User ID {session.get('user_id', 'Unknown')}")
 
-        if message:
-            email = Message(
-                subject=f"📝 Feedback from {user}",
-                recipients=[os.getenv("MAIL_FEEDBACK_RECIPIENT")],
-                body=message
-            )
-            mail.send(email)
-            flash("Thanks for your feedback!")
-            return redirect(url_for("feedback"))
+        file_path = None
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
 
-        flash("Please enter a message.")
+        email_body = f"Feedback from {user}:\n\n{message}\n\nAttachment: {'Yes' if file_path else 'No'}"
+
+        email = Message(
+            subject=f"📝 Feedback from {user}",
+            recipients=[os.getenv("MAIL_FEEDBACK_RECIPIENT")],
+            body=email_body
+        )
+
+        if file_path:
+            with open(file_path, "rb") as f:
+                email.attach(filename, file.content_type, f.read())
+
+        mail.send(email)
+        flash("Thanks for your feedback!")
+        return redirect(url_for("feedback"))
 
     return render_template("feedback.html")
+    
 @app.route("/history")
 @login_required
 def history():

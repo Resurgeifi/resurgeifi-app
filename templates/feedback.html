@@ -12,13 +12,18 @@
         {{ messages[0] }}
       </div>
     {% else %}
-      <form method="POST" action="/feedback" style="margin-top: 2rem;">
+      <form method="POST" action="/feedback" enctype="multipart/form-data" style="margin-top: 2rem;">
         <textarea name="message" rows="6"
           placeholder="What's on your mind? Please be as specific as possible."
           style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #fef9e7; color: #1f3e36;"></textarea><br><br>
+
+        <label for="screenshot" style="display: block; margin-bottom: 0.5rem;">📸 Upload Screenshot (optional):</label>
+        <input type="file" name="screenshot" accept="image/*" style="margin-bottom: 1.5rem;"><br>
+
         <button type="submit" class="global-button">Send Feedback</button>
       </form>
     {% endif %}
   {% endwith %}
 </div>
 {% endblock %}
+
