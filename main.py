@@ -164,12 +164,12 @@ def profile():
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
-        return render_template("profile.html", nickname=user.nickname or "Friend",
-                               resurgitag=user.resurgitag,
-                               points=user.points or 0,
-                               days_on_journey=days_on_journey,
-                               qr_code_base64=qr_code_base64)
-    except SQLAlchemyError as e:
+        return render_template("profile.html", user=user,
+                       resurgitag=user.resurgitag,
+                       points=user.points or 0,
+                       days_on_journey=days_on_journey,
+                       qr_code_base64=qr_code_base64)
+except SQLAlchemyError as e:
         db.rollback()
         flash("Something went wrong loading your profile. Please try again.")
         return redirect(url_for('login'))
