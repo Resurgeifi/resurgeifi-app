@@ -14,15 +14,20 @@
   <div class="resurgitag-section">
     <h2>🔗 Your Resurgitag</h2>
     <div class="resurgitag-box">{{ user.resurgitag }}</div>
-    <p class="resurgitag-note">This tag is permanent and used to connect with others. You are allowed to change it once.</p>
-  </div>
-  <p style="margin-top: 0.5rem;">
+    <p class="resurgitag-note">
+      This tag is permanent and used to connect with others. You are allowed to change it once.
+    </p>
+    
     {% if not user.resurgitag_locked %}
-      <a href="/change-tag" class="btn" style="font-size: 0.9rem;">✏️ Change Resurgitag</a>
+      <a href="/change-tag" 
+         style="display: inline-block; margin-top: 0.8rem; background-color: #3a3a3a; color: #ffe6b3; padding: 0.4rem 1.1rem; border-radius: 8px; font-size: 0.95rem; text-decoration: none;">
+        ✏️ Change Resurgitag
+      </a>
     {% else %}
-      <span style="font-size: 0.9rem; color: #888;">(Tag locked)</span>
+      <p style="margin-top: 0.8rem; font-size: 0.9rem; color: #888;">(Tag locked)</p>
     {% endif %}
-  </p>
+  </div>
+  
   
   <div class="qr-section">
     <h3>Share Your Resurgitag</h3>

@@ -13,7 +13,7 @@
 <script>
   const questions = [
     {
-      title: "What brought you to us today?",
+      title: "What brings you here today?",
       name: "q1",
       options: [
         "Major loss or grieving",
@@ -23,15 +23,15 @@
       ]
     },
     {
-      title: "When emotions overwhelm you, what do you do?",
+      title: "When emotions overwhelm you, what do you tend to do?",
       name: "q2",
       options: [
-        "Pillow ride-out",
+        "Crash under the covers",
         "Stay busy",
-        "Talk to someone (or wish to)",
+        "Talk to someone (or wish I could)",
         "Exercise",
-        "Scroll phone",
-        "Meditate/pray/music",
+        "Scroll on my phone",
+        "Meditate / Pray / Listen to music",
         "Seek solitude"
       ]
     },
@@ -43,7 +43,7 @@
         "Calms things down",
         "Says what I need to hear",
         "Makes me laugh",
-        "Doesn’t judge",
+        "Doesn’t judge me",
         "Reminds me who I am"
       ],
       allowMultiple: true,
@@ -80,7 +80,7 @@
       const input = document.createElement("input");
       input.type = "text";
       input.name = current.name;
-      input.placeholder = "Enter your nickname...";
+      input.placeholder = "Your nickname (what people call you)...";
       input.style = "padding: 0.5rem; width: 80%; border-radius: 10px; border: none;";
       input.oninput = () => {
         responses[current.name] = input.value;
@@ -146,4 +146,5 @@
 </style>
 
 {% endblock %}
+
 
