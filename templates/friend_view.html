@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Resurgifi Friend View{% endblock %}
+
+{% block content %}
+<div class="profile-container" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+  <h2>@{{ friend.resurgitag }}</h2>
+  <p style="font-size: 1.2rem;">Journey Type: <strong>{{ friend.theme_choice or "Unknown" }}</strong></p>
+  <p>Nickname: {{ friend.nickname or "Anonymous Traveler" }}</p>
+  <p>Days on Journey: 
+    {% if friend.journey_start_date %}
+      {{ (loop.caller.utcnow() - friend.journey_start_date).days }}
+    {% else %}
+      Not started
+    {% endif %}
+  </p>
+
+  <div style="margin-top: 2rem;">
+    <a href="/login" class="btn">Log in to connect</a>
+  </div>
+</div>
+{% endblock %}
+

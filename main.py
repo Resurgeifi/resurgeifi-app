@@ -515,6 +515,22 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
+@app.route("/friends/<resurgitag>")
+def view_friend(resurgitag):
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter_by(resurgitag=resurgitag).first()
+        if not user:
+            flash("No user found with that Resurgitag.")
+            return render_template("not_found.html", message="This profile doesn't exist."), 404
+
+        return render_template("friend_view.html", user=user)
+
+    finally:
+        db.close()
+
+
+
 
 
 @app.route("/delete-entry/<int:id>", methods=["GET", "POST"])
