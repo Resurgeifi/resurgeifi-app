@@ -405,7 +405,6 @@ def menu():
     finally:
         db.close()
 
-
 @app.route('/form', methods=['GET', 'POST'])
 @login_required
 def form():
@@ -1260,11 +1259,16 @@ from models import HeroProfile
 
 @app.route('/hero/<resurgitag>')
 def hero_profile(resurgitag):
-    hero = HeroProfile.query.filter_by(resurgitag=resurgitag.lower().strip('@'), type='hero').first()
+    resurgitag_clean = resurgitag.lower().strip('@')
+    hero = HeroProfile.query.filter_by(resurgitag=resurgitag_clean, type='hero').first()
     if not hero:
         return abort(404)
 
-    # Static relationship map for now (can be made dynamic later)
+    # 👇 Dynamically assign image path if it's missing
+    if not hero.image_path:
+        hero.image_path = f"/static/images/heroes/{resurgitag_clean}/{resurgitag_clean}_profile.png"
+
+    # 🔗 Static hero links
     hero_links = {
         'lucentis': ['grace2', 'velessa'],
         'grace2': ['lucentis', 'sirrenity'],
@@ -1272,7 +1276,7 @@ def hero_profile(resurgitag):
         'sirrenity': ['cognita', 'lucentis'],
         'cognita': ['sirrenity', 'velessa']
     }
-    linked_allies = hero_links.get(hero.resurgitag, [])
+    linked_allies = hero_links.get(resurgitag_clean, [])
 
     return render_template(
         'hero_profile.html',

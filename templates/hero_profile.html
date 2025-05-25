@@ -3,20 +3,37 @@
 
 {% block content %}
 <div class="hero-profile-card">
+
+  <!-- 🖼️ Hero Image -->
   <img src="{{ hero.image_path or '/images/heroes/placeholder.png' }}" alt="{{ hero.display_name }}" class="hero-image" />
 
+  <!-- 🎭 Basic Identity -->
   <h1>{{ hero.display_name }}</h1>
   <h2 class="hero-title">{{ hero.title }}</h2>
 
-  <p class="represents">Represents: <strong>{{ hero.represents }}</strong></p>
+  <!-- 🧭 Symbolic Metadata -->
+  <p class="represents">Represents: <strong>{{ hero.represents.name if hero.represents and hero.represents.name else hero.represents }}</strong></p>
   <p class="gender">Gender: {{ hero.gender }}</p>
 
-  <blockquote class="catchphrase">“{{ hero.catchphrase }}”</blockquote>
+  {% if hero.realm %}
+  <p class="realm">Realm: <strong>{{ hero.realm }}</strong></p>
+  {% endif %}
 
+  {% if hero.symbolic_power %}
+  <p class="power">Known For: <strong>{{ hero.symbolic_power }}</strong></p>
+  {% endif %}
+
+  <!-- 💬 Catchphrase -->
+  {% if hero.catchphrase %}
+  <blockquote class="catchphrase">“{{ hero.catchphrase }}”</blockquote>
+  {% endif %}
+
+  <!-- 📝 Bio -->
   <section class="bio">
     <p>{{ hero.bio }}</p>
   </section>
 
+  <!-- 🤝 Related Heroes -->
   {% if allies %}
   <section class="related-heroes">
     <h3>Guides Also Walking This Path</h3>
@@ -28,8 +45,10 @@
   </section>
   {% endif %}
 
+  <!-- 💬 Call to Action -->
   <div class="hero-buttons">
     <a href="/circle" class="btn btn-primary">Talk to {{ hero.display_name }}</a>
   </div>
+
 </div>
 {% endblock %}
