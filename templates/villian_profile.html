@@ -1,35 +1,45 @@
 {% extends "base.html" %}
-{% block title %}{{ hero.display_name }} | Villain Dossier{% endblock %}
+{% block title %}{{ villain.display_name }} | Resurgifi Villain{% endblock %}
 
 {% block content %}
 <div class="villain-profile-card">
-  <img src="{{ hero.image_path or '/images/villains/placeholder.png' }}" alt="{{ hero.display_name }}" class="villain-image" />
 
-  <h1>{{ hero.display_name }}</h1>
-  <h2 class="villain-title">{{ hero.title }}</h2>
+  <!-- 🖼️ Villain Image -->
+  <img src="{{ villain.image_path or '/static/images/villains/placeholder.png' }}"
+       alt="{{ villain.display_name }}"
+       class="villain-image" />
 
-  <p class="represents">Represents: <strong>{{ hero.represents }}</strong></p>
-  <p class="gender">Gender: {{ hero.gender }}</p>
+  <!-- 🩸 Identity + Role -->
+  <h1>{{ villain.display_name }}</h1>
+  <h2 class="villain-title">{{ villain.title }}</h2>
 
-  <blockquote class="catchphrase">“{{ hero.catchphrase }}”</blockquote>
+  <!-- 🧠 Symbolism -->
+  <p class="represents">Represents: <strong>{{ villain.represents }}</strong></p>
+  <p class="gender">Gender: {{ villain.gender }}</p>
 
-  <section class="bio">
-    <p>{{ hero.bio }}</p>
-  </section>
-
-  {% if enemies %}
-  <section class="related-villains">
-    <h3>Often Seen Lurking With:</h3>
-    <ul>
-      {% for enemy in enemies %}
-        <li><a href="{{ url_for('villain_profile', resurgitag=enemy) }}">@{{ enemy }}</a></li>
-      {% endfor %}
-    </ul>
-  </section>
+  {% if villain.realm %}
+  <p class="realm">Lurks In: <strong>{{ villain.realm }}</strong></p>
   {% endif %}
 
+  {% if villain.symbolic_power %}
+  <p class="power">Weapon of Choice: <strong>{{ villain.symbolic_power }}</strong></p>
+  {% endif %}
+
+  <!-- 🗣️ Catchphrase -->
+  {% if villain.catchphrase %}
+  <blockquote class="catchphrase dark-quote">“{{ villain.catchphrase }}”</blockquote>
+  {% endif %}
+
+  <!-- 📖 Bio -->
+  <section class="bio dark-bio">
+    <p>{{ villain.bio }}</p>
+  </section>
+
+  <!-- ⚔️ CTA -->
   <div class="villain-buttons">
-    <a href="/journal" class="btn btn-outline-danger">Log a Recent Encounter</a>
+    <a href="/circle" class="btn btn-danger">Stand against {{ villain.display_name }}</a>
   </div>
+
 </div>
 {% endblock %}
+
