@@ -1287,25 +1287,36 @@ def hero_profile(resurgitag):
 
 @app.route('/villain/<resurgitag>')
 def villain_profile(resurgitag):
-    villain = HeroProfile.query.filter_by(resurgitag=resurgitag.lower().strip('@'), type='villain').first()
-    if not villain:
-        return abort(404)
+    from models import VillainProfile
+    db = SessionLocal()
+    try:
+        villain = db.query(VillainProfile).filter_by(resurgitag=resurgitag.lower().strip('@')).first()
+        if not villain:
+            return abort(404)
 
-    # Static villain relationship map (future dynamic possible)
-    villain_links = {
-        'crave': ['fracker', 'theexs'],
-        'wardenfall': ['direveil', 'charnobyl'],
-        'anxia': ['murk', 'littlelack'],
-        'captainfine': ['undermind', 'theexs'],
-        'direveil': ['highnesshollow', 'wardenfall']
-    }
-    linked_enemies = villain_links.get(villain.resurgitag, [])
+        # Static relationship map for now (expand later as canon grows)
+        villain_links = {
+            'thecrave': ['highnesshollow', 'wardenfall'],
+            'highnesshollow': ['thecrave', 'theundermind'],
+            'wardenfall': ['theundermind', 'charnobyl'],
+            'theundermind': ['highnesshollow', 'themurk'],
+            'charnobyl': ['wardenfall', 'anxia'],
+            'anxia': ['charnobyl', 'littlelack'],
+            'littlelack': ['anxia', 'theexs'],
+            'theexs': ['littlelack', 'captainfine'],
+            'captainfine': ['theexs', 'themurk'],
+            'themurk': ['theundermind', 'anxia']
+        }
+        linked_villains = villain_links.get(villain.resurgitag, [])
 
-    return render_template(
-        'villain_profile.html',
-        hero=villain,  # still pass as 'hero' for template consistency
-        enemies=linked_enemies
-    )
+        return render_template(
+            'villain_profile.html',
+            villain=villain,
+            linked_villains=linked_villains
+        )
+    finally:
+        db.close()
+
 
 
 if __name__ == '__main__':

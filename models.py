@@ -155,6 +155,20 @@ class FlashMomentLog(db.Model):
 
     user = db.relationship("User", backref="flash_moments")
 
+class VillainProfile(db.Model):
+    __tablename__ = "villain_profiles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    resurgitag = db.Column(db.String(64), unique=True, nullable=False)
+    display_name = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
+    represents = db.Column(db.String(150), nullable=False)
+    gender = db.Column(db.String(20), nullable=False)
+    catchphrase = db.Column(db.String(255))
+    bio = db.Column(db.Text)
+    image_path = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class VillainFlashEncounter(db.Model):
     __tablename__ = "villain_encounters"
