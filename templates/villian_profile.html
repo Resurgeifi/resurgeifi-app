@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ hero.display_name }} | Villain Dossier{% endblock %}
+
+{% block content %}
+<div class="villain-profile-card">
+  <img src="{{ hero.image_path or '/images/villains/placeholder.png' }}" alt="{{ hero.display_name }}" class="villain-image" />
+
+  <h1>{{ hero.display_name }}</h1>
+  <h2 class="villain-title">{{ hero.title }}</h2>
+
+  <p class="represents">Represents: <strong>{{ hero.represents }}</strong></p>
+  <p class="gender">Gender: {{ hero.gender }}</p>
+
+  <blockquote class="catchphrase">“{{ hero.catchphrase }}”</blockquote>
+
+  <section class="bio">
+    <p>{{ hero.bio }}</p>
+  </section>
+
+  {% if enemies %}
+  <section class="related-villains">
+    <h3>Often Seen Lurking With:</h3>
+    <ul>
+      {% for enemy in enemies %}
+        <li><a href="{{ url_for('villain_profile', resurgitag=enemy) }}">@{{ enemy }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <div class="villain-buttons">
+    <a href="/journal" class="btn btn-outline-danger">Log a Recent Encounter</a>
+  </div>
+</div>
+{% endblock %}

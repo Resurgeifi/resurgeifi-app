@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ hero.display_name }} | Resurgifi Hero{% endblock %}
+
+{% block content %}
+<div class="hero-profile-card">
+  <img src="{{ hero.image_path or '/images/heroes/placeholder.png' }}" alt="{{ hero.display_name }}" class="hero-image" />
+
+  <h1>{{ hero.display_name }}</h1>
+  <h2 class="hero-title">{{ hero.title }}</h2>
+
+  <p class="represents">Represents: <strong>{{ hero.represents }}</strong></p>
+  <p class="gender">Gender: {{ hero.gender }}</p>
+
+  <blockquote class="catchphrase">“{{ hero.catchphrase }}”</blockquote>
+
+  <section class="bio">
+    <p>{{ hero.bio }}</p>
+  </section>
+
+  {% if allies %}
+  <section class="related-heroes">
+    <h3>Guides Also Walking This Path</h3>
+    <ul>
+      {% for ally in allies %}
+        <li><a href="{{ url_for('hero_profile', resurgitag=ally) }}">@{{ ally }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <div class="hero-buttons">
+    <a href="/circle" class="btn btn-primary">Talk to {{ hero.display_name }}</a>
+  </div>
+</div>
+{% endblock %}

@@ -83,8 +83,8 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('circle_messages', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('sender_id', sa.Integer(), nullable=False))
-        batch_op.add_column(sa.Column('receiver_id', sa.Integer(), nullable=False))
+        batch_op.add_column(sa.Column('sender_id', sa.Integer(), nullable=True))
+        batch_op.add_column(sa.Column('receiver_id', sa.Integer(), nullable=True))
         batch_op.drop_constraint(batch_op.f('circle_messages_user_id_fkey'), type_='foreignkey')
         batch_op.create_foreign_key(None, 'users', ['receiver_id'], ['id'])
         batch_op.create_foreign_key(None, 'users', ['sender_id'], ['id'])
