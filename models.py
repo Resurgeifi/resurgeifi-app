@@ -79,13 +79,12 @@ class QueryHistory(db.Model):
     user = db.relationship("User", backref="query_history")
 
 
-# ✅ CircleMember: for hero + friend connections (new Circle system)
 class CircleMember(db.Model):
     __tablename__ = "circle_members"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # Circle owner
-    contact_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # friend or hero
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    contact_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     is_hero = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -93,7 +92,6 @@ class CircleMember(db.Model):
     contact = db.relationship("User", foreign_keys=[contact_id])
 
 
-# ✅ CircleMessage: 1-on-1 thread between users or user-hero
 class CircleMessage(db.Model):
     __tablename__ = "circle_messages"
 
@@ -130,6 +128,7 @@ class DailyReflection(db.Model):
 
     user = db.relationship("User", backref="daily_reflections")
 
+
 class HeroProfile(db.Model):
     __tablename__ = "hero_profiles"
 
@@ -141,9 +140,11 @@ class HeroProfile(db.Model):
     gender = db.Column(db.String(20), nullable=True)
     catchphrase = db.Column(db.String(255), nullable=True)
     bio = db.Column(db.Text, nullable=True)
-    type = db.Column(db.String(20), default="hero")  # hero or villain
+    type = db.Column(db.String(20), default="hero")
     image_path = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class FlashMomentLog(db.Model):
     __tablename__ = "flash_moment_logs"
 
@@ -154,6 +155,7 @@ class FlashMomentLog(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="flash_moments")
+
 
 class VillainProfile(db.Model):
     __tablename__ = "villain_profiles"
@@ -201,7 +203,7 @@ class UserSettings(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
-    visibility_mode = db.Column(db.String(50), default="fade")  # fade, keep_mood, invisible, final_note
+    visibility_mode = db.Column(db.String(50), default="fade")
     receive_check_ins = db.Column(db.Boolean, default=True)
     receive_support = db.Column(db.Boolean, default=True)
 

@@ -35,7 +35,18 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 # 🧩 Resurgifi Internal
-from models import db, User, JournalEntry, QueryHistory
+from models import (
+    db,
+    User,
+    JournalEntry,
+    QueryHistory,
+    HeroProfile,
+    VillainProfile,
+    CircleMessage,
+    DailyReflection,
+    UserQuestEntry
+)
+
 from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError  # ✅ NEW: Handle rollback issues

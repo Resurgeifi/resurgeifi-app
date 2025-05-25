@@ -209,4 +209,243 @@ Review this file and the Bible first.
 
 “You’re not just coding. You’re holding emotional scaffolding for the broken.”
 “Build something that heals.”
+from models import HeroProfile
+from db import db
+from datetime import datetime
+
+now = datetime.utcnow()
+
+core_heroes = [
+    HeroProfile(
+        resurgitag="cognita",
+        display_name="Cognita",
+        title="The Mindshift Operative",
+        represents="Cognitive Behavioral Therapy",
+        gender="Female",
+        catchphrase="Challenge the thought. Change the path.",
+        bio="Cognita was forged in the Spiral Labs of Stepville. With every faulty thought she reprograms, she liberates another mind. A warrior of clarity, she teaches that what you believe shapes where you go.",
+        image_path="/static/images/heroes/cognita/cognita_profile.png",
+        created_at=now,
+        type="hero"
+    ),
+    HeroProfile(
+        resurgitag="velessa",
+        display_name="Velessa",
+        title="Goddess of the Present Moment",
+        represents="Mindfulness",
+        gender="Female",
+        catchphrase="Come back. The moment missed you.",
+        bio="Velessa walks barefoot across time. Her presence stops panic and her breath silences chaos. Even in the heart of relapse, her whisper can still reach those willing to pause and feel.",
+        image_path="/static/images/heroes/velessa/velessa_profile.png",
+        created_at=now,
+        type="hero"
+    ),
+    HeroProfile(
+        resurgitag="sirrenity",
+        display_name="Sir Renity",
+        title="The Healer of Peace",
+        represents="Lorazepam (Calm and Regulation)",
+        gender="Male",
+        catchphrase="Let’s slow the storm together.",
+        bio="Knighted at the edge of the Bridge Between, Sir Renity offers grounded presence to those drowning in fear. He is the breath between breakdown and breakthrough. He does not rush. He anchors.",
+        image_path="/static/images/heroes/sirrenity/sirrenity_profile.png",
+        created_at=now,
+        type="hero"
+    ),
+    HeroProfile(
+        resurgitag="grace2",
+        display_name="Grace",
+        title="The Light Within",
+        represents="Spiritual Path / Higher Power",
+        gender="Female",
+        catchphrase="You were never alone. Not once.",
+        bio="Grace was born from the ashes of relapse, radiant and soft. She appears when shame expects silence — reminding each soul of their worth. Her light bends around every ‘why me’ and turns it into a path forward.",
+        image_path="/static/images/heroes/grace2/grace2_profile.png",
+        created_at=now,
+        type="hero"
+    ),
+    HeroProfile(
+        resurgitag="lucentis",
+        display_name="Lucentis",
+        title="Guardian of Clarity",
+        represents="Spiritual Awakening / Divine Guidance",
+        gender="Male",
+        catchphrase="Truth does not tremble.",
+        bio="Lucentis guards Crystal Mountain, silent and serene. He does not fight — he reveals. In his light, illusions melt, masks drop, and the path becomes unmistakable. Not easy. But unmistakable.",
+        image_path="/static/images/heroes/lucentis/lucentis_profile.png",
+        created_at=now,
+        type="hero"
+    )
+]
+
+db.session.add_all(core_heroes)
+db.session.commit()
+print("✅ Core heroes seeded.")
+from models import VillainProfile
+from db import db
+from datetime import datetime
+
+now = datetime.utcnow()
+
+batch_1 = [
+    VillainProfile(
+        resurgitag="thecrave",
+        display_name="The Crave",
+        title="The Hunger That Won’t Be Filled",
+        represents="Addiction and compulsion",
+        gender="Male",
+        catchphrase="Just one. Then you’ll stop.",
+        bio="The Crave is a monstrous manifestation of addiction’s lies. With bottles embedded in his back and a tongue that drips temptation, he whispers urges until clients collapse. His power lies in urgency — and forgetting what happened last time.",
+        image_path="/static/images/villains/thecrave/thecrave_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="wardenfall",
+        display_name="Warden Fall",
+        title="Sermon of Repeat Repentance",
+        represents="Shame and guilt",
+        gender="Male",
+        catchphrase="You don’t deserve to be free.",
+        bio="Clad in chains and scorched robes, Warden Fall preaches the gospel of guilt. He remembers every mistake and makes sure you do too. His book glows with regret, and his gaze weighs heavier than steel.",
+        image_path="/static/images/villains/wardenfall/wardenfall_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="charnobyl",
+        display_name="Charnobyl",
+        title="Beast of the Burn",
+        represents="Anger and betrayal",
+        gender="Male",
+        catchphrase="They lit the match. I just burn.",
+        bio="Charnobyl is rage incarnate, his body cracked and glowing with radioactive fury. He erupts when trust is broken, and his fallout poisons every chance at peace. Push too far, and he scorches everything.",
+        image_path="/static/images/villains/charnobyl/charnobyl_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="anxia",
+        display_name="Anxia",
+        title="Host of the Spiral",
+        represents="Anxiety and depression",
+        gender="Female",
+        catchphrase="It’s all too much. So do nothing.",
+        bio="Anxia trembles between chaos and collapse. Surrounded by whispering shadows, she floods the mind with panic — then paralyzes it with despair. She’s both storm and stillness, and she never leaves alone.",
+        image_path="/static/images/villains/anxia/anxia_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="theundermind",
+        display_name="The Undermind",
+        title="Whisperer of Worthlessness",
+        represents="Self-doubt and inner sabotage",
+        gender="Male",
+        catchphrase="They only help you because they pity you.",
+        bio="The Undermind is a warped echo of the self, dripping with shame and quiet cruelty. His cracked mirror face reflects your worst fears. He doesn’t shout — he just whispers until you believe him.",
+        image_path="/static/images/villains/theundermind/theundermind_profile.png",
+        created_at=now
+    )
+]
+
+db.session.add_all(batch_1)
+db.session.commit()
+print("✅ Batch 1 of villains seeded.")
+batch_2 = [
+    VillainProfile(
+        resurgitag="highnesshollow",
+        display_name="Highness Hollow",
+        title="Echo of the Silence",
+        represents="Loneliness and isolation",
+        gender="Female",
+        catchphrase="No one would notice if you disappeared.",
+        bio="Highness Hollow floats through Hopelessville draped in silence. Her touch brings numbness, her words erase connection. She doesn’t scream — she waits until you stop talking. She feeds on the ache of being unseen.",
+        image_path="/static/images/villains/highnesshollow/highnesshollow_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="littlelack",
+        display_name="Little Lack",
+        title="The Hollow Do-Nothing Playmate",
+        represents="Boredom and apathy",
+        gender="Female",
+        catchphrase="Why bother? Nothing matters anyway.",
+        bio="A porcelain-faced child who drags a broken toy and sings tuneless lullabies. Little Lack doesn’t attack — she slows time until recovery feels pointless. She turns stillness into danger and emptiness into relapse.",
+        image_path="/static/images/villains/littlelack/littlelack_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="themurk",
+        display_name="The Murk",
+        title="The Fog of What’s Next",
+        represents="Fear of the future",
+        gender="Male",
+        catchphrase="You’re not ready. Don’t even try.",
+        bio="The Murk is a fog-creature flickering with failed futures. He blocks every step with 'what-ifs' and smothers hope in paralysis. His voice sounds like your own — but twisted with dread.",
+        image_path="/static/images/villains/themurk/themurk_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="theexs",
+        display_name="The Ex’s",
+        title="Web of Control",
+        represents="Toxic relationships and manipulation",
+        gender="Mixed",
+        catchphrase="You need me more than they ever could.",
+        bio="The Ex’s are shapeshifters — seductive, guilt-tripping, pleading, or cruel. They mirror the worst of past attachments and twist love into relapse. They don’t need chains. They have history.",
+        image_path="/static/images/villains/theexs/theexs_profile.png",
+        created_at=now
+    )
+]
+
+db.session.add_all(batch_2)
+db.session.commit()
+print("✅ Batch 2 of villains seeded.")
+batch_3 = [
+    VillainProfile(
+        resurgitag="thefracker",
+        display_name="The Fracker",
+        title="Overlord of Overload",
+        represents="Overwhelm and stress",
+        gender="Male",
+        catchphrase="You’re already behind. Keep pushing.",
+        bio="The Fracker is stress incarnate — jagged and volatile. His fractured armor vents steam, his voice is a chorus of urgent alarms. He thrives in burnout and buries you in pressure until you explode or collapse.",
+        image_path="/static/images/villains/thefracker/thefracker_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="captainfine",
+        display_name="Captain Fine",
+        title="The Smile That Slips",
+        represents="Denial and overconfidence",
+        gender="Male",
+        catchphrase="You’ve got this. No need to tell anyone.",
+        bio="Captain Fine wears a smile that hides the cracks. He tells you you’re healed, you’re different, you’re immune — right before the relapse. He is false pride in a cape.",
+        image_path="/static/images/villains/captainfine/captainfine_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="direveil",
+        display_name="Direveil",
+        title="The Mourner’s Shadow",
+        represents="Grief and despair",
+        gender="Female",
+        catchphrase="This loss is the only truth left.",
+        bio="Shrouded in mourning veils and ash, Direveil doesn’t scream — she *remembers*. Her presence turns memories into anchors and loss into identity. To face her is to face the part of you that still grieves.",
+        image_path="/static/images/villains/direveil/direveil_profile.png",
+        created_at=now
+    ),
+    VillainProfile(
+        resurgitag="theabyss",
+        display_name="The Master of the Abyss",
+        title="???",
+        represents="Addiction itself — domination, despair, and the final collapse",
+        gender="Unknown",
+        catchphrase="I’ve been here the whole time.",
+        bio="The Master (or Mistress) of the Abyss cannot be described — only felt. A presence that twists hope into dust and feeds on your soul's exhaustion. It waits at the end of every relapse path… patient, cruel, inevitable.",
+        image_path="/static/images/villains/theabyss/theabyss_profile.png",
+        created_at=now
+    )
+]
+
+db.session.add_all(batch_3)
+db.session.commit()
+print("✅ Final batch of villains seeded.")
 
