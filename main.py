@@ -247,6 +247,7 @@ def summarize_journal():
     from datetime import datetime, timedelta
     from models import User, DailyReflection, CircleMessage
     from db import SessionLocal
+    from sqlalchemy import and_
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     user_id = session.get("user_id")
@@ -260,9 +261,11 @@ def summarize_journal():
     # ⏳ Last 24 hours of Circle messages from the user
     since = datetime.utcnow() - timedelta(hours=24)
     messages = db.query(CircleMessage).filter(
-        .filter(CircleMessage.sender_id == user_id)
-        CircleMessage.speaker.ilike("user"),
-        CircleMessage.timestamp >= since
+        and_(
+            CircleMessage.sender_id == user_id,
+            CircleMessage.speaker.ilike("user"),
+            CircleMessage.timestamp >= since
+        )
     ).order_by(CircleMessage.timestamp).all()
 
     if not messages:
@@ -401,6 +404,7 @@ def menu():
         return redirect(url_for("login"))
     finally:
         db.close()
+
 
 @app.route('/form', methods=['GET', 'POST'])
 @login_required
