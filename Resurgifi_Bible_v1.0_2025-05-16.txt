@@ -13,7 +13,7 @@ Core Heroes (5 locked):
 Cognita – CBT
 Velessa – Mindfulness
 Grace – Spirituality/Higher Power
-Serenity – Lorazepam
+Sir Renity – (Needs update)
 Lucentis – Divine Guidance
 Core Villains (13 locked):
 The Crave – Addiction
@@ -30,9 +30,36 @@ The Ex’s – Toxic relationships
 Direveil – Fear of judgment
 Master of the Abyss – Core addiction
 
-Group Chat – The Circle
-Simulated emotional AI group chat. Five heroes speak in character, use memory and context. Typing delays and pacing logic simulate realism. Heroes whisper until emotionally triggered. Full response if the user reaches a turning point. Each session adapts to journaling, tone, and trust traits.
-
+📿 The Circle (Updated May 2025)
+The Circle is not a group chat. It is your emotional support system — the people and guides who walk your path with you. Each user has their own Circle, which includes:
+🫂 Real people they've added through invitation or connection
+🦸 Six core heroes (Velessa, Grace, Cognita, etc.), who serve as mentors and mythic reflections
+This list is always visible on the /circle page. From here, users can:
+Reflect with a hero
+Send encouragement to a friend
+View public journeys (if shared)
+Add others to their Circle via Resurgitag
+🌫️ Emotional Presence, Not Performance
+Users don’t appear as “online” or “offline.”
+They appear based on their emotional presence.
+After 2+ days of silence, a friend may appear faded, with the message:
+“Echoes only... last reflection: 3 days ago”
+After 5+ days, mood tags are removed and replaced with:
+“Energy faint — last seen near the Fog”
+Disappearance is never punished.
+The Circle reflects absence with dignity, not judgment.
+✨ Narrative Guidance
+Use metaphor, not metrics. The Circle is a sacred space — not a social feed.
+❌ Don’t say: “User inactive.”
+✅ Say: “Quiet since last quest.”
+❌ Don’t show: Empty avatar lists.
+✅ Show: Mist, silence, soft icons — symbols of pause, not abandonment.
+🧱 Future: Users may choose how they appear when silent
+Options:
+“Fade quietly”
+“Keep my last mood shown”
+“Go fully invisible”
+“Leave a final note”
 Onboarding Questions
 Q1: What brought you here today? (Grief, Anxiety, Addiction, Growth)
 Q2: What do you do when overwhelmed? (Pillow, Busy, Talk, Exercise, Scroll, Meditate, Solitude)

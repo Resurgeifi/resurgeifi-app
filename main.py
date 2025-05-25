@@ -160,16 +160,22 @@ def profile():
 
         # ✅ Remove @ for clean public profile URL
         clean_tag = user.resurgitag.lstrip("@")
-        qr_data = f"https://resurgifi-app.onrender.com/profile/public/{clean_tag}"
 
+        # ✅ Base URL from .env or fallback to current host
+        base_url = os.getenv("BASE_URL", request.host_url.rstrip("/"))
+        qr_data = f"{base_url}/profile/public/{clean_tag}"
+
+        # ✅ Generate QR code
         qr_img = qrcode.make(qr_data)
         buffer = io.BytesIO()
         qr_img.save(buffer, format="PNG")
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+        # ✅ Calculate journey duration
         days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
 
-        return render_template("profile.html", user=user,
+        return render_template("profile.html", 
+                               user=user,
                                resurgitag=user.resurgitag,
                                points=user.points or 0,
                                days_on_journey=days_on_journey,
@@ -182,7 +188,7 @@ def profile():
 
     finally:
         db.close()
-        
+
 @app.route("/circle")
 @login_required
 def circle():
@@ -1243,6 +1249,54 @@ def change_resurgitag():
         return render_template("change_tag.html", current_tag=user.resurgitag)
     finally:
         db.close()
+from flask import render_template, abort
+from models import HeroProfile
+
+@app.route('/hero/<resurgitag>')
+def hero_profile(resurgitag):
+    hero = HeroProfile.query.filter_by(resurgitag=resurgitag.lower().strip('@'), type='hero').first()
+    if not hero:
+        return abort(404)
+
+    # Static relationship map for now (can be made dynamic later)
+    hero_links = {
+        'lucentis': ['grace2', 'velessa'],
+        'grace2': ['lucentis', 'sirrenity'],
+        'velessa': ['grace2', 'cognita'],
+        'sirrenity': ['cognita', 'lucentis'],
+        'cognita': ['sirrenity', 'velessa']
+    }
+    linked_allies = hero_links.get(hero.resurgitag, [])
+
+    return render_template(
+        'hero_profile.html',
+        hero=hero,
+        allies=linked_allies
+    )
+
+
+@app.route('/villain/<resurgitag>')
+def villain_profile(resurgitag):
+    villain = HeroProfile.query.filter_by(resurgitag=resurgitag.lower().strip('@'), type='villain').first()
+    if not villain:
+        return abort(404)
+
+    # Static villain relationship map (future dynamic possible)
+    villain_links = {
+        'crave': ['fracker', 'theexs'],
+        'wardenfall': ['direveil', 'charnobyl'],
+        'anxia': ['murk', 'littlelack'],
+        'captainfine': ['undermind', 'theexs'],
+        'direveil': ['highnesshollow', 'wardenfall']
+    }
+    linked_enemies = villain_links.get(villain.resurgitag, [])
+
+    return render_template(
+        'villain_profile.html',
+        hero=villain,  # still pass as 'hero' for template consistency
+        enemies=linked_enemies
+    )
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)

@@ -50,6 +50,10 @@ class User(db.Model):
         backref="friend_of"
     )
 
+    # ✅ Mood and activity for Circle visuals
+    mood_status = db.Column(db.String(50), default="🫥")  # Emoji or mood tag
+    last_active = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class JournalEntry(db.Model):
     __tablename__ = "journal_entries"
@@ -60,6 +64,7 @@ class JournalEntry(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="journal_entries")
+
 
 class QueryHistory(db.Model):
     __tablename__ = "query_history"
@@ -73,16 +78,34 @@ class QueryHistory(db.Model):
 
     user = db.relationship("User", backref="query_history")
 
+
+# ✅ CircleMember: for hero + friend connections (new Circle system)
+class CircleMember(db.Model):
+    __tablename__ = "circle_members"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # Circle owner
+    contact_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # friend or hero
+    is_hero = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", foreign_keys=[user_id], backref="circle")
+    contact = db.relationship("User", foreign_keys=[contact_id])
+
+
+# ✅ CircleMessage: 1-on-1 thread between users or user-hero
 class CircleMessage(db.Model):
     __tablename__ = "circle_messages"
 
     id = db.Column(db.Integer, primary_key=True, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    speaker = db.Column(db.String(100), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = db.relationship("User", backref="circle_messages")
+    sender = db.relationship("User", foreign_keys=[sender_id], backref="sent_messages")
+    receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
+
 
 class UserQuestEntry(db.Model):
     __tablename__ = "user_quest_entries"
@@ -96,6 +119,7 @@ class UserQuestEntry(db.Model):
 
     user = db.relationship("User", backref="quest_entries")
 
+
 class DailyReflection(db.Model):
     __tablename__ = "daily_reflections"
 
@@ -106,4 +130,65 @@ class DailyReflection(db.Model):
 
     user = db.relationship("User", backref="daily_reflections")
 
+class HeroProfile(db.Model):
+    __tablename__ = "hero_profiles"
 
+    id = db.Column(db.Integer, primary_key=True)
+    resurgitag = db.Column(db.String(32), unique=True, nullable=False)
+    display_name = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(150), nullable=True)
+    represents = db.Column(db.String(150), nullable=True)
+    gender = db.Column(db.String(20), nullable=True)
+    catchphrase = db.Column(db.String(255), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    type = db.Column(db.String(20), default="hero")  # hero or villain
+    image_path = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+class FlashMomentLog(db.Model):
+    __tablename__ = "flash_moment_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    source = db.Column(db.String(100))  # e.g., "journal", "quest"
+    description = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="flash_moments")
+
+
+class VillainFlashEncounter(db.Model):
+    __tablename__ = "villain_encounters"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    villain_tag = db.Column(db.String(32), nullable=False)
+    encounter_type = db.Column(db.String(50))  # e.g., "journal", "dream", "panic"
+    notes = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="villain_encounters")
+
+
+class SupportGestureLog(db.Model):
+    __tablename__ = "support_gestures"
+
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    gesture_type = db.Column(db.String(50), default="balloon")  # or emoji
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sender = db.relationship("User", foreign_keys=[sender_id], backref="sent_support")
+    receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_support")
+
+
+class UserSettings(db.Model):
+    __tablename__ = "user_settings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
+    visibility_mode = db.Column(db.String(50), default="fade")  # fade, keep_mood, invisible, final_note
+    receive_check_ins = db.Column(db.Boolean, default=True)
+    receive_support = db.Column(db.Boolean, default=True)
+
+    user = db.relationship("User", backref="settings")
