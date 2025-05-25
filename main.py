@@ -212,7 +212,7 @@ def circle():
     try:
         mock_msgs = get_mock_conversation(absence_minutes)
         for msg in mock_msgs:
-            db.add(CircleMessage(user_id=user_id, speaker=msg["speaker"], text=msg["text"]))
+            db.add(CircleMessage(sender_id=user_id, receiver_id=user_id, text=msg["text"]))
         db.commit()
 
         messages = (
@@ -260,7 +260,7 @@ def summarize_journal():
     # ⏳ Last 24 hours of Circle messages from the user
     since = datetime.utcnow() - timedelta(hours=24)
     messages = db.query(CircleMessage).filter(
-        CircleMessage.user_id == user_id,
+        .filter(CircleMessage.sender_id == user_id),
         CircleMessage.speaker.ilike("user"),
         CircleMessage.timestamp >= since
     ).order_by(CircleMessage.timestamp).all()
@@ -377,7 +377,7 @@ def menu():
 
         circle_msgs = (
             db.query(CircleMessage)
-            .filter(CircleMessage.user_id == user.id)
+            .filter(CircleMessage.sender_id == user.id)
             .filter(CircleMessage.timestamp >= start_today)
             .filter(CircleMessage.speaker != "User")
             .order_by(CircleMessage.timestamp.desc())
@@ -850,7 +850,7 @@ def ask():
         thread = thread[-20:]  # Keep it lean
 
         # ✅ Save user message to DB
-        db.session.add(CircleMessage(user_id=user_id, speaker="User", text=user_message))
+        db.session.add(CircleMessage(sender_id=user_id, receiver_id=hero_user.id, text=user_message))
         session["last_input_ts"] = datetime.utcnow().isoformat()
 
         tone = session.get("tone", "neutral")
@@ -904,7 +904,7 @@ def ask():
                 else:
                     continue
 
-                db.session.add(CircleMessage(user_id=user_id, speaker=hero, text=reply))
+                db.session.add(CircleMessage(sender_id=hero_user.id, receiver_id=user_id, text=reply))
                 thread.append({"speaker": hero, "text": reply})
 
                 db.session.add(QueryHistory(
