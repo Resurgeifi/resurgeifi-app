@@ -260,7 +260,7 @@ def summarize_journal():
     # ⏳ Last 24 hours of Circle messages from the user
     since = datetime.utcnow() - timedelta(hours=24)
     messages = db.query(CircleMessage).filter(
-        .filter(CircleMessage.sender_id == user_id),
+        .filter(CircleMessage.sender_id == user_id)
         CircleMessage.speaker.ilike("user"),
         CircleMessage.timestamp >= since
     ).order_by(CircleMessage.timestamp).all()
