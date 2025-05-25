@@ -850,6 +850,7 @@ def ask():
         thread = thread[-20:]  # Keep it lean
 
         # ✅ Save user message to DB
+        hero_user = db.query(User).filter_by(resurgitag=f"@{hero}", resurgitag_locked=True).first()
         db.session.add(CircleMessage(sender_id=user_id, receiver_id=hero_user.id, text=user_message))
         session["last_input_ts"] = datetime.utcnow().isoformat()
 
@@ -903,6 +904,7 @@ def ask():
                     delay = 1200 + i * 900
                 else:
                     continue
+                hero_user = db.query(User).filter_by(resurgitag=f"@{hero}", resurgitag_locked=True).first()
 
                 db.session.add(CircleMessage(sender_id=hero_user.id, receiver_id=user_id, text=reply))
                 thread.append({"speaker": hero, "text": reply})
