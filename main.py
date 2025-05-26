@@ -561,10 +561,19 @@ def settings():
             return redirect(url_for('settings'))
 
         # 🧠 Pull saved values for GET
+        try:
+            journey_start_date = (
+                user.journey_start_date.strftime('%Y-%m-%d')
+                if isinstance(user.journey_start_date, datetime)
+                else ""
+            )
+        except Exception:
+            journey_start_date = ""
+
         return render_template(
             "settings.html",
             theme_choice=user.theme_choice,
-            journey_start_date=user.journey_start_date.strftime('%Y-%m-%d') if user.journey_start_date else "",
+            journey_start_date=journey_start_date,
             nickname=user.nickname or "",
             timezone=user.timezone or "America/New_York"
         )
