@@ -11,128 +11,144 @@
 </div>
 
 <script>
-  const questions = [
-    {
-      title: "What brings you here today?",
-      name: "q1",
-      options: [
-        "Major loss or grieving",
-        "Anxiety or fear",
-        "Addiction",
-        "Emotional growth"
-      ]
-    },
-    {
-      title: "When emotions overwhelm you, what do you tend to do?",
-      name: "q2",
-      options: [
-        "Crash under the covers",
-        "Stay busy",
-        "Talk to someone (or wish I could)",
-        "Exercise",
-        "Scroll on my phone",
-        "Meditate / Pray / Listen to music",
-        "Seek solitude"
-      ]
-    },
-    {
-      title: "What qualities do you admire in someone you trust? (Pick two)",
-      name: "q3",
-      options: [
-        "Makes me feel safe",
-        "Calms things down",
-        "Says what I need to hear",
-        "Makes me laugh",
-        "Doesn’t judge me",
-        "Reminds me who I am"
-      ],
-      allowMultiple: true,
-      limit: 2
-    },
-    {
-      title: "What do your friends call you?",
-      name: "nickname",
-      isText: true
-    }
-  ];
-
-  let currentIndex = 0;
-  let responses = {};
-
-  const titleEl = document.getElementById("onboardingTitle");
-  const questionEl = document.getElementById("onboardingQuestion");
-  const optionsEl = document.getElementById("onboardingOptions");
-  const nextBtn = document.getElementById("nextButton");
-
-  function vibrate(ms = 50) {
-    if (navigator.vibrate) {
-      navigator.vibrate(ms);
-    }
+const questions = [
+  {
+    title: "What brings you here today?",
+    name: "journey",  // 🔥 WAS 'q1', now captures theme_choice directly
+    options: [
+      "Major loss or grieving",
+      "Anxiety or fear",
+      "Addiction",
+      "Depression or emptiness",
+      "Low self-worth",
+      "Trauma or PTSD",
+      "Emotional growth"
+    ]
+  },
+  {
+    title: "When emotions overwhelm you, what do you tend to do?",
+    name: "q2",
+    options: [
+      "Crash under the covers",
+      "Stay busy",
+      "Talk to someone (or wish I could)",
+      "Exercise",
+      "Scroll on my phone",
+      "Meditate / Pray / Listen to music",
+      "Seek solitude"
+    ]
+  },
+  {
+    title: "What qualities do you admire in someone you trust? (Pick two)",
+    name: "q3",
+    options: [
+      "Makes me feel safe",
+      "Calms things down",
+      "Says what I need to hear",
+      "Makes me laugh",
+      "Doesn’t judge me",
+      "Reminds me who I am"
+    ],
+    allowMultiple: true,
+    limit: 2
+  },
+  {
+    title: "What do your friends call you?",
+    name: "nickname",
+    isText: true
+  },
+  {
+    title: "When did your journey begin? (Sobriety, loss, or reset date)",
+    name: "journey_start_date",
+    isDate: true
   }
+];
 
-  function renderQuestion() {
-    const current = questions[currentIndex];
-    questionEl.textContent = current.title;
-    optionsEl.innerHTML = "";
-    nextBtn.style.display = "none";
+let currentIndex = 0;
+let responses = {};
 
-    if (current.isText) {
-      const input = document.createElement("input");
-      input.type = "text";
-      input.name = current.name;
-      input.placeholder = "Your nickname (what people call you)...";
-      input.style = "padding: 0.5rem; width: 80%; border-radius: 10px; border: none;";
-      input.oninput = () => {
-        responses[current.name] = input.value;
-        nextBtn.style.display = input.value.trim() ? "inline-block" : "none";
-      };
-      optionsEl.appendChild(input);
-    } else {
-      current.options.forEach((option) => {
-        const btn = document.createElement("button");
-        btn.textContent = option;
-        btn.className = "global-button";
-        btn.style = "margin: 0.5rem;";
-        btn.onclick = () => {
-          vibrate();
+const titleEl = document.getElementById("onboardingTitle");
+const questionEl = document.getElementById("onboardingQuestion");
+const optionsEl = document.getElementById("onboardingOptions");
+const nextBtn = document.getElementById("nextButton");
 
-          if (current.allowMultiple) {
-            btn.classList.toggle("selected");
-            const selected = [...optionsEl.querySelectorAll(".selected")].map(el => el.textContent);
-            if (selected.length <= current.limit) {
-              responses[current.name] = selected;
-              nextBtn.style.display = selected.length === current.limit ? "inline-block" : "none";
-            } else {
-              btn.classList.remove("selected");
-            }
+function vibrate(ms = 50) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+function renderQuestion() {
+  const current = questions[currentIndex];
+  questionEl.textContent = current.title;
+  optionsEl.innerHTML = "";
+  nextBtn.style.display = "none";
+
+  if (current.isText) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.name = current.name;
+    input.placeholder = "Type here...";
+    input.style = "padding: 0.5rem; width: 80%; border-radius: 10px; border: none;";
+    input.oninput = () => {
+      responses[current.name] = input.value;
+      nextBtn.style.display = input.value.trim() ? "inline-block" : "none";
+    };
+    optionsEl.appendChild(input);
+  } else if (current.isDate) {
+    const input = document.createElement("input");
+    input.type = "date";
+    input.name = current.name;
+    input.style = "padding: 0.5rem; width: 60%; border-radius: 10px; border: none;";
+    input.onchange = () => {
+      responses[current.name] = input.value;
+      nextBtn.style.display = input.value ? "inline-block" : "none";
+    };
+    optionsEl.appendChild(input);
+  } else {
+    current.options.forEach((option) => {
+      const btn = document.createElement("button");
+      btn.textContent = option;
+      btn.className = "global-button";
+      btn.style = "margin: 0.5rem;";
+      btn.onclick = () => {
+        vibrate();
+
+        if (current.allowMultiple) {
+          btn.classList.toggle("selected");
+          const selected = [...optionsEl.querySelectorAll(".selected")].map(el => el.textContent);
+          if (selected.length <= current.limit) {
+            responses[current.name] = selected;
+            nextBtn.style.display = selected.length === current.limit ? "inline-block" : "none";
           } else {
-            [...optionsEl.children].forEach(b => b.classList.remove("selected"));
-            btn.classList.add("selected");
-            responses[current.name] = option;
-            nextBtn.style.display = "inline-block";
+            btn.classList.remove("selected");
           }
-        };
-        optionsEl.appendChild(btn);
-      });
-    }
+        } else {
+          [...optionsEl.children].forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          responses[current.name] = option;
+          nextBtn.style.display = "inline-block";
+        }
+      };
+      optionsEl.appendChild(btn);
+    });
   }
+}
 
-  nextBtn.onclick = () => {
-    currentIndex++;
-    if (currentIndex < questions.length) {
-      renderQuestion();
-    } else {
-      fetch("/submit-onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(responses)
-      }).then(() => {
-        window.location.href = "/menu";
-      });
-    }
-  };
+nextBtn.onclick = () => {
+  currentIndex++;
+  if (currentIndex < questions.length) {
+    renderQuestion();
+  } else {
+    fetch("/submit-onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(responses)
+    }).then(() => {
+      window.location.href = "/menu";
+    });
+  }
+};
 
-  renderQuestion();
+renderQuestion();
 </script>
 
 <style>
@@ -146,5 +162,6 @@
 </style>
 
 {% endblock %}
+
 
 

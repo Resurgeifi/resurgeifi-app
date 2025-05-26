@@ -24,6 +24,7 @@ class User(db.Model):
     timezone = db.Column(db.String(50), default="UTC")
     resurgitag = db.Column(db.String(32), unique=True, nullable=True)
     resurgitag_locked = db.Column(db.Boolean, default=False)
+    has_completed_onboarding = db.Column(db.Boolean, default=False)  # ✅ Tracks if onboarding was finished
     is_admin = db.Column(db.Boolean, default=False)  # ✅ Admin permission flag
 
     # 🔐 Privacy toggle for public profile

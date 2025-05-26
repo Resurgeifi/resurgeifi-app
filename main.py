@@ -758,7 +758,8 @@ def login():
                 session['journey'] = user.theme_choice or "Not Selected"
                 session['timezone'] = user.timezone or "America/New_York"
 
-                if not user.nickname or not user.theme_choice:
+                # ✅ Only redirect to onboarding if it hasn't been completed
+                if not user.has_completed_onboarding:
                     return redirect(url_for("onboarding"))
 
                 flash("Login successful. Welcome back.", "success")
@@ -774,7 +775,6 @@ def login():
             db.close()
 
     return render_template("login.html")
-
 
 @app.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
@@ -1220,6 +1220,8 @@ def submit_onboarding():
         user.hero_traits = data.get("q3", [])
         user.nickname = data.get("nickname")
         user.journey_start_date = datetime.utcnow()
+        user.theme_choice = data.get("journey")  # Or adjust key to match front-end
+        user.has_completed_onboarding = True
 
         db.commit()
         return "Success", 200
