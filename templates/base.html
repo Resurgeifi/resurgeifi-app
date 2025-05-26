@@ -32,14 +32,6 @@
   </div>
 {% endif %}
 
-    <div id="points-badge">⭐ {{ g.user.points or 0 }}</div>
-    <div id="points-float" class="points-float">+3</div>
-    <div class="sparkle-container" id="sparkle-container"></div>
-    <audio id="pointsAudio" preload="auto" src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
-  </div>
-{% endif %}
-
-
 <div class="main-content">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
