@@ -590,6 +590,10 @@ def settings():
                         flash("Invalid date format.", "error")
                     return redirect(url_for('settings'))
 
+            # ✅ Public visibility toggle (important!)
+            user.show_journey_publicly = 'show_journey_publicly' in form
+            db.commit()
+
         # 🧠 Pull saved values
         current_journey = user.theme_choice or "Not Selected"
         timezone = user.timezone or ""
@@ -602,7 +606,8 @@ def settings():
             timezone=timezone,
             timezones=common_timezones,
             nickname=nickname,
-            journey_start_date=journey_start_date
+            journey_start_date=journey_start_date,
+            show_journey_publicly=user.show_journey_publicly
         )
 
     except SQLAlchemyError:
@@ -611,6 +616,7 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
+
 @app.route("/profile/public/<resurgitag>")
 def view_public_profile(resurgitag):
     db = SessionLocal()

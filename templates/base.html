@@ -139,13 +139,9 @@ function flashPoints() {
 }
 </script>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% for category, message in messages %}
-    {% if category == "points" %}
-      <script>flashPoints();</script>
-    {% endif %}
-  {% endfor %}
-{% endwith %}
+{% if get_flashed_messages(with_categories=true)|selectattr(0, 'equalto', 'points')|list %}
+  <script>flashPoints();</script>
+{% endif %}
 
 <style>
 #top-bar {
