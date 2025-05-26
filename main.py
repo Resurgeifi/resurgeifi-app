@@ -24,7 +24,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # 🌍 Flask Core
-from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify, g
 from flask_mail import Mail, Message
 from flask_cors import CORS
 
