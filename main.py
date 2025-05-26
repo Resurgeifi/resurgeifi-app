@@ -393,7 +393,6 @@ def menu():
             db.query(CircleMessage)
             .filter(CircleMessage.sender_id == user.id)
             .filter(CircleMessage.timestamp >= start_today)
-            .filter(CircleMessage.speaker != "User")
             .order_by(CircleMessage.timestamp.desc())
             .all()
         )
