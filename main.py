@@ -234,6 +234,31 @@ def delete_ghosts():
     db.session.commit()
     flash(f"🕊️ {count} ghost user(s) released into the mist.")
     return redirect(url_for("admin_dashboard"))
+@app.route('/admin/grant_points', methods=['POST'])
+@login_required
+@admin_required
+def grant_points():
+    db = SessionLocal()
+    try:
+        resurgitag = request.form.get('resurgitag', '').lstrip('@')
+        points = int(request.form.get('points', 0))
+
+        user = db.query(User).filter_by(resurgitag=resurgitag).first()
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for('admin_dashboard'))
+
+        user.points = (user.points or 0) + points
+        db.commit()
+
+        flash(f"Gave {points} points to @{resurgitag}!", "success")
+        return redirect(url_for('admin_dashboard'))
+    except Exception as e:
+        db.rollback()
+        flash("Failed to grant points. Error logged.", "error")
+        return redirect(url_for('admin_dashboard'))
+    finally:
+        db.close()
 
 # ✅ Profile view
 @app.route("/profile")
@@ -575,7 +600,8 @@ def settings():
             theme_choice=user.theme_choice,
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
-            timezone=user.timezone or "America/New_York"
+            timezone=user.timezone or "America/New_York",
+            show_journey_publicly=user.show_journey_publicly  # 🔥 This fixes checkbox render
         )
 
     except SQLAlchemyError:
