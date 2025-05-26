@@ -215,7 +215,30 @@ def admin_dashboard():
         db.session.rollback()
         flash("Error loading dashboard.")
         return redirect(url_for("index"))
-    
+    from datetime import timedelta  # make sure this is at the top
+
+@app.route("/admin/delete_ghosts", methods=["POST"])
+@login_required
+@admin_required
+def delete_ghosts():
+    cutoff = datetime.utcnow() - timedelta(minutes=5)
+    ghosts = User.query.filter(
+        ((User.email == None) | (User.email == "")),
+        (User.resurgitag == None),
+        (User.journal_count == 0),
+        (User.circle_message_count == 0),
+        (User.created_at != None),
+        (User.created_at < cutoff)
+    ).all()
+
+    count = len(ghosts)
+    for ghost in ghosts:
+        db.session.delete(ghost)
+
+    db.session.commit()
+    flash(f"🕊️ {count} ghost user(s) released into the mist.")
+    return redirect(url_for("admin_dashboard"))
+
 @app.route('/admin/grant_points', methods=["POST"])
 @login_required
 @admin_required
