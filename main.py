@@ -98,29 +98,40 @@ client = OpenAI(api_key=api_key)
 # ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
 
-from flask import g
-from models import User
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get("user_id") != 1:  # assuming ID 1 is Kevin
-            flash("Admin access required.")
-            return redirect(url_for("index"))
-        return f(*args, **kwargs)
-    return decorated_function
-
+# ✅ Load current user into `g`
 @app.before_request
 def load_logged_in_user():
     user_id = session.get("user_id")
     if user_id is None:
         g.user = None
     else:
-        db = SessionLocal()
+        db_session = SessionLocal()
         try:
-            g.user = db.query(User).filter_by(id=user_id).first()
+            g.user = db_session.query(User).filter_by(id=user_id).first()
         finally:
-            db.close()
+            db_session.close()
 
+# ✅ Admin access check
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not g.user or not getattr(g.user, "is_admin", False):
+            flash("Admin access required.")
+            return redirect(url_for("index"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ✅ Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access Resurgifi.")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ✅ Generate emotional presence conversation
 def get_mock_conversation(absence_minutes):
     if absence_minutes < 60:
         return []
@@ -154,51 +165,36 @@ def get_mock_conversation(absence_minutes):
 
     return messages[:12]
 
-# ✅ Login required decorator
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Please log in to access Resurgifi.")
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
+# ✅ Grant admin to user
+@app.route("/admin/grant_admin", methods=["POST"])
+@login_required
+@admin_required
+def grant_admin():
+    tag = request.form.get("resurgitag", "").strip().lstrip("@")
+    full_tag = f"@{tag}"
+    user = User.query.filter(User.resurgitag.ilike(full_tag)).first()
+
+    if user:
+        user.is_admin = True
+        db.session.commit()
+        flash(f"👑 {user.resurgitag} is now an admin.")
+    else:
+        flash("⚠️ User not found.")
+    
+    return redirect(url_for("admin_dashboard"))
+
+# ✅ Admin dashboard view
 @app.route('/admin/dashboard')
 @login_required
 @admin_required
 def admin_dashboard():
     try:
-        # Query basic stats
         total_users = db.session.query(User).count()
-        
-        # Users active today
         start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         active_today = db.session.query(User).filter(User.last_login >= start_of_day).count()
-
-        # 5 most recent users
-        recent_users = (
-            db.session.query(User)
-            .order_by(User.created_at.desc())
-            .limit(5)
-            .all()
-        )
-
-        # Recent circle messages
-        recent_circle = (
-            db.session.query(CircleMessage)
-            .order_by(CircleMessage.timestamp.desc())
-            .limit(10)
-            .all()
-        )
-
-        # Recent journal entries
-        recent_journals = (
-        db.session.query(JournalEntry)
-        .order_by(JournalEntry.timestamp.desc())
-        .limit(10)
-        .all()
-        )
-
+        recent_users = db.session.query(User).order_by(User.created_at.desc()).limit(5).all()
+        recent_circle = db.session.query(CircleMessage).order_by(CircleMessage.timestamp.desc()).limit(10).all()
+        recent_journals = db.session.query(JournalEntry).order_by(JournalEntry.timestamp.desc()).limit(10).all()
 
         return render_template("admin_dashboard.html", 
             stats={
@@ -215,8 +211,8 @@ def admin_dashboard():
         db.session.rollback()
         flash("Error loading dashboard.")
         return redirect(url_for("index"))
-    from datetime import timedelta  # make sure this is at the top
 
+# ✅ Delete ghost users
 @app.route("/admin/delete_ghosts", methods=["POST"])
 @login_required
 @admin_required
@@ -237,23 +233,6 @@ def delete_ghosts():
 
     db.session.commit()
     flash(f"🕊️ {count} ghost user(s) released into the mist.")
-    return redirect(url_for("admin_dashboard"))
-
-@app.route('/admin/grant_points', methods=["POST"])
-@login_required
-@admin_required
-def grant_points():
-    tag = request.form.get("resurgitag", "").strip().lstrip("@")
-    points = int(request.form.get("points", 0))
-
-    user = db.session.query(User).filter(User.resurgitag.ilike(f"@{tag}")).first()
-    if not user:
-        flash("User not found.")
-        return redirect(url_for("admin_dashboard"))
-
-    user.points = (user.points or 0) + points
-    db.session.commit()
-    flash(f"Awarded {points} points to {user.resurgitag}.")
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/profile")

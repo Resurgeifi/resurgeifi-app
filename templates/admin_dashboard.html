@@ -46,19 +46,12 @@
           </form>
         </div>
       </div>
-
-      <!-- Seed Tools -->
-      <div class="card mb-4 shadow-sm">
-        <div class="card-header">🌱 Seed Data Tools</div>
-        <div class="card-body d-flex flex-column gap-2">
-          <form method="POST" action="/admin/reseed_heroes">
-            <button type="submit" class="btn btn-outline-primary w-100">Reseed Heroes</button>
-          </form>
-          <form method="POST" action="/admin/reseed_villains">
-            <button type="submit" class="btn btn-outline-primary w-100">Reseed Villains</button>
-          </form>
-        </div>
-      </div>
+          <form method="POST" action="/admin/grant_admin" class="mt-3">
+          <div class="input-group">
+          <input type="text" name="resurgitag" class="form-control" placeholder="@resurgitag to promote" required>
+          <button type="submit" class="btn btn-outline-warning">Grant Admin</button>
+         </div>
+      </form>
 
       <!-- Recent Activity -->
       <div class="card mb-4 shadow-sm">
@@ -83,3 +76,4 @@
   </div>
 </div>
 {% endblock %}
+

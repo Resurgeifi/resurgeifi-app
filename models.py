@@ -24,6 +24,7 @@ class User(db.Model):
     timezone = db.Column(db.String(50), default="UTC")
     resurgitag = db.Column(db.String(32), unique=True, nullable=True)
     resurgitag_locked = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)  # ✅ Admin permission flag
 
     # 🔐 Privacy toggle for public profile
     show_journey_publicly = db.Column(db.Boolean, default=False)
@@ -40,7 +41,7 @@ class User(db.Model):
     last_journal_entry = db.Column(db.Text, nullable=True)
     last_circle_msg = db.Column(db.Text, nullable=True)
     points = db.Column(db.Integer, default=0)
-    last_login = db.Column(db.DateTime, nullable=True)  # ✅ NEW: for dashboard stats
+    last_login = db.Column(db.DateTime, nullable=True)
 
     # ✅ Friends relationship
     friends = db.relationship(
@@ -52,7 +53,7 @@ class User(db.Model):
     )
 
     # ✅ Mood and activity for Circle visuals
-    mood_status = db.Column(db.String(50), default="🫥")  # Emoji or mood tag
+    mood_status = db.Column(db.String(50), default="🫥")
     last_active = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -151,7 +152,7 @@ class FlashMomentLog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    source = db.Column(db.String(100))  # e.g., "journal", "quest"
+    source = db.Column(db.String(100))
     description = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -179,7 +180,7 @@ class VillainFlashEncounter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     villain_tag = db.Column(db.String(32), nullable=False)
-    encounter_type = db.Column(db.String(50))  # e.g., "journal", "dream", "panic"
+    encounter_type = db.Column(db.String(50))
     notes = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -192,7 +193,7 @@ class SupportGestureLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    gesture_type = db.Column(db.String(50), default="balloon")  # or emoji
+    gesture_type = db.Column(db.String(50), default="balloon")
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     sender = db.relationship("User", foreign_keys=[sender_id], backref="sent_support")
