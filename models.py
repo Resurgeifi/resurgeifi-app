@@ -40,6 +40,7 @@ class User(db.Model):
     last_journal_entry = db.Column(db.Text, nullable=True)
     last_circle_msg = db.Column(db.Text, nullable=True)
     points = db.Column(db.Integer, default=0)
+    last_login = db.Column(db.DateTime, nullable=True)  # ✅ NEW: for dashboard stats
 
     # ✅ Friends relationship
     friends = db.relationship(

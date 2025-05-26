@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="text-center mb-4">Resurgifi Admin Dashboard</h1>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+      <!-- User Overview -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header">👥 User Overview</div>
+        <div class="card-body">
+          <p><strong>Total Users:</strong> {{ stats.total_users }}</p>
+          <p><strong>Active Today:</strong> {{ stats.active_today }}</p>
+          <p><strong>Recent Signups:</strong></p>
+          <ul>
+            {% for user in stats.recent_users %}
+              <li>@{{ user.resurgitag }} ({{ user.display_name or "Unnamed" }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header">⚡ Quick Actions</div>
+        <div class="card-body">
+          <form method="POST" action="/admin/grant_points" class="mb-3">
+            <div class="row g-2 align-items-center">
+              <div class="col-12 col-sm">
+                <input type="text" name="resurgitag" class="form-control" placeholder="@resurgitag" required>
+              </div>
+              <div class="col-6 col-sm-3">
+                <input type="number" name="points" class="form-control" placeholder="Points" required>
+              </div>
+              <div class="col-6 col-sm-auto">
+                <button type="submit" class="btn btn-success w-100">Grant Points</button>
+              </div>
+            </div>
+          </form>
+
+          <form method="POST" action="/admin/delete_ghosts">
+            <button type="submit" class="btn btn-outline-danger w-100">🗑️ Delete Ghost Users</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Seed Tools -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header">🌱 Seed Data Tools</div>
+        <div class="card-body d-flex flex-column gap-2">
+          <form method="POST" action="/admin/reseed_heroes">
+            <button type="submit" class="btn btn-outline-primary w-100">Reseed Heroes</button>
+          </form>
+          <form method="POST" action="/admin/reseed_villains">
+            <button type="submit" class="btn btn-outline-primary w-100">Reseed Villains</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header">🕵️ Recent Activity</div>
+        <div class="card-body">
+          <h5>Circle Messages</h5>
+          <ul class="mb-3">
+            {% for msg in logs.circle_messages %}
+              <li><strong>@{{ msg.sender }}:</strong> {{ msg.text }}</li>
+            {% endfor %}
+          </ul>
+          <h5>Journal Entries</h5>
+          <ul>
+            {% for entry in logs.journal_entries %}
+              <li>@{{ entry.user }}: {{ entry.content[:60] }}...</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

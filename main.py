@@ -100,6 +100,14 @@ admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
 
 from flask import g
 from models import User
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") != 1:  # assuming ID 1 is Kevin
+            flash("Admin access required.")
+            return redirect(url_for("index"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.before_request
 def load_logged_in_user():
@@ -155,6 +163,75 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+@app.route('/admin/dashboard')
+@login_required
+@admin_required
+def admin_dashboard():
+    try:
+        # Query basic stats
+        total_users = db.session.query(User).count()
+        
+        # Users active today
+        start_of_day = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        active_today = db.session.query(User).filter(User.last_login >= start_of_day).count()
+
+        # 5 most recent users
+        recent_users = (
+            db.session.query(User)
+            .order_by(User.created_at.desc())
+            .limit(5)
+            .all()
+        )
+
+        # Recent circle messages
+        recent_circle = (
+            db.session.query(CircleMessage)
+            .order_by(CircleMessage.timestamp.desc())
+            .limit(10)
+            .all()
+        )
+
+        # Recent journal entries
+        recent_journals = (
+        db.session.query(JournalEntry)
+        .order_by(JournalEntry.timestamp.desc())
+        .limit(10)
+        .all()
+        )
+
+
+        return render_template("admin_dashboard.html", 
+            stats={
+                "total_users": total_users,
+                "active_today": active_today,
+                "recent_users": recent_users
+            },
+            logs={
+                "circle_messages": recent_circle,
+                "journal_entries": recent_journals
+            }
+        )
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash("Error loading dashboard.")
+        return redirect(url_for("index"))
+    
+@app.route('/admin/grant_points', methods=["POST"])
+@login_required
+@admin_required
+def grant_points():
+    tag = request.form.get("resurgitag", "").strip().lstrip("@")
+    points = int(request.form.get("points", 0))
+
+    user = db.session.query(User).filter(User.resurgitag.ilike(f"@{tag}")).first()
+    if not user:
+        flash("User not found.")
+        return redirect(url_for("admin_dashboard"))
+
+    user.points = (user.points or 0) + points
+    db.session.commit()
+    flash(f"Awarded {points} points to {user.resurgitag}.")
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/profile")
 @login_required
