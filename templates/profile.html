@@ -6,9 +6,14 @@
   <h1 class="profile-header">{{ user.nickname or "Your" }}’s Profile</h1>
 
   <div class="profile-stats">
-    <p><strong>⭐ Points:</strong> {{ user.points or 0 }}</p>
-    <p><strong>📅 Days on Journey:</strong> {{ user.journey_start_date.strftime('%b %d, %Y') if user.journey_start_date else "—" }}</p>
-    <p><strong>🌀 Current Ring:</strong> The Spark</p>
+    <p>
+      <strong>⭐ Points:</strong> 
+      <a href="#" onclick="showPointsInfo()" style="color: #f6e7c1; text-decoration: none;">
+        {{ user.points or 0 }}
+      </a>
+    </p>
+    <p><strong>📅 Journey Start:</strong> {{ user.journey_start_date.strftime('%b %d, %Y') if user.journey_start_date else "—" }}</p>
+    <p><strong>🌀 Journey Selection:</strong> {{ user.theme_choice or "Not selected" }}</p>
   </div>
 
   <div class="resurgitag-section">
@@ -28,14 +33,27 @@
     {% endif %}
   </div>
   
-  
   <div class="qr-section">
     <h3>Share Your Resurgitag</h3>
     <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code for your Resurgitag" />
     <p>Let others follow your journey. Share your tag or scan the code.</p>
   </div>
-  
+
   <a href="/menu" class="btn back-btn">⬅️ Back to Menu</a>
+
+  <!-- 🪙 Points Bubble -->
+  <div id="pointsInfoBubble" class="points-info-bubble">
+    <h3>🪙 Earning Points</h3>
+    <ul style="text-align: left; font-size: 1rem;">
+      <li>✍️ <strong>3 points</strong> per journal entry</li>
+      <li>💬 <strong>3 points</strong> per Circle reflection</li>
+      <li>🧩 <strong>5 points</strong> for completing quests</li>
+    </ul>
+    <p style="margin-top: 1rem; font-size: 0.9rem; color: #ccc;">
+      <em>Coming soon:</em> Redeem points for merch & in-app rewards!
+    </p>
+    <button onclick="hidePointsInfo()" style="margin-top: 1rem;" class="global-button">Got it</button>
+  </div>
 </div>
 
 <style>
@@ -96,6 +114,31 @@
   background-color: #555;
 }
 
+.points-info-bubble {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: #1e1e1e;
+  padding: 1.6rem;
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(255,255,255,0.1);
+  z-index: 9999;
+  text-align: center;
+  color: #ffeecb;
+  max-width: 350px;
+  width: 90%;
+  transition: all 0.25s ease-in-out;
+  opacity: 0;
+}
+
+.points-info-bubble.active {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
 @media (max-width: 600px) {
   .profile-header {
     font-size: 1.5rem;
@@ -113,6 +156,16 @@
   }
 }
 </style>
+
+<script>
+function showPointsInfo() {
+  const bubble = document.getElementById("pointsInfoBubble");
+  bubble.classList.add("active");
+}
+
+function hidePointsInfo() {
+  const bubble = document.getElementById("pointsInfoBubble");
+  bubble.classList.remove("active");
+}
+</script>
 {% endblock %}
-
-
