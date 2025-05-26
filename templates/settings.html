@@ -2,77 +2,57 @@
 {% block title %}Settings | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="main-content">
-
+<div class="main-content" style="max-width: 600px; margin: 2rem auto; text-align: center;">
   <h1>⚙️ Settings</h1>
-  <p class="mantra">You can change your nickname and define when your journey began.</p>
+  <p class="mantra">Update your journey settings, nickname, and visibility below.</p>
 
-<!-- 🌱 Journey Type -->
-<form method="POST" action="/settings">
-  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
-    <label style="font-size: 1.1rem;"><strong>Choose your current journey:</strong></label>
-    <div class="settings-options" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
-      <button type="submit" name="journey" value="Major loss or grieving" class="global-button">💔 Grief</button>
-      <button type="submit" name="journey" value="Anxiety or fear" class="global-button">🌪️ Anxiety</button>
-      <button type="submit" name="journey" value="Addiction" class="global-button">💊 Addiction</button>
-      <button type="submit" name="journey" value="Depression or emptiness" class="global-button">🌫️ Depression</button>
-      <button type="submit" name="journey" value="Low self-worth" class="global-button">🪞 Self-Worth</button>
-      <button type="submit" name="journey" value="Trauma or PTSD" class="global-button">🔥 Trauma</button>
-      <button type="submit" name="journey" value="Emotional growth" class="global-button">🌱 Emotional Growth</button>
-    </div>
+  <form method="POST" action="/settings" style="margin-top: 2rem;">
+    <div class="card-dark" style="padding: 2rem;">
 
-    <p style="margin-top: 1rem;">Current Journey: 
-      <strong>{{ g.user.theme_choice or 'Not selected' }}</strong>
-    </p>    
+      <!-- 🌀 Journey Selection -->
+      <label for="theme_choice" style="font-size: 1.2rem; display: block; margin-bottom: 1rem;"><strong>Your Journey</strong></label>
+      <select name="theme_choice" id="theme_choice" class="global-button" style="width: 100%; padding: 0.6rem; font-size: 1rem; border-radius: 8px;">
+        <option value="">-- Select Journey --</option>
+        <option value="Major loss or grieving" {% if theme_choice == "Major loss or grieving" %}selected{% endif %}>💔 Grief</option>
+        <option value="Anxiety or fear" {% if theme_choice == "Anxiety or fear" %}selected{% endif %}>🌪️ Anxiety</option>
+        <option value="Addiction" {% if theme_choice == "Addiction" %}selected{% endif %}>💊 Addiction</option>
+        <option value="Depression or emptiness" {% if theme_choice == "Depression or emptiness" %}selected{% endif %}>🌫️ Depression</option>
+        <option value="Low self-worth" {% if theme_choice == "Low self-worth" %}selected{% endif %}>🪞 Self-Worth</option>
+        <option value="Trauma or PTSD" {% if theme_choice == "Trauma or PTSD" %}selected{% endif %}>🔥 Trauma</option>
+        <option value="Emotional growth" {% if theme_choice == "Emotional growth" %}selected{% endif %}>🌱 Emotional Growth</option>
+      </select>
 
-    <!-- ✅ Add Privacy Toggle -->
-    <div class="form-check mt-4 mb-2">
-      <input 
-        class="form-check-input" 
-        type="checkbox" 
-        name="show_journey_publicly" 
-        id="show_journey_publicly"
-        style="transform: scale(1.4); margin-right: 12px;"
-        {% if g.user.show_journey_publicly %}checked{% endif %}>
-      <label 
-        class="form-check-label" 
-        for="show_journey_publicly"
-        style="font-size: 1.25rem; cursor: pointer; color: #e0d4b2;">
-        Let others see my <strong>journey type</strong> on my public profile
-      </label>
-    </div>
+      <!-- 📅 Start Date -->
+      <label for="journey_start_date" style="font-size: 1.2rem; display: block; margin-top: 2rem;"><strong>🌄 When did your journey begin?</strong></label>
+      <input type="date" 
+             name="journey_start_date" 
+             value="{{ journey_start_date }}" 
+             min="1950-01-01" 
+             max="{{ '%Y-%m-%d' | format(datetime.utcnow()) }}"
+             style="margin-top: 0.5rem; padding: 0.6rem; width: 100%; font-size: 1rem; border-radius: 8px;">
 
-    <button type="submit" class="global-button mt-3">Save Settings</button>
-  </div>
-</form>
+      <!-- 📝 Nickname -->
+      <label for="nickname" style="font-size: 1.2rem; display: block; margin-top: 2rem;"><strong>📝 Your Nickname</strong></label>
+      <input type="text" name="nickname" value="{{ nickname }}" placeholder="What do people call you?" style="margin-top: 0.5rem; padding: 0.6rem; width: 100%; font-size: 1rem; border-radius: 8px;">
 
+      <!-- 👁️ Visibility Toggle -->
+      <div style="margin-top: 2rem;">
+        <label style="font-size: 1.1rem;">
+          <input type="checkbox" name="show_journey_publicly" {% if g.user.show_journey_publicly %}checked{% endif %}>
+          Show my journey on public profile
+        </label>
+      </div>
 
-  <!-- 📅 Journey Start Date -->
-  <form method="POST" action="/settings">
-    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
-      <label for="journey_start_date" style="font-size: 1.1rem;"><strong>🌄 When did your journey begin?</strong></label>
-      <input type="date" name="journey_start_date" value="{{ journey_start_date }}" style="margin-top: 0.5rem; padding: 0.8rem; width: 100%; font-size: 1rem; border-radius: 8px;">
-      <p class="mantra" style="margin-top: 0.5rem;">This could be your sobriety date, surrender moment, or reset day.</p>
-      <button type="submit" class="global-button" style="margin-top: 1rem;">Save Journey Start Date</button>
+      <!-- ✅ Save -->
+      <button type="submit" class="global-button" style="margin-top: 2rem;">💾 Save Settings</button>
     </div>
   </form>
 
-  <!-- 📝 Nickname -->
-  <form method="POST" action="/settings">
-    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
-      <label for="nickname" style="font-size: 1.1rem;"><strong>📝 Update your nickname</strong></label>
-      <input type="text" name="nickname" value="{{ nickname }}" placeholder="Enter nickname" style="margin-top: 0.5rem; padding: 0.8rem; width: 100%; font-size: 1rem; border-radius: 8px;">
-      <button type="submit" class="global-button" style="margin-top: 1rem;">Save Nickname</button>
-    </div>
-  </form>
-
-  <!-- 💬 Feedback Link -->
   <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
     <p class="mantra">Want to help us improve Resurgifi?</p>
     <a href="/feedback" class="global-button">📣 Leave Feedback</a>
   </div>
 
-  <!-- 🔓 Logout -->
   <form action="{{ url_for('logout') }}" method="get">
     <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
       <button type="submit" class="global-button" style="background-color: #880e4f; color: #fff;">Log Out</button>
@@ -80,86 +60,5 @@
   </form>
 </div>
 
-<!-- 🌟 Grace Flash -->
-<div id="graceFlash" class="hero-flash">
-  <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace Flash" />
-  <div class="speech-box">
-    <p class="hero-quote">“Settings saved. You’re building a real path here.”</p>
-  </div>
-</div>
-<audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-  const forms = document.querySelectorAll("form");
-  const flash = document.getElementById("graceFlash");
-  const sound = document.getElementById("graceSound");
-
-  forms.forEach(form => {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault(); // stop instant reload
-
-      flash.style.display = "flex";
-      flash.style.opacity = 1;
-      flash.style.transform = "scale(1.03)";
-      sound.pause();
-sound.currentTime = 0;
-sound.load();
-sound.volume = 1.0;
-sound.play().catch(err => {
-  console.warn("Grace sound was blocked in settings page:", err);
-});
-
-
-      // Grace fade-out, then submit form
-      setTimeout(() => {
-        flash.style.opacity = 0;
-        flash.style.transform = "scale(1)";
-        setTimeout(() => {
-          flash.style.display = "none";
-          form.submit(); // submit after fade
-        }, 500);
-      }, 3000);
-    });
-  });
-});
-</script>
-
-<style>
-.hero-flash {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.9);
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  opacity: 0;
-}
-
-.hero-flash img {
-  width: 80vw;
-  max-width: 400px;
-  animation: pulseGlow 2.5s ease-out;
-}
-.speech-box {
-  margin-top: 1.5rem;
-  background: #000;
-  padding: 1.2rem 2rem;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-}
-.hero-quote {
-  font-size: 1.3rem;
-  color: #f6e7c1;
-  line-height: 1.6;
-}
-</style>
+<!-- No Grace Flash here -->
 {% endblock %}

@@ -520,99 +520,58 @@ def settings():
             flash("User not found.")
             return redirect(url_for('login'))
 
-        common_timezones = [
-            "America/New_York",
-            "America/Chicago",
-            "America/Denver",
-            "America/Los_Angeles",
-            "America/Phoenix",
-            "America/Anchorage",
-            "America/Honolulu"
-        ]
-
-        journey_options = [
-            "Major loss or grieving",
-            "Anxiety or fear",
-            "Addiction",
-            "Depression or emptiness",
-            "Low self-worth",
-            "Trauma or PTSD",
-            "Emotional growth"
-        ]
-
         if request.method == "POST":
             form = request.form
 
-            # ✅ Journey selection
-            if 'journey' in form:
-                journey = form.get("journey")
-                if journey in journey_options:
-                    user.theme_choice = journey
-                    session['journey'] = journey
-                    db.commit()
-                    flash("Journey updated to: " + journey, "success")
-                    return redirect(url_for('settings'))
+            # 🌀 Journey selection
+            journey = form.get("theme_choice")
+            valid_journeys = [
+                "Major loss or grieving",
+                "Anxiety or fear",
+                "Addiction",
+                "Depression or emptiness",
+                "Low self-worth",
+                "Trauma or PTSD",
+                "Emotional growth"
+            ]
+            if journey in valid_journeys:
+                user.theme_choice = journey
+                session['journey'] = journey
 
-            # ✅ Timezone selection
-            if 'timezone' in form:
-                selected_tz = form.get("timezone")
-                if selected_tz in common_timezones:
-                    user.timezone = selected_tz
-                    session['timezone'] = selected_tz
-                    db.commit()
-                    flash("Time zone updated successfully.", "success")
-                    return redirect(url_for('settings'))
-                else:
-                    flash("Invalid time zone selected.", "error")
-                    return redirect(url_for('settings'))
+            # 📅 Start date
+            date_str = form.get("journey_start_date")
+            if date_str:
+                try:
+                    user.journey_start_date = datetime.strptime(date_str, '%Y-%m-%d')
+                except ValueError:
+                    flash("Invalid date format for journey start.", "error")
 
-            # ✅ Nickname update
-            if 'nickname' in form:
-                nickname = form.get("nickname")
-                if nickname:
-                    user.nickname = nickname
-                    user.display_name = nickname
-                    session['nickname'] = nickname
-                    db.commit()
-                    flash("Nickname updated.", "success")
-                    return redirect(url_for('settings'))
+            # 📝 Nickname
+            nickname = form.get("nickname", "").strip()
+            if nickname:
+                user.nickname = nickname
+                user.display_name = nickname
+                session['nickname'] = nickname
 
-            # ✅ Journey start date input
-            if 'journey_start_date' in form:
-                date_str = form.get("journey_start_date")
-                if date_str:
-                    try:
-                        parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
-                        user.journey_start_date = parsed_date
-                        db.commit()
-                        flash("Journey start date saved.", "success")
-                    except ValueError:
-                        flash("Invalid date format.", "error")
-                    return redirect(url_for('settings'))
-
-            # ✅ Public visibility toggle (important!)
+            # 👁️ Visibility toggle
             user.show_journey_publicly = 'show_journey_publicly' in form
+
             db.commit()
+            flash("Settings updated successfully.", "success")
+            return redirect(url_for('settings'))
 
-        # 🧠 Pull saved values
-        current_journey = user.theme_choice or "Not Selected"
-        timezone = user.timezone or ""
-        nickname = user.nickname or ""
-        journey_start_date = user.journey_start_date.strftime('%Y-%m-%d') if user.journey_start_date else ""
-
+        # 🧠 Pull saved values for GET
         return render_template(
             "settings.html",
-            current_ring=current_journey,
-            timezone=timezone,
-            timezones=common_timezones,
-            nickname=nickname,
-            journey_start_date=journey_start_date,
-            show_journey_publicly=user.show_journey_publicly
+            theme_choice=user.theme_choice,
+            journey_start_date=user.journey_start_date.strftime('%Y-%m-%d') if user.journey_start_date else "",
+            nickname=user.nickname or "",
+            timezone=user.timezone or "America/New_York"
         )
 
     except SQLAlchemyError:
         db.rollback()
-        flash("Error saving or loading settings. Try again.", "error")
+        flash("Error loading or saving settings. Please try again.", "error")
         return redirect(url_for("menu"))
     finally:
         db.close()
