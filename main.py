@@ -98,7 +98,7 @@ client = OpenAI(api_key=api_key)
 # ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
 
-# ✅ Load current user into `g`
+# ✅ Admin and user context loading
 @app.before_request
 def load_logged_in_user():
     user_id = session.get("user_id")
@@ -235,6 +235,7 @@ def delete_ghosts():
     flash(f"🕊️ {count} ghost user(s) released into the mist.")
     return redirect(url_for("admin_dashboard"))
 
+# ✅ Profile view
 @app.route("/profile")
 @login_required
 def profile():
@@ -248,20 +249,15 @@ def profile():
             user.resurgitag = generate_resurgitag(user.display_name or "User")
             db.commit()
 
-        # ✅ Remove @ for clean public profile URL
         clean_tag = user.resurgitag.lstrip("@")
-
-        # ✅ Base URL from .env or fallback to current host
         base_url = os.getenv("BASE_URL", request.host_url.rstrip("/"))
         qr_data = f"{base_url}/profile/public/{clean_tag}"
 
-        # ✅ Generate QR code
         qr_img = qrcode.make(qr_data)
         buffer = io.BytesIO()
         qr_img.save(buffer, format="PNG")
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-        # ✅ Calculate journey duration
         days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
 
         return render_template("profile.html", 
