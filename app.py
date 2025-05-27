@@ -41,11 +41,15 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
 # ✅ Init extensions
 db.init_app(app)
-init_session(app)  # ✅ Safe now: happens AFTER db is fully registered
-
 mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
+
+# ✅ Deferred session binding
+@app.before_first_request
+def bind_sessionlocal():
+    print("🧠 Initializing SessionLocal before first request...")
+    init_session(app)
 
 # ✅ Register Blueprints
 app.register_blueprint(admin_bp)
