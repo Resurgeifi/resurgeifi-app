@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 
 from models import db
-from db_session import init_session  # ✅ Custom file that defines & sets SessionLocal
+from db_session import init_session  # ✅ Initializes SessionLocal
 
 # Blueprints
 from routes.admin import admin_bp
@@ -41,8 +41,8 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
 # ✅ Init extensions
 db.init_app(app)
-with app.app_context():
-    init_session(app)  # 🔒 Ensure engine is created inside app context
+init_session(app)  # ✅ Safe now: happens AFTER db is fully registered
+
 mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
