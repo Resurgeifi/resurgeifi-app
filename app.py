@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 
 from models import db
-from db_sessions import init_session  # ✅ Custom file that defines & sets SessionLocal
+from db_session import init_session  # ✅ Custom file that defines & sets SessionLocal
 
 # Blueprints
 from routes.admin import admin_bp
