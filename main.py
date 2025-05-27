@@ -601,7 +601,8 @@ def settings():
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
             timezone=user.timezone or "America/New_York",
-            show_journey_publicly=user.show_journey_publicly  # 🔥 This fixes checkbox render
+            show_journey_publicly=user.show_journey_publicly,
+            datetime=datetime  # ✅ This line fixes the Jinja error
         )
 
     except SQLAlchemyError:
