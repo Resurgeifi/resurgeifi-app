@@ -1,3 +1,15 @@
+import os
+import qrcode
+import io
+import base64
+from datetime import datetime
+from flask import Blueprint, render_template, session, redirect, url_for, flash
+from models import SessionLocal, User
+from sqlalchemy.exc import SQLAlchemyError
+
+# ✅ Fix: Declare the Blueprint
+profile_bp = Blueprint("profile", __name__)
+
 @profile_bp.route("/profile")
 def profile():
     user_id = session.get("user_id")
@@ -36,4 +48,5 @@ def profile():
         return redirect(url_for("auth.login"))
     finally:
         db.close()
+
 
