@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from flask_mail import Mail
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -44,13 +44,6 @@ mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
 
-# 🧹 Optional startup log (can delete this block if unnecessary)
-def setup_runtime():
-    with app.app_context():
-        print("🚀 App context active at startup")
-
-setup_runtime()
-
 # ✅ Register Blueprints
 app.register_blueprint(admin_bp)
 app.register_blueprint(circle_bp)
@@ -64,7 +57,13 @@ app.register_blueprint(onboarding_bp)
 app.register_blueprint(quest_bp)
 app.register_blueprint(misc_bp)
 
-# ✅ Root route
+# ✅ Root route renders landing.html
 @app.route('/')
 def landing():
-    return "Resurgifi App Running"
+    return render_template("landing.html")
+
+# ✅ Optional alias (if needed)
+@app.route('/landing')
+def landing_alias():
+    return render_template("landing.html")
+

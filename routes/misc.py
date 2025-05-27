@@ -8,6 +8,14 @@ from db import SessionLocal
 
 misc_bp = Blueprint("misc", __name__)
 
+@misc_bp.route("/")
+def root_redirect():
+    return redirect(url_for("misc.landing"))
+
+@misc_bp.route("/landing")
+def landing():
+    return render_template("landing.html")
+
 @misc_bp.route("/about")
 def about():
     return render_template("about.html")

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request
 from models import User
 from sqlalchemy.exc import SQLAlchemyError
-import datetime  # ✅ FIXED: full module, not just function
+from datetime import datetime  # ✅ FIXED: Now importing the class, not the module
 from db import SessionLocal
 
 settings_bp = Blueprint("settings", __name__)
@@ -68,7 +68,7 @@ def settings():
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
             show_journey_publicly=bool(getattr(user, "show_journey_publicly", False)),
-            datetime=datetime  # ✅ For template use: max="{{ datetime.utcnow().strftime('%Y-%m-%d') }}"
+            datetime=datetime  # ✅ This will now work correctly in Jinja
         )
 
     except SQLAlchemyError:
@@ -77,4 +77,3 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
-
