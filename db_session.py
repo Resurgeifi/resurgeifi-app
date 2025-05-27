@@ -1,10 +1,14 @@
 from sqlalchemy.orm import scoped_session, sessionmaker
 from models import db
 
-SessionLocal = None
+SessionLocal = None  # Global session factory
 
 def init_session(app):
     global SessionLocal
-    with app.app_context():
-        engine = db.get_engine()  # ✅ pass app correctly
-        SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+    engine = db.get_engine(app)  # ✅ Properly pass the app to get_engine
+    SessionLocal = scoped_session(sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine
+    ))
+    print("✅ SessionLocal successfully initialized.")
