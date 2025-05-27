@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash, jsonify
-from models import SessionLocal, User, CircleMessage, QueryHistory
+from models import User, CircleMessage, QueryHistory
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, date
 from rams import build_prompt, select_heroes, build_context
@@ -7,6 +7,7 @@ from uuid import uuid4
 from openai import OpenAI
 import random
 import os
+from db_session import SessionLocal
 
 circle_bp = Blueprint("circle", __name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

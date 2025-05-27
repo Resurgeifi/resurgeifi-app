@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from models import SessionLocal, User
+from models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Message
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import random
+from db_session import SessionLocal
 
 auth_bp = Blueprint("auth", __name__)
 

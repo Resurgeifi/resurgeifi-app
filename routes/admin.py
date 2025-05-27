@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from models import SessionLocal, User, CircleMessage, JournalEntry
+from models import User, CircleMessage, JournalEntry
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from functools import wraps
 from models import login_required
+from db_session import SessionLocal
 
 
 admin_bp = Blueprint("admin", __name__)

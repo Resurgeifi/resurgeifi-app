@@ -36,6 +36,10 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
 # ✅ Init services
 db.init_app(app)
+
+from db_session import init_session
+init_session(app)
+
 mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)

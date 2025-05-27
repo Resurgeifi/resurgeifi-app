@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, make_response
 from flask_mail import Message
-from models import SessionLocal, User, JournalEntry, CircleMessage
+from models import User, JournalEntry, CircleMessage
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import os
+from db_session import SessionLocal
 
 misc_bp = Blueprint("misc", __name__)
 

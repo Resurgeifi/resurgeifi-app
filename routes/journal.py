@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, session, request, redirect, url_for, flash
-from models import SessionLocal, User, JournalEntry, DailyReflection, CircleMessage
+from models import User, JournalEntry, DailyReflection, CircleMessage
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from openai import OpenAI
 from pytz import timezone as tz, utc, all_timezones
+from db_session import SessionLocal
 
 journal_bp = Blueprint("journal", __name__)
 

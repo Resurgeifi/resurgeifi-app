@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, session, flash, redirect,
 from flask_mail import Message
 from werkzeug.utils import secure_filename
 import os
+from db_session import SessionLocal
 
 feedback_bp = Blueprint("feedback", __name__)
 UPLOAD_FOLDER = "/tmp"

@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
-from models import SessionLocal, User, UserQuestEntry
+from models import User, UserQuestEntry
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from openai import OpenAI
 import os
+from db_session import SessionLocal
 
 quest_bp = Blueprint("quest", __name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
