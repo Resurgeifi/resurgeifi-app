@@ -44,11 +44,10 @@ mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
 
-# ✅ Safe SessionLocal binding — manual call
+# 🧹 Optional startup log (can delete this block if unnecessary)
 def setup_runtime():
     with app.app_context():
-        print("🚀 Running SessionLocal setup at startup")
-        init_session(app)
+        print("🚀 App context active at startup")
 
 setup_runtime()
 
@@ -69,4 +68,3 @@ app.register_blueprint(misc_bp)
 @app.route('/')
 def landing():
     return "Resurgifi App Running"
-
