@@ -211,3 +211,12 @@ class UserSettings(db.Model):
     receive_support = db.Column(db.Boolean, default=True)
 
     user = db.relationship("User", backref="settings")
+
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+# 👇 Only needed AFTER db.init_app(app) is called in app.py
+try:
+    engine = db.get_engine()
+    SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+except:
+    SessionLocal = None  # Avoids crashing on import during setup
