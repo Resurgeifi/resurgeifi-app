@@ -1,10 +1,10 @@
-# db_sessions.py
-from models import db
 from sqlalchemy.orm import scoped_session, sessionmaker
+from models import db
 
 SessionLocal = None
 
 def init_session(app):
     global SessionLocal
-    engine = db.get_engine(app)
-    SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+    with app.app_context():  # 🔒 Ensures Flask context is available when initializing
+        engine = db.get_engine(app)
+        SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
