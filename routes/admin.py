@@ -63,7 +63,7 @@ def grant_points():
         points = int(request.form.get('points', 0))
 
         # 🔍 Match user by @tag (case-insensitive)
-        user = db.query(User).filter(User.resurgitag.ilike(f"@{resurgitag}")).first()
+        user = db.query(User).filter(User.resurgitag.ilike(f"%{resurgitag}%")).first()
 
         if not user:
             flash(f"⚠️ User '@{resurgitag}' not found.", "error")
