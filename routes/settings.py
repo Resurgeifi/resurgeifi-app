@@ -13,11 +13,12 @@ def settings():
 
         if not user:
             flash("User not found.")
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
 
         if request.method == "POST":
             form = request.form
 
+            # 🌀 Journey Theme
             journey = form.get("theme_choice")
             valid_journeys = [
                 "Major loss or grieving",
@@ -32,6 +33,7 @@ def settings():
                 user.theme_choice = journey
                 session['journey'] = journey
 
+            # 📅 Journey Start Date (relapse reset)
             date_str = form.get("journey_start_date")
             if date_str:
                 try:
@@ -39,35 +41,34 @@ def settings():
                 except ValueError:
                     flash("Invalid date format for journey start.", "error")
 
+            # 📝 Nickname update
             nickname = form.get("nickname", "").strip()
             if nickname:
                 user.nickname = nickname
                 user.display_name = nickname
                 session['nickname'] = nickname
 
+            # 👁️ Visibility toggle
             user.show_journey_publicly = 'show_journey_publicly' in form
 
             db.commit()
             flash("Settings updated successfully.", "success")
-            return redirect(url_for('settings.settings'))  # Note blueprint name
+            return redirect(url_for('settings.settings'))
 
-        journey_start_date = (
-            user.journey_start_date.strftime('%Y-%m-%d')
-            if isinstance(user.journey_start_date, datetime)
-            else ""
-        )
+        # Format journey date for form
+        try:
+            journey_start_date = user.journey_start_date.strftime('%Y-%m-%d') if user.journey_start_date else ""
+        except Exception:
+            journey_start_date = ""
 
         return render_template(
-    "settings.html",
-    theme_choice=user.theme_choice or "",
-    journey_start_date=journey_start_date,
-    nickname=user.nickname or "",
-    timezone=user.timezone or "America/New_York",
-    show_journey_publicly=bool(getattr(user, "show_journey_publicly", False)),
-    datetime=datetime  # 👈 This fixes the Jinja2 error
-)
-
-
+            "settings.html",
+            theme_choice=user.theme_choice or "",
+            journey_start_date=journey_start_date,
+            nickname=user.nickname or "",
+            show_journey_publicly=bool(getattr(user, "show_journey_publicly", False)),
+            datetime=datetime  # ✅ For template use: max="{{ datetime.utcnow().strftime('%Y-%m-%d') }}"
+        )
 
     except SQLAlchemyError:
         db.rollback()
@@ -75,3 +76,4 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
+

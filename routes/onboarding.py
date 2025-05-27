@@ -1,16 +1,14 @@
-from flask import Blueprint, render_template, session, request, redirect, url_for, flash
+from flask import Blueprint, request, session, flash
 from models import SessionLocal, User
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
+from main import generate_resurgitag  # ✅ Use existing generator
 
 onboarding_bp = Blueprint("onboarding", __name__)
 
-@onboarding_bp.route("/onboarding", methods=["GET"])
-def onboarding():
-    return render_template("onboarding.html")
-
 @onboarding_bp.route("/submit-onboarding", methods=["POST"])
 def submit_onboarding():
+    import json
     db = SessionLocal()
     try:
         user_id = session.get("user_id")
@@ -31,6 +29,11 @@ def submit_onboarding():
         user.theme_choice = data.get("journey")
         user.has_completed_onboarding = True
 
+        # ✅ Generate Resurgitag based on nickname
+        if not user.resurgitag:
+            base = user.nickname or "User"
+            user.resurgitag = generate_resurgitag(base)
+
         db.commit()
         return "Success", 200
 
@@ -40,3 +43,4 @@ def submit_onboarding():
         return "Error processing onboarding", 500
     finally:
         db.close()
+

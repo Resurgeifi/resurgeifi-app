@@ -1,14 +1,3 @@
-from flask import Blueprint, render_template, session, redirect, url_for, flash
-from models import SessionLocal, User, JournalEntry
-from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
-import os
-import qrcode
-import io
-import base64
-
-profile_bp = Blueprint("profile", __name__)
-
 @profile_bp.route("/profile")
 def profile():
     user_id = session.get("user_id")
@@ -16,11 +5,10 @@ def profile():
 
     try:
         user = db.query(User).filter_by(id=user_id).first()
-
-        if not user.resurgitag:
-            from main import generate_resurgitag
-            user.resurgitag = generate_resurgitag(user.display_name or "User")
-            db.commit()
+        
+        if not user or not user.resurgitag:
+            flash("Resurgitag missing — please contact support.", "error")
+            return redirect(url_for("menu"))
 
         clean_tag = user.resurgitag.lstrip("@")
         base_url = os.getenv("BASE_URL", "") or "http://localhost:5050"
@@ -49,18 +37,3 @@ def profile():
     finally:
         db.close()
 
-@profile_bp.route("/profile/public/<resurgitag>")
-def view_public_profile(resurgitag):
-    db = SessionLocal()
-    try:
-        clean_tag = f"@{resurgitag.lstrip('@').lower()}"
-        user = db.query(User).filter(User.resurgitag.ilike(clean_tag)).first()
-
-        if not user:
-            flash("No user found with that Resurgitag.")
-            return render_template("not_found.html", message="This profile doesn't exist."), 404
-
-        return render_template("public_profile.html", friend=user, current_time=datetime.utcnow())
-
-    finally:
-        db.close()
