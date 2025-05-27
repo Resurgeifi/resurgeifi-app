@@ -41,7 +41,8 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
 # ✅ Init extensions
 db.init_app(app)
-init_session(app)  # 🔑 Set up SessionLocal after db.init_app
+with app.app_context():
+    init_session(app)  # 🔒 Ensure engine is created inside app context
 mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
