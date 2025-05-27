@@ -4,7 +4,7 @@ from models import User, JournalEntry, CircleMessage
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import os
-from db_session import SessionLocal
+from db import SessionLocal
 
 misc_bp = Blueprint("misc", __name__)
 

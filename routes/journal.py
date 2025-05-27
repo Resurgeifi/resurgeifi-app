@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from openai import OpenAI
 from pytz import timezone as tz, utc, all_timezones
-from db_session import SessionLocal
+from db import SessionLocal
 
 journal_bp = Blueprint("journal", __name__)
 

@@ -5,7 +5,7 @@ from flask_mail import Message
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import random
-from db_session import SessionLocal
+from db import SessionLocal
 
 auth_bp = Blueprint("auth", __name__)
 

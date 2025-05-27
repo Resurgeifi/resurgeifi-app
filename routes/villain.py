@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, abort
 from models import VillainProfile
-from db_session import SessionLocal
+from db import SessionLocal
 
 villain_bp = Blueprint("villain", __name__)
 

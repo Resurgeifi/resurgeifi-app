@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from functools import wraps
 from models import login_required
-from db_session import SessionLocal
+from db import SessionLocal
 
 
 admin_bp = Blueprint("admin", __name__)

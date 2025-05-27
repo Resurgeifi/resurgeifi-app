@@ -7,7 +7,7 @@ from uuid import uuid4
 from openai import OpenAI
 import random
 import os
-from db_session import SessionLocal
+from db import SessionLocal
 
 circle_bp = Blueprint("circle", __name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

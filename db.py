@@ -1,22 +1,25 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+# db.py
 import os
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session, declarative_base
 
-# ✅ Optional: Flask-aware base if used
-try:
-    from main import db
-    Base = db.Model
-except:
-    Base = declarative_base()
-
+# ✅ Load .env and get DB URL
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# ✅ Create engine and session
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = scoped_session(sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+))
 
-# ✅ Test connection
+# ✅ Declare base for models
+Base = declarative_base()
+
+# ✅ Optional: test connection
 if __name__ == "__main__":
     try:
         with engine.connect() as connection:
@@ -24,3 +27,4 @@ if __name__ == "__main__":
     except Exception as e:
         print("❌ Failed to connect to the database:")
         print(e)
+

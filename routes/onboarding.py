@@ -3,7 +3,7 @@ from models import User
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 from routes.resurgitag import generate_resurgitag
-from db_session import SessionLocal
+from db import SessionLocal
 
 
 onboarding_bp = Blueprint("onboarding", __name__)

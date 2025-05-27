@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, session, redirect, url_for, flash
 from models import User
 from sqlalchemy.exc import SQLAlchemyError
-from db_session import SessionLocal
+from db import SessionLocal
 
 # ✅ Fix: Declare the Blueprint
 profile_bp = Blueprint("profile", __name__)

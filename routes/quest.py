@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from openai import OpenAI
 import os
-from db_session import SessionLocal
+from db import SessionLocal
 
 quest_bp = Blueprint("quest", __name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
