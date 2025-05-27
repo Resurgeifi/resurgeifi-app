@@ -212,14 +212,6 @@ class UserSettings(db.Model):
 
     user = db.relationship("User", backref="settings")
 
-
-# ✅ Session setup (after db.init_app(app) in app.py)
-try:
-    engine = db.get_engine()
-    SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
-except:
-    SessionLocal = None  # Safe fallback during initial setup
-
 # ✅ login_required decorator
 from functools import wraps
 from flask import session, redirect, url_for, flash
