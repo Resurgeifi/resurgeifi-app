@@ -6,5 +6,5 @@ SessionLocal = None
 def init_session(app):
     global SessionLocal
     with app.app_context():
-        engine = db.get_engine(app)  # ✅ pass app correctly
+        engine = db.get_engine()  # ✅ pass app correctly
         SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
