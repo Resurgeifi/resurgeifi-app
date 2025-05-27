@@ -3,6 +3,7 @@ from models import SessionLocal, User, CircleMessage, JournalEntry
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta
 from functools import wraps
+from routes.misc import login_required
 
 admin_bp = Blueprint("admin", __name__)
 
