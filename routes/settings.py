@@ -63,8 +63,10 @@ def settings():
     journey_start_date=journey_start_date,
     nickname=user.nickname or "",
     timezone=user.timezone or "America/New_York",
-    show_journey_publicly=bool(getattr(user, "show_journey_publicly", False))
+    show_journey_publicly=bool(getattr(user, "show_journey_publicly", False)),
+    datetime=datetime  # 👈 This fixes the Jinja2 error
 )
+
 
 
     except SQLAlchemyError:
