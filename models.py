@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 db = SQLAlchemy()
 
@@ -24,10 +25,9 @@ class User(db.Model):
     timezone = db.Column(db.String(50), default="UTC")
     resurgitag = db.Column(db.String(32), unique=True, nullable=True)
     resurgitag_locked = db.Column(db.Boolean, default=False)
-    has_completed_onboarding = db.Column(db.Boolean, default=False)  # ✅ Tracks if onboarding was finished
-    is_admin = db.Column(db.Boolean, default=False)  # ✅ Admin permission flag
+    has_completed_onboarding = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
-    # 🔐 Privacy toggle for public profile
     show_journey_publicly = db.Column(db.Boolean, default=False)
 
     # Onboarding fields
@@ -44,7 +44,7 @@ class User(db.Model):
     points = db.Column(db.Integer, default=0)
     last_login = db.Column(db.DateTime, nullable=True)
 
-    # ✅ Friends relationship
+    # Friend system
     friends = db.relationship(
         "User",
         secondary=friend_association,
@@ -53,7 +53,7 @@ class User(db.Model):
         backref="friend_of"
     )
 
-    # ✅ Mood and activity for Circle visuals
+    # Circle status
     mood_status = db.Column(db.String(50), default="🫥")
     last_active = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -148,18 +148,6 @@ class HeroProfile(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-class FlashMomentLog(db.Model):
-    __tablename__ = "flash_moment_logs"
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    source = db.Column(db.String(100))
-    description = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-    user = db.relationship("User", backref="flash_moments")
-
-
 class VillainProfile(db.Model):
     __tablename__ = "villain_profiles"
 
@@ -188,6 +176,18 @@ class VillainFlashEncounter(db.Model):
     user = db.relationship("User", backref="villain_encounters")
 
 
+class FlashMomentLog(db.Model):
+    __tablename__ = "flash_moment_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    source = db.Column(db.String(100))
+    description = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="flash_moments")
+
+
 class SupportGestureLog(db.Model):
     __tablename__ = "support_gestures"
 
@@ -212,11 +212,23 @@ class UserSettings(db.Model):
 
     user = db.relationship("User", backref="settings")
 
-from sqlalchemy.orm import scoped_session, sessionmaker
 
-# 👇 Only needed AFTER db.init_app(app) is called in app.py
+# ✅ Session setup (after db.init_app(app) in app.py)
 try:
     engine = db.get_engine()
     SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 except:
-    SessionLocal = None  # Avoids crashing on import during setup
+    SessionLocal = None  # Safe fallback during initial setup
+
+# ✅ login_required decorator
+from functools import wraps
+from flask import session, redirect, url_for, flash
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            flash("Please log in to continue.", "warning")
+            return redirect(url_for("auth.login"))
+        return f(*args, **kwargs)
+    return decorated_function
