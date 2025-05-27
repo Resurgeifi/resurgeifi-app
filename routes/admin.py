@@ -52,6 +52,8 @@ def admin_dashboard():
     finally:
         db.close()
 
+# routes/admin.py
+
 @admin_bp.route('/admin/grant_points', methods=["POST"])
 @login_required
 @admin_required
@@ -60,10 +62,15 @@ def grant_points():
     try:
         raw_tag = request.form.get('resurgitag', '').strip()
         resurgitag = raw_tag.lstrip('@')
-        points = int(request.form.get('points', 0))
+        raw_points = request.form.get('points', '').strip()
 
-        # 🔍 Match user by @tag (case-insensitive)
-        user = db.query(User).filter(User.resurgitag.ilike(f"%{resurgitag}%")).first()
+        try:
+            points = int(raw_points)
+        except ValueError:
+            flash("⚠️ Invalid number of points.", "error")
+            return redirect(url_for('admin.dashboard'))
+
+        user = db.query(User).filter(User.resurgitag.ilike(f"@{resurgitag}")).first()
 
         if not user:
             flash(f"⚠️ User '@{resurgitag}' not found.", "error")
@@ -80,10 +87,8 @@ def grant_points():
         flash("🔥 Failed to grant points. Error logged.", "error")
         print("Grant Points Error:", e)
         return redirect(url_for('admin.dashboard'))
-
     finally:
         db.close()
-
 
 @admin_bp.route("/admin/delete_ghosts", methods=["POST"])
 @admin_required
