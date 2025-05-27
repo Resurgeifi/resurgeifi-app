@@ -2,67 +2,83 @@
 {% block title %}{{ hero.display_name }} | Resurgifi Hero{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 700px; margin: 2rem auto; text-align: center;">
+<div class="container" style="max-width: 750px; margin: 2rem auto;">
 
-  <div class="hero-profile-card">
+  <div class="hero-profile-card" style="
+    background-color: #2a2a2a;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    text-align: center;
+    color: #f0e9dc;
+  ">
 
     <!-- 🖼️ Hero Image -->
     <img src="{{ hero.image_path or '/static/images/heroes/placeholder.png' }}" 
          alt="{{ hero.display_name }}" 
-         class="hero-image" 
-         style="max-width: 300px; height: auto; margin-bottom: 1rem;" />
+         style="max-width: 280px; height: auto; margin-bottom: 1.5rem;" />
 
-    <!-- 🎭 Basic Identity -->
-    <h1>{{ hero.display_name }}</h1>
-    <h2 class="hero-title">{{ hero.title }}</h2>
+    <!-- 🎭 Identity -->
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.25rem;">{{ hero.display_name }}</h1>
+    <h2 style="font-size: 1.25rem; font-weight: 300; color: #c0bcae; margin-bottom: 1.5rem;">
+      {{ hero.title }}
+    </h2>
 
-    <!-- 🧭 Symbolic Metadata -->
-    <p class="represents">Journey Type: <strong>{{ hero.represents }}</strong></p>
-    <p class="gender">Gender: {{ hero.gender }}</p>
+    <!-- 🧭 Metadata -->
+    <p><strong>Journey Type:</strong> {{ hero.represents }}</p>
+    <p><strong>Gender:</strong> {{ hero.gender }}</p>
 
     {% if hero.realm %}
-    <p class="realm">Realm: <strong>{{ hero.realm }}</strong></p>
+    <p><strong>Realm:</strong> {{ hero.realm }}</p>
     {% endif %}
 
     {% if hero.symbolic_power %}
-    <p class="power">Known For: <strong>{{ hero.symbolic_power }}</strong></p>
+    <p><strong>Known For:</strong> {{ hero.symbolic_power }}</p>
     {% endif %}
 
     <!-- 💬 Catchphrase -->
     {% if hero.catchphrase %}
-    <blockquote class="catchphrase">“{{ hero.catchphrase }}”</blockquote>
+    <blockquote style="font-style: italic; color: #dcd6ca; margin-top: 1.5rem;">
+      “{{ hero.catchphrase }}”
+    </blockquote>
     {% endif %}
 
     <!-- 📝 Bio -->
-    <section class="bio">
-      <p>{{ hero.bio }}</p>
+    <section style="margin-top: 1.5rem;">
+      <p style="line-height: 1.6;">{{ hero.bio }}</p>
     </section>
 
-    <!-- 🤝 Related Heroes -->
+    <!-- 🤝 Allies -->
     {% if allies %}
-    <section class="related-heroes">
-      <h3>Guides Also Walking This Path</h3>
-      <ul>
+    <section style="margin-top: 2rem;">
+      <h3 style="font-size: 1.2rem; color: #e4dbca;">Other Guides on This Path</h3>
+      <div style="margin-top: 0.75rem;">
         {% for ally in allies %}
-          <li><a href="{{ url_for('hero_profile', resurgitag=ally) }}">@{{ ally }}</a></li>
+          <a href="{{ url_for('hero_profile', resurgitag=ally) }}"
+             class="btn btn-outline-warning btn-sm"
+             style="margin: 0.25rem; border-radius: 20px;">
+            @{{ ally }}
+          </a>
         {% endfor %}
-      </ul>
+      </div>
     </section>
     {% endif %}
 
-    <!-- 🔐 Call to Login -->
+    <!-- 🔐 Login Prompt -->
     {% if not session.get("user_id") %}
-      <div style="margin-top: 1.5rem;">
+      <div style="margin-top: 2rem;">
         <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-light">Log in to connect</a>
       </div>
     {% endif %}
 
-    <!-- 💬 Call to Action -->
-    <div class="hero-buttons" style="margin-top: 2rem;">
-      <a href="/circle" class="btn btn-primary">Talk to {{ hero.display_name }}</a>
+    <!-- 💬 CTA -->
+    <div style="margin-top: 2.5rem;">
+      <a href="/circle" class="btn btn-primary btn-lg">
+        Talk to {{ hero.display_name }}
+      </a>
     </div>
 
   </div>
-
 </div>
 {% endblock %}
+

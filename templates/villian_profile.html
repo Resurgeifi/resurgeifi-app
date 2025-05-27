@@ -2,55 +2,73 @@
 {% block title %}{{ villain.display_name }} | Resurgifi Villain{% endblock %}
 
 {% block content %}
-<div class="villain-profile-card">
+<div class="container" style="max-width: 750px; margin: 2rem auto;">
 
-  <!-- 👿 Villain Image -->
-  <img src="{{ villain.image_path or '/static/images/villains/placeholder.png' }}"
-       alt="{{ villain.display_name }}"
-       class="villain-image" />
+  <div class="villain-profile-card" style="
+    background-color: #1e1e1e;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.1);
+    text-align: center;
+    color: #f5eaea;
+  ">
 
-  <!-- 😈 Name + Title -->
-  <h1 class="villain-name">{{ villain.display_name }}</h1>
-  <h2 class="villain-title">{{ villain.title }}</h2>
+    <!-- 👿 Image -->
+    <img src="{{ villain.image_path or '/static/images/villains/placeholder.png' }}"
+         alt="{{ villain.display_name }}"
+         style="max-width: 280px; height: auto; margin-bottom: 1.5rem;" />
 
-  <!-- 🔥 Core Traits -->
-  <p class="represents">Represents: <strong>{{ villain.represents }}</strong></p>
-  <p class="gender">Gender: {{ villain.gender }}</p>
+    <!-- 😈 Identity -->
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.25rem;">{{ villain.display_name }}</h1>
+    <h2 style="font-size: 1.25rem; font-weight: 300; color: #d89999; margin-bottom: 1.5rem;">
+      {{ villain.title }}
+    </h2>
 
-  <!-- 💬 Catchphrase -->
-  {% if villain.catchphrase %}
-    <blockquote class="catchphrase">“{{ villain.catchphrase }}”</blockquote>
-  {% endif %}
+    <!-- 🔥 Traits -->
+    <p><strong>Represents:</strong> {{ villain.represents }}</p>
+    <p><strong>Gender:</strong> {{ villain.gender }}</p>
 
-  <!-- 🧠 Origin & Symbolism -->
-  <section class="bio">
-    <p>{{ villain.bio }}</p>
-  </section>
+    <!-- 💬 Catchphrase -->
+    {% if villain.catchphrase %}
+      <blockquote style="font-style: italic; color: #ffcccc; margin-top: 1.5rem;">
+        “{{ villain.catchphrase }}”
+      </blockquote>
+    {% endif %}
 
-  <!-- 🔗 Related Villains -->
-  {% if linked_villains %}
-  <section class="related-villains">
-    <h3>Other Forces Stalking This Path</h3>
-    <div class="villain-link-buttons">
-      {% for tag in linked_villains %}
-        <a href="{{ url_for('villain_profile', resurgitag=tag) }}" class="btn btn-outline-danger">@{{ tag }}</a>
-      {% endfor %}
+    <!-- 🧠 Bio -->
+    <section style="margin-top: 1.5rem;">
+      <p style="line-height: 1.6;">{{ villain.bio }}</p>
+    </section>
+
+    <!-- 🔗 Related Villains -->
+    {% if linked_villains %}
+    <section style="margin-top: 2rem;">
+      <h3 style="font-size: 1.2rem; color: #f4c6c6;">Other Forces Stalking This Path</h3>
+      <div style="margin-top: 0.75rem;">
+        {% for tag in linked_villains %}
+          <a href="{{ url_for('villain_profile', resurgitag=tag) }}"
+             class="btn btn-outline-danger btn-sm"
+             style="margin: 0.25rem; border-radius: 20px;">
+            @{{ tag }}
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- ⚠️ Warning -->
+    <div style="margin-top: 2rem; color: #ffb0b0; font-weight: 500;">
+      ⚠️ This presence grows stronger when ignored.  
+      <br>Speak in the Circle to name it, face it, and begin to take your power back.
     </div>
-  </section>
-  {% endif %}
 
-  <!-- 👣 Path Warning -->
-  <div class="villain-warning">
-    <p><strong>⚠️ Beware:</strong> This presence grows stronger when ignored. Speak in the Circle to name it, face it, and begin to take your power back.</p>
+    <!-- 🗣️ CTA -->
+    <div style="margin-top: 2.5rem;">
+      <a href="/circle" class="btn btn-danger btn-lg">
+        Face {{ villain.display_name }} in the Circle
+      </a>
+    </div>
+
   </div>
-
-  <!-- 🗣️ CTA -->
-  <div class="villain-buttons">
-    <a href="/circle" class="btn btn-danger">Face {{ villain.display_name }} in the Circle</a>
-  </div>
-
 </div>
 {% endblock %}
-
-
-
