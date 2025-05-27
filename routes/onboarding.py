@@ -2,7 +2,8 @@ from flask import Blueprint, request, session, flash
 from models import SessionLocal, User
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
-from main import generate_resurgitag  # ✅ Use existing generator
+from routes.resurgitag import generate_resurgitag
+
 
 onboarding_bp = Blueprint("onboarding", __name__)
 
