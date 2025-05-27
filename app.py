@@ -45,11 +45,13 @@ mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
 
-# ✅ Deferred session binding
-@app.before_first_request
-def bind_sessionlocal():
-    print("🧠 Initializing SessionLocal before first request...")
-    init_session(app)
+# ✅ Safe SessionLocal binding — manual call
+def setup_runtime():
+    with app.app_context():
+        print("🚀 Running SessionLocal setup at startup")
+        init_session(app)
+
+setup_runtime()
 
 # ✅ Register Blueprints
 app.register_blueprint(admin_bp)
@@ -68,3 +70,4 @@ app.register_blueprint(misc_bp)
 @app.route('/')
 def landing():
     return "Resurgifi App Running"
+
