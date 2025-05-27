@@ -4,7 +4,11 @@ from flask_mail import Mail
 from flask_cors import CORS
 from flask_migrate import Migrate
 from dotenv import load_dotenv
+
 from models import db
+from db_sessions import init_session  # ✅ Custom file that defines & sets SessionLocal
+
+# Blueprints
 from routes.admin import admin_bp
 from routes.circle import circle_bp
 from routes.journal import journal_bp
@@ -17,9 +21,10 @@ from routes.onboarding import onboarding_bp
 from routes.quest import quest_bp
 from routes.misc import misc_bp
 
-# ✅ Load .env
+# ✅ Load environment variables
 load_dotenv()
 
+# ✅ Flask app setup
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
 
@@ -34,12 +39,9 @@ app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 
-# ✅ Init services
+# ✅ Init extensions
 db.init_app(app)
-
-from db_session import init_session
-init_session(app)
-
+init_session(app)  # 🔑 Set up SessionLocal after db.init_app
 mail = Mail(app)
 migrate = Migrate(app, db)
 CORS(app, supports_credentials=True)
@@ -61,4 +63,3 @@ app.register_blueprint(misc_bp)
 @app.route('/')
 def landing():
     return "Resurgifi App Running"
-
