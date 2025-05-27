@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request
 from models import SessionLocal, User
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
+import datetime  # ✅ FIXED: full module, not just function
 
 settings_bp = Blueprint("settings", __name__)
 
