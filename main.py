@@ -1439,20 +1439,16 @@ def villain_profile(resurgitag):
         )
     finally:
         db.close()
-
-@app.route("/<path:unbuilt_path>")
-def coming_soon(unbuilt_path):
-    # Prevent catching static files or admin routes
-    if unbuilt_path.startswith("static/") or unbuilt_path.startswith("admin"):
+@app.route("/<path:any_path>")
+def universal_fallback(any_path):
+    # Prevent catching static files, favicon, or admin/backend routes
+    if any_path.startswith(("static/", "admin", "favicon")):
         abort(404)
     return render_template("coming_soon.html")
-@app.errorhandler(404)
-def handle_404(error):
-    return render_template("coming_soon.html"), 404
 
-@app.route("/coming-soon")
-def coming_soon():
-    return render_template("coming_soon.html")
+@app.errorhandler(404)
+def fallback_404(error):
+    return render_template("coming_soon.html"), 404
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
