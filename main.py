@@ -131,6 +131,10 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.route("/landing")
+def landing():
+    return render_template("landing.html")
+
 # ✅ Generate emotional presence conversation
 def get_mock_conversation(absence_minutes):
     if absence_minutes < 60:
