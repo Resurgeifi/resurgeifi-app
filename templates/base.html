@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Resurgifi{% endblock %}</title>
   <meta name="robots" content="noindex, nofollow">
-
-  <!-- 🌍 Global Styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
 </head>
@@ -20,7 +18,7 @@
       <label for="menu-toggle" class="menu-icon">&#9776;</label>
       <div class="side-nav">
         <ul>
-          <li><a href="/profile"><img src="{{ url_for('static', filename='icons/gold_profile.png') }}" /> Profile</a></li>
+          <li><a href="/profile"><img src="{{ url_for('static', filename='icons/profileicon.png') }}" /> Profile</a></li>
           <li><a href="/circle">Circle</a></li>
           <li><a href="/journal">Journal</a></li>
           <li><a href="/map">Map</a></li>
@@ -31,6 +29,11 @@
         </ul>
       </div>
     </div>
+
+    <!-- 👤 Profile Icon -->
+    <a href="/profile" id="profile-icon">
+      <img src="{{ url_for('static', filename='icons/profileicon.png') }}" alt="Profile Icon" class="profile-icon" />
+    </a>
 
     {% if g.user.is_admin %}
       <a href="{{ url_for('admin_dashboard') }}" title="Admin Dashboard"
@@ -67,16 +70,16 @@
       <img src="{{ url_for('static', filename='icons/journal-quill.png') }}" alt="Journal Icon" class="nav-icon" />
     </a>
     <a href="/life-ring" class="nav-item" aria-label="Life Ring">
-      <span class="nav-icon" style="font-size: 36px;">🙟</span>
+      <img src="{{ url_for('static', filename='icons/life-ring.png') }}" alt="Life Ring Icon" class="nav-icon" />
     </a>
   </div>
   <div class="nav-center">
     <a href="/quest" class="plus-button journey-button" aria-label="Daily Quest">
-      <img src="{{ url_for('static', filename='icons/quest_icon.png') }}" alt="Quest Icon" class="nav-icon" />
+      <img src="{{ url_for('static', filename='icons/quest_icon.png') }}" alt="Quest Icon" style="width: 58px; height: 58px;" />
     </a>
   </div>
   <div class="nav-side nav-right">
-    <a href="/circle" class="nav-item" aria-label="Circle">
+    <a href="/form" class="nav-item" aria-label="Circle">
       <img src="{{ url_for('static', filename='icons/circle-logo.png') }}" alt="Circle Icon" class="nav-icon" />
     </a>
     <a href="/settings" class="nav-item" aria-label="Settings">
@@ -96,20 +99,24 @@
 
 {% block scripts %}{% endblock %}
 
-<!-- Grace & Points Logic untouched -->
-<script>
-function showGraceFlash() { ... }
-function flashPoints() { ... }
-</script>
-
-{% if get_flashed_messages(with_categories=true)|selectattr(0, 'equalto', 'points')|list %}
-  <script>flashPoints();</script>
-{% endif %}
-
+<!-- 🎇 Style + Logic -->
 <style>
-#hamburger-menu { display: none; }
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  margin-left: 1rem;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #f6e7c1;
+}
+
+#hamburger-menu {
+  display: none;
+}
 @media (max-width: 768px) {
-  #hamburger-menu { display: block; margin-left: 1rem; }
+  #hamburger-menu {
+    display: block;
+    margin-left: 1rem;
+  }
   .menu-icon {
     font-size: 1.8rem;
     color: #f6e7c1;
@@ -130,7 +137,10 @@ function flashPoints() { ... }
   #menu-toggle:checked + .menu-icon + .side-nav {
     left: 0;
   }
-  .side-nav ul { list-style: none; padding: 0; }
+  .side-nav ul {
+    list-style: none;
+    padding: 0;
+  }
   .side-nav ul li {
     padding: 1rem;
     border-bottom: 1px solid #333;
@@ -149,6 +159,71 @@ function flashPoints() { ... }
 }
 </style>
 
+<script>
+function showGraceFlash() {
+  const flash = document.getElementById("graceFlash");
+  const audio = document.getElementById("graceSound");
+  if (!flash || !audio) return;
+  flash.style.display = "flex";
+  flash.style.opacity = 1;
+  flash.style.pointerEvents = "none";
+  audio.pause();
+  audio.currentTime = 0;
+  audio.play().catch(err => console.warn("Grace audio failed:", err));
+  setTimeout(() => {
+    flash.style.opacity = 0;
+    setTimeout(() => {
+      flash.style.display = "none";
+    }, 600);
+  }, 3000);
+}
+
+function flashPoints() {
+  const badge = document.getElementById("points-badge");
+  const float = document.getElementById("points-float");
+  const sparkle = document.getElementById("sparkle-container");
+  const audio = document.getElementById("pointsAudio");
+
+  if (badge) {
+    badge.classList.add("flash-badge");
+    setTimeout(() => badge.classList.remove("flash-badge"), 800);
+  }
+
+  if (float) {
+    float.style.display = "block";
+    float.textContent = "+3";
+    float.classList.remove("floatUp");
+    void float.offsetWidth;
+    float.classList.add("floatUp");
+    setTimeout(() => {
+      float.style.display = "none";
+    }, 900);
+  }
+
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+    audio.play().catch(err => console.warn("Points audio failed:", err));
+  }
+
+  if (sparkle) {
+    for (let i = 0; i < 6; i++) {
+      const star = document.createElement("div");
+      star.className = "sparkle-star";
+      star.style.left = `${Math.random() * 50 + 60}px`;
+      star.style.top = `${Math.random() * 30 + 10}px`;
+      sparkle.appendChild(star);
+      setTimeout(() => sparkle.removeChild(star), 900);
+    }
+  }
+}
+</script>
+
+{% if get_flashed_messages(with_categories=true)|selectattr(0, 'equalto', 'points')|list %}
+  <script>flashPoints();</script>
+{% endif %}
+
 </body>
 </html>
+
 
