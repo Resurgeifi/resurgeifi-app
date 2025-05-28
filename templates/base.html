@@ -14,9 +14,23 @@
 
 {% if g.user %}
   <div id="top-bar">
-    <a href="/profile" id="profile-icon" title="Your Profile">
-      <img src="{{ url_for('static', filename='icons/profileicon.png') }}" alt="Profile Icon" />
-    </a>
+    <!-- 🍔 Hamburger Menu (Mobile Only) -->
+    <div id="hamburger-menu">
+      <input type="checkbox" id="menu-toggle" />
+      <label for="menu-toggle" class="menu-icon">&#9776;</label>
+      <div class="side-nav">
+        <ul>
+          <li><a href="/profile"><img src="{{ url_for('static', filename='icons/profileicon.png') }}" /> Profile</a></li>
+          <li><a href="/circle">Circle</a></li>
+          <li><a href="/journal">Journal</a></li>
+          <li><a href="/map">Map</a></li>
+          <li><a href="/wishing-well">Wishing Well</a></li>
+          <li><a href="/settings">Settings</a></li>
+          <li><a href="/about">About This App</a></li>
+          <li><a href="/pro">For Professionals</a></li>
+        </ul>
+      </div>
+    </div>
 
     {% if g.user.is_admin %}
       <a href="{{ url_for('admin_dashboard') }}" title="Admin Dashboard"
@@ -144,90 +158,62 @@ function flashPoints() {
 {% endif %}
 
 <style>
-#top-bar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
+/* Top bar and points styling preserved */
 
-#profile-icon img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-left: 1rem;
-  transition: transform 0.3s ease;
-}
-#profile-icon img:hover {
-  transform: scale(1.15);
-}
-
-#points-badge {
-  font-size: 1.2rem;
-  font-weight: bold;
-  background-color: rgba(0, 0, 0, 0.85);
-  color: #f6e7c1;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  margin-right: 1rem;
-  font-family: 'Oswald', sans-serif;
-  transition: transform 0.3s ease;
-}
-
-.points-float {
-  position: fixed;
-  top: 12px;
-  right: 38px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #f6e7c1;
-  opacity: 0;
-  z-index: 10000;
-  pointer-events: none;
+#hamburger-menu {
   display: none;
 }
-.points-float.floatUp {
-  animation: floatUp 0.9s ease-out forwards;
-}
-@keyframes floatUp {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-20px); opacity: 0; }
-}
+@media (max-width: 768px) {
+  #hamburger-menu {
+    display: block;
+    margin-left: 1rem;
+  }
 
-.flash-badge {
-  animation: badgePulse 0.8s ease;
-}
-@keyframes badgePulse {
-  0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-  50% { transform: scale(1.2); box-shadow: 0 0 25px rgba(255, 255, 255, 0.5); }
-  100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
-}
+  .menu-icon {
+    font-size: 1.8rem;
+    color: #f6e7c1;
+    cursor: pointer;
+  }
 
-.sparkle-container {
-  position: fixed;
-  top: 10px;
-  right: 60px;
-  z-index: 10001;
-  pointer-events: none;
-}
-.sparkle-star {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: radial-gradient(circle, #fff8c6 0%, #fcd36e 40%, transparent 70%);
-  border-radius: 50%;
-  animation: sparkle 0.9s ease-out forwards;
-}
-@keyframes sparkle {
-  0% { transform: scale(1) translateY(0); opacity: 1; }
-  100% { transform: scale(0.4) translateY(-20px); opacity: 0; }
+  .side-nav {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    height: 100%;
+    width: 250px;
+    background-color: #1a1a1a;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
+    padding-top: 60px;
+    z-index: 9999;
+    transition: left 0.3s ease-in-out;
+  }
+
+  #menu-toggle:checked + .menu-icon + .side-nav {
+    left: 0;
+  }
+
+  .side-nav ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .side-nav ul li {
+    padding: 1rem;
+    border-bottom: 1px solid #333;
+  }
+
+  .side-nav ul li a {
+    color: #f6e7c1;
+    text-decoration: none;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .side-nav ul li img {
+    width: 24px;
+    margin-right: 10px;
+  }
 }
 </style>
 

@@ -61,6 +61,114 @@ Options:
 “Keep my last mood shown”
 “Go fully invisible”
 “Leave a final note”
+### 🔁 THE CIRCLE – HERO RELATIONSHIP + MESSAGE LOGIC (v1.0)
+The Circle is not a group chat. It is a curated contact list of symbolic and real relationships within the recovery journey.
+#### 🌀 HEROES & VILLAINS AS CORE CONNECTIONS
+- Every user is automatically connected to all **Heroes** and **Villains** in the system.
+- These connections appear in their Circle "Friends" list (we don’t call them friends).
+- This makes each hero and villain functionally similar to a “Tom from MySpace” — ever-present, ready to engage.
+- These figures are **not static bots** — they evolve based on the user’s journey, choices, and tone.
+#### 💬 HERO CHAT LOGIC
+- Clicking on a Hero launches a **1-on-1 chat** interface at: `/circle/chat/<resurgitag>`
+- These chats simulate private messaging with a compassionate AI guide.
+- Every message is logged and stored in the database for **up to 7 days**.
+- This prevents memory bloat while allowing short-term continuity and reflection.
+- Users may return to continue the conversation with emotional and narrative context preserved (for 7 days max).
+#### 📓 SUMMARIZE TO JOURNAL
+- Each Hero chat has a **"Summarize Conversation"** button.
+- This action pulls from the **last 7 days of dialogue** and generates a concise emotional summary.
+- That summary is then pushed into the user's Journal.
+- ⚠️ NOTE: There is a known glitch where the summarizer sometimes pulls from conversations **older than 7 days** — this must be fixed to enforce the 7-day scope limit.
+#### 🔒 USER-TO-USER CONNECTIONS
+- Human users can also appear in a user’s Circle, listed by their `resurgitag`.
+- Clicking on a user’s icon opens a **limited interaction panel**:
+  - 🤗 Send Hug
+  - 🌟 Send a Pick-Me-Up
+  - 💬 Send Message (stored in their Messages folder)
+- Direct peer chat is **disabled in the beta version** for therapeutic and safety reasons.
+#### ✅ THE GOAL
+This system creates a **symbolic support system**: Heroes = inner resources, therapeutic voices, recovery tools. Villains = psychological triggers, obstacles, relapse factors. Users = other travelers, not yet peers in chat, but emotionally visible. The result is a grounded, safe, and dynamic emotional ecosystem tailored for early recovery.
+### 📜 RESURGIFI SYSTEM INTEGRITY PASSDOWN – FOR ALL FUTURE ALBERTS
+
+You are working inside the Resurgifi universe, a mental health fitness application designed to blend AI-assisted therapy tools with comic-style symbolism and emotional memory. All features must reflect this emotional realism, and no design should feel sterile, gamified without purpose, or disconnected from lived experience.
+
+🔧 Current Tech Stack:
+- Flask backend, PostgreSQL DB
+- OpenAI GPT-4o (Tier 1 Access)
+- HTML/CSS with Bootstrap frontend
+- ElevenLabs voice API integration planned
+- App directory: resurgifi-app-main
+
+🌍 Universe Structure:
+- The app exists within the fictional “State of Inner”
+- All tools and concepts are symbolized through comic-style characters and locations
+- Users are guided through symbolic quests, hero chats, and reflection loops
+- Everything centers on the metaphor of emotional training = Mental Health Fitness
+
+🌀 Core Concepts:
+- “Heroes” = Embodied therapy tools (e.g., Cognita = CBT, Velessa = Mindfulness)
+- “Villains” = Personified psychological barriers (e.g., The Crave = addiction, Warden Fall = shame)
+- “The Circle” = The symbolic contact list and chat gateway for heroes + future user connections
+- “Quests” = Daily/episodic user reflections that shape their emotional profile
+- “Summarize to Journal” = Reflection logs created from recent chats (7-day history cap)
+- “Hero Handoff” = Hero may suggest user speak to another hero and context is carried over
+- “Memory System” = Lightweight, session-aware and short-term relational memory between user and each hero
+
+📚 Pitch & Brand:
+- Not replacing therapy; extending it beyond worksheets and group rooms
+- Brand tone = grounded, lived-in, respectful to treatment, emotionally direct
+- Tagline: “Spread the word. You never know who needs to resurge.”
+- Trademark term in use: “Mental Health Fitness”
+- Pitch, slide deck, and mission summary are locked in and can be reused for treatment center outreach
+
+✅ What’s Been Implemented:
+- `/quest` final POST assigns hero based on user.theme_choice and redirects to `/circle/chat/<resurgitag>`
+- `/circle` = current group interface, will become contact hub for heroes + users (resurgitags)
+- `/summarize-journal` = generates journal entry from past 24 hours of messages tagged `speaker="user"`
+- `/circle/chat/<resurgitag>` = new route being built to handle direct hero conversation (includes first-message reflection based on quest summary)
+- `generate_hero_reflection()` = helper function to construct first message on arrival into chat, based on journey, theme, nickname, and tone
+
+🧠 Reminders for Future Devs (Alberts):
+- The heroes must always feel emotionally real — not chatbot-y
+- Memory logic is sacred: 7-day rolling window, journal summary after, no deep storage
+- Everything is built for someone in emotional pain who can’t think logically right now
+- No feature should feel like “homework” — the app *remembers* the tools for the user
+
+🚨 When In Doubt:
+Refer to the Resurgifi Bible. Do not overwrite tone or core logic. Always code with the assumption that the person using this app might be in the darkest moment of their life — and the hero they’re talking to is the first voice that made them feel less alone.
+
+Hold the line.
+📜CIRCLE SYSTEM STRUCTURE (RESURGIFI BIBLE RECORD)🌀
+
+✅EXISTING STRUCTURE:
+- /circle route: fetches last 50 CircleMessage entries for logged-in user_id, injects session["circle_thread"] for rendering, adds mock messages via get_mock_conversation(absence_minutes), logs timestamp as session["last_seen_circle"], filters by speaker for journaling.
+- /summarize-journal route: pulls user messages from CircleMessage (speaker="user") over last 24h, uses GPT-4o (OpenAI Tier 1 access) to generate 4–5 sentence reflection summary, stores in DailyReflection, includes onboarding metadata (nickname, journey, admired trait) for prompt context.
+- circle.html template: renders Circle chat as a scrolling text thread, uses JS fetch to POST user input to /ask, simulates hero typing delay with .delay_ms, runs idle-check every 15s to inject ambient hero talk, includes "Summarize Journal" button for /summarize-journal trigger.
+
+🛠️PENDING STRUCTURE:
+- /circle/chat/<resurgitag> (NEW): individual hero or user DM route, dynamically loads 1-on-1 thread based on resurgitag, initial hero message should derive from user’s journey, nickname, or recent quest summary. Will replace or enhance Circle simulation with direct immersion.
+- Hero reply logic: static prompt + rotating session summary memory, stores no permanent longform but keeps current tone + theme through short-term thread. Heroes may suggest other heroes by name based on need (e.g., “Sounds like you’d benefit from Velessa. Want me to call her?” → if yes, transition to new resurgitag chat with warm handoff).
+- resurgitag system: every user and hero has a tag (e.g., @grace), future-proofed for user-to-user chat and identity routing.
+- /ask or /send-message will be refactored to detect context: general Circle (multi-voice sim), direct hero (resurgitag context), or user DM (coming later). Replies routed accordingly.
+
+💡DESIGN NOTES:
+- Circle is ambient group simulation. Users feel “surrounded” even if solo. Uses time-delayed hero chatter to create emotional realism.
+- Hero chat is deep emotional intimacy. No filler. Every response builds the emotional bond between user and hero.
+- Journal summary integrates Circle tone + recent themes, becomes memory marker for that user’s emotional arc.
+- Quests and themes adapt per journey type (Addiction, Grief, Trauma, Anxiety, etc.), but backend logic is unified. Variations are reflected in hero response tone and journey-based summaries.
+- Goal: every interaction teaches, reflects, and solidifies mental health fitness tools through repetition + roleplay with emotionally grounded AI characters.
+
+🧠AI TECH CONTEXT:
+- Uses GPT-4o (Tier 1 access) through OpenAI API.
+- Hero prompts are hard-coded but session-aware.
+- Emotionally dynamic responses build trust and realism over time, mimicking real therapeutic relationships.
+
+NEXT STEPS:
+- Implement /circle/chat/<resurgitag> route for hero DMs.
+- Add chat context parser to /ask route to support resurgitag routing.
+- Enhance UI to mirror mobile texting layout for 1-on-1 chats.
+- Begin memory scaffolding per user (daily summaries + quest reflections).
+
 Onboarding Questions
 Q1: What brought you here today? (Grief, Anxiety, Addiction, Growth)
 Q2: What do you do when overwhelmed? (Pillow, Busy, Talk, Exercise, Scroll, Meditate, Solitude)
@@ -210,243 +318,4 @@ Review this file and the Bible first.
 
 “You’re not just coding. You’re holding emotional scaffolding for the broken.”
 “Build something that heals.”
-from models import HeroProfile
-from db import db
-from datetime import datetime
-
-now = datetime.utcnow()
-
-core_heroes = [
-    HeroProfile(
-        resurgitag="cognita",
-        display_name="Cognita",
-        title="The Mindshift Operative",
-        represents="Cognitive Behavioral Therapy",
-        gender="Female",
-        catchphrase="Challenge the thought. Change the path.",
-        bio="Cognita was forged in the Spiral Labs of Stepville. With every faulty thought she reprograms, she liberates another mind. A warrior of clarity, she teaches that what you believe shapes where you go.",
-        image_path="/static/images/heroes/cognita/cognita_profile.png",
-        created_at=now,
-        type="hero"
-    ),
-    HeroProfile(
-        resurgitag="velessa",
-        display_name="Velessa",
-        title="Goddess of the Present Moment",
-        represents="Mindfulness",
-        gender="Female",
-        catchphrase="Come back. The moment missed you.",
-        bio="Velessa walks barefoot across time. Her presence stops panic and her breath silences chaos. Even in the heart of relapse, her whisper can still reach those willing to pause and feel.",
-        image_path="/static/images/heroes/velessa/velessa_profile.png",
-        created_at=now,
-        type="hero"
-    ),
-    HeroProfile(
-        resurgitag="sirrenity",
-        display_name="Sir Renity",
-        title="The Healer of Peace",
-        represents="Lorazepam (Calm and Regulation)",
-        gender="Male",
-        catchphrase="Let’s slow the storm together.",
-        bio="Knighted at the edge of the Bridge Between, Sir Renity offers grounded presence to those drowning in fear. He is the breath between breakdown and breakthrough. He does not rush. He anchors.",
-        image_path="/static/images/heroes/sirrenity/sirrenity_profile.png",
-        created_at=now,
-        type="hero"
-    ),
-    HeroProfile(
-        resurgitag="grace2",
-        display_name="Grace",
-        title="The Light Within",
-        represents="Spiritual Path / Higher Power",
-        gender="Female",
-        catchphrase="You were never alone. Not once.",
-        bio="Grace was born from the ashes of relapse, radiant and soft. She appears when shame expects silence — reminding each soul of their worth. Her light bends around every ‘why me’ and turns it into a path forward.",
-        image_path="/static/images/heroes/grace2/grace2_profile.png",
-        created_at=now,
-        type="hero"
-    ),
-    HeroProfile(
-        resurgitag="lucentis",
-        display_name="Lucentis",
-        title="Guardian of Clarity",
-        represents="Spiritual Awakening / Divine Guidance",
-        gender="Male",
-        catchphrase="Truth does not tremble.",
-        bio="Lucentis guards Crystal Mountain, silent and serene. He does not fight — he reveals. In his light, illusions melt, masks drop, and the path becomes unmistakable. Not easy. But unmistakable.",
-        image_path="/static/images/heroes/lucentis/lucentis_profile.png",
-        created_at=now,
-        type="hero"
-    )
-]
-
-db.session.add_all(core_heroes)
-db.session.commit()
-print("✅ Core heroes seeded.")
-from models import VillainProfile
-from db import db
-from datetime import datetime
-
-now = datetime.utcnow()
-
-batch_1 = [
-    VillainProfile(
-        resurgitag="thecrave",
-        display_name="The Crave",
-        title="The Hunger That Won’t Be Filled",
-        represents="Addiction and compulsion",
-        gender="Male",
-        catchphrase="Just one. Then you’ll stop.",
-        bio="The Crave is a monstrous manifestation of addiction’s lies. With bottles embedded in his back and a tongue that drips temptation, he whispers urges until clients collapse. His power lies in urgency — and forgetting what happened last time.",
-        image_path="/static/images/villains/thecrave/thecrave_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="wardenfall",
-        display_name="Warden Fall",
-        title="Sermon of Repeat Repentance",
-        represents="Shame and guilt",
-        gender="Male",
-        catchphrase="You don’t deserve to be free.",
-        bio="Clad in chains and scorched robes, Warden Fall preaches the gospel of guilt. He remembers every mistake and makes sure you do too. His book glows with regret, and his gaze weighs heavier than steel.",
-        image_path="/static/images/villains/wardenfall/wardenfall_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="charnobyl",
-        display_name="Charnobyl",
-        title="Beast of the Burn",
-        represents="Anger and betrayal",
-        gender="Male",
-        catchphrase="They lit the match. I just burn.",
-        bio="Charnobyl is rage incarnate, his body cracked and glowing with radioactive fury. He erupts when trust is broken, and his fallout poisons every chance at peace. Push too far, and he scorches everything.",
-        image_path="/static/images/villains/charnobyl/charnobyl_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="anxia",
-        display_name="Anxia",
-        title="Host of the Spiral",
-        represents="Anxiety and depression",
-        gender="Female",
-        catchphrase="It’s all too much. So do nothing.",
-        bio="Anxia trembles between chaos and collapse. Surrounded by whispering shadows, she floods the mind with panic — then paralyzes it with despair. She’s both storm and stillness, and she never leaves alone.",
-        image_path="/static/images/villains/anxia/anxia_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="theundermind",
-        display_name="The Undermind",
-        title="Whisperer of Worthlessness",
-        represents="Self-doubt and inner sabotage",
-        gender="Male",
-        catchphrase="They only help you because they pity you.",
-        bio="The Undermind is a warped echo of the self, dripping with shame and quiet cruelty. His cracked mirror face reflects your worst fears. He doesn’t shout — he just whispers until you believe him.",
-        image_path="/static/images/villains/theundermind/theundermind_profile.png",
-        created_at=now
-    )
-]
-
-db.session.add_all(batch_1)
-db.session.commit()
-print("✅ Batch 1 of villains seeded.")
-batch_2 = [
-    VillainProfile(
-        resurgitag="highnesshollow",
-        display_name="Highness Hollow",
-        title="Echo of the Silence",
-        represents="Loneliness and isolation",
-        gender="Female",
-        catchphrase="No one would notice if you disappeared.",
-        bio="Highness Hollow floats through Hopelessville draped in silence. Her touch brings numbness, her words erase connection. She doesn’t scream — she waits until you stop talking. She feeds on the ache of being unseen.",
-        image_path="/static/images/villains/highnesshollow/highnesshollow_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="littlelack",
-        display_name="Little Lack",
-        title="The Hollow Do-Nothing Playmate",
-        represents="Boredom and apathy",
-        gender="Female",
-        catchphrase="Why bother? Nothing matters anyway.",
-        bio="A porcelain-faced child who drags a broken toy and sings tuneless lullabies. Little Lack doesn’t attack — she slows time until recovery feels pointless. She turns stillness into danger and emptiness into relapse.",
-        image_path="/static/images/villains/littlelack/littlelack_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="themurk",
-        display_name="The Murk",
-        title="The Fog of What’s Next",
-        represents="Fear of the future",
-        gender="Male",
-        catchphrase="You’re not ready. Don’t even try.",
-        bio="The Murk is a fog-creature flickering with failed futures. He blocks every step with 'what-ifs' and smothers hope in paralysis. His voice sounds like your own — but twisted with dread.",
-        image_path="/static/images/villains/themurk/themurk_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="theexs",
-        display_name="The Ex’s",
-        title="Web of Control",
-        represents="Toxic relationships and manipulation",
-        gender="Mixed",
-        catchphrase="You need me more than they ever could.",
-        bio="The Ex’s are shapeshifters — seductive, guilt-tripping, pleading, or cruel. They mirror the worst of past attachments and twist love into relapse. They don’t need chains. They have history.",
-        image_path="/static/images/villains/theexs/theexs_profile.png",
-        created_at=now
-    )
-]
-
-db.session.add_all(batch_2)
-db.session.commit()
-print("✅ Batch 2 of villains seeded.")
-batch_3 = [
-    VillainProfile(
-        resurgitag="thefracker",
-        display_name="The Fracker",
-        title="Overlord of Overload",
-        represents="Overwhelm and stress",
-        gender="Male",
-        catchphrase="You’re already behind. Keep pushing.",
-        bio="The Fracker is stress incarnate — jagged and volatile. His fractured armor vents steam, his voice is a chorus of urgent alarms. He thrives in burnout and buries you in pressure until you explode or collapse.",
-        image_path="/static/images/villains/thefracker/thefracker_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="captainfine",
-        display_name="Captain Fine",
-        title="The Smile That Slips",
-        represents="Denial and overconfidence",
-        gender="Male",
-        catchphrase="You’ve got this. No need to tell anyone.",
-        bio="Captain Fine wears a smile that hides the cracks. He tells you you’re healed, you’re different, you’re immune — right before the relapse. He is false pride in a cape.",
-        image_path="/static/images/villains/captainfine/captainfine_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="direveil",
-        display_name="Direveil",
-        title="The Mourner’s Shadow",
-        represents="Grief and despair",
-        gender="Female",
-        catchphrase="This loss is the only truth left.",
-        bio="Shrouded in mourning veils and ash, Direveil doesn’t scream — she *remembers*. Her presence turns memories into anchors and loss into identity. To face her is to face the part of you that still grieves.",
-        image_path="/static/images/villains/direveil/direveil_profile.png",
-        created_at=now
-    ),
-    VillainProfile(
-        resurgitag="theabyss",
-        display_name="The Master of the Abyss",
-        title="???",
-        represents="Addiction itself — domination, despair, and the final collapse",
-        gender="Unknown",
-        catchphrase="I’ve been here the whole time.",
-        bio="The Master (or Mistress) of the Abyss cannot be described — only felt. A presence that twists hope into dust and feeds on your soul's exhaustion. It waits at the end of every relapse path… patient, cruel, inevitable.",
-        image_path="/static/images/villains/theabyss/theabyss_profile.png",
-        created_at=now
-    )
-]
-
-db.session.add_all(batch_3)
-db.session.commit()
-print("✅ Final batch of villains seeded.")
 

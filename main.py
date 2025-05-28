@@ -299,6 +299,41 @@ def profile():
 
     finally:
         db.close()
+@app.route("/circle/chat/<resurgitag>", methods=["POST"])
+@login_required
+def circle_chat(resurgitag):
+    db = SessionLocal()
+    user_id = session.get("user_id")
+    user_input = request.json.get("message")
+
+    if not user_input:
+        return jsonify({"error": "Message missing"}), 400
+
+    # 🔍 Lookup contact
+    contact = db.query(User).filter_by(resurgitag=resurgitag).first()
+    if not contact:
+        return jsonify({"error": "Contact not found"}), 404
+
+    # 🔒 Only allow chats with heroes (for now)
+    if not contact.is_hero:
+        return jsonify({"error": "Direct messaging is not available with this user yet."}), 403
+
+    # 🧠 Build prompt & get AI reply
+    hero_name = contact.hero_name
+    prompt = build_context(current_user=user_id, hero_name=hero_name, user_input=user_input)
+    response = call_openai(prompt)
+
+    # 💾 Save history
+    chat = QueryHistory(
+        user_id=user_id,
+        contact_tag=resurgitag,
+        user_input=user_input,
+        ai_response=response
+    )
+    db.add(chat)
+    db.commit()
+
+    return jsonify({"response": response})
 
 @app.route("/circle")
 @login_required
@@ -1405,7 +1440,19 @@ def villain_profile(resurgitag):
     finally:
         db.close()
 
+@app.route("/<path:unbuilt_path>")
+def coming_soon(unbuilt_path):
+    # Prevent catching static files or admin routes
+    if unbuilt_path.startswith("static/") or unbuilt_path.startswith("admin"):
+        abort(404)
+    return render_template("coming_soon.html")
+@app.errorhandler(404)
+def handle_404(error):
+    return render_template("coming_soon.html"), 404
 
+@app.route("/coming-soon")
+def coming_soon():
+    return render_template("coming_soon.html")
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)

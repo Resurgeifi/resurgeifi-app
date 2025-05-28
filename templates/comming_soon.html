@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Coming Soon | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="card-dark">
+  <img src="{{ url_for('static', filename='images/heroes/lucentis_profile.png') }}"
+       alt="Lucentis - Guardian of Clarity"
+       style="width: 100px; margin-bottom: 1.5rem;" />
+
+  <h2 style="color: #f7ecd0;">🚧 Still Under Construction</h2>
+
+  <p style="margin-top: 1rem; font-size: 1.05rem; line-height: 1.6;">
+    The developers of <strong>Resurgifi</strong> are currently calling upon their Higher Powers<br>
+    (and a double shot of espresso) to complete this page.
+  </p>
+
+  <p style="margin-top: 1rem; font-style: italic;">
+    If you close your eyes and hope, well... nothing's going to appear just yet.<br>
+    But we <strong>are</strong> working on it. Promise.
+  </p>
+
+  <p style="margin-top: 2rem;">
+    ✨ Until then, let Lucentis hold the light.
+  </p>
+</div>
+{% endblock %}
+
