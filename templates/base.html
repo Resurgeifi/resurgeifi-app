@@ -7,11 +7,94 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
+  <style>
+    .profile-icon {
+      width: 40px;
+      height: 40px;
+      margin-left: 1rem;
+      border-radius: 50%;
+      box-shadow: 0 0 4px #f6e7c1;
+    }
+
+    #hamburger-menu {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      #hamburger-menu {
+        display: block;
+        margin-left: 1rem;
+      }
+
+      .menu-icon {
+        font-size: 1.8rem;
+        color: #f6e7c1;
+        cursor: pointer;
+        z-index: 10001;
+        position: relative;
+      }
+
+      .side-nav {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        height: 100%;
+        width: 250px;
+        background-color: #1a1a1a;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
+        padding-top: 60px;
+        z-index: 10000;
+        transition: left 0.3s ease-in-out;
+      }
+
+      #menu-toggle:checked + .menu-icon + .side-nav {
+        left: 0;
+      }
+
+      #sidebar-backdrop {
+        display: none;
+      }
+
+      #menu-toggle:checked ~ #sidebar-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 9999;
+      }
+
+      .side-nav ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .side-nav ul li {
+        padding: 1rem;
+        border-bottom: 1px solid #333;
+      }
+
+      .side-nav ul li a {
+        color: #f6e7c1;
+        text-decoration: none;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .side-nav ul li img {
+        width: 24px;
+        margin-right: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
 
 {% if g.user %}
-  <div id="top-bar">
+  <div id="top-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background-color: rgba(0,0,0,0.4); position: fixed; width: 100%; top: 0; z-index: 1000; backdrop-filter: blur(4px);">
     <!-- 🍔 Hamburger Menu -->
     <div id="hamburger-menu">
       <input type="checkbox" id="menu-toggle" />
@@ -28,6 +111,7 @@
           <li><a href="/pro">For Professionals</a></li>
         </ul>
       </div>
+      <div id="sidebar-backdrop"></div>
     </div>
 
     <!-- 👤 Profile Icon -->
@@ -49,7 +133,7 @@
   </div>
 {% endif %}
 
-<div class="main-content">
+<div class="main-content" style="padding-top: 4.5rem;">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for category, message in messages %}
@@ -70,14 +154,20 @@
       <img src="{{ url_for('static', filename='icons/journal-quill.png') }}" alt="Journal Icon" class="nav-icon" />
     </a>
     <a href="/life-ring" class="nav-item" aria-label="Life Ring">
-      <img src="{{ url_for('static', filename='icons/life-ring.png') }}" alt="Life Ring Icon" class="nav-icon" />
+      <div style="width: 30px; height: 30px; background-color: #444; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 18px;">🛟</span>
+      </div>
     </a>
   </div>
+
   <div class="nav-center">
     <a href="/quest" class="plus-button journey-button" aria-label="Daily Quest">
-      <img src="{{ url_for('static', filename='icons/quest_icon.png') }}" alt="Quest Icon" style="width: 58px; height: 58px;" />
+      <div style="width: 70px; height: 70px; background-color: #0d6efd; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);">
+        <img src="{{ url_for('static', filename='icons/quest_icon.png') }}" alt="Quest Icon" style="width: 40px; height: 40px;" />
+      </div>
     </a>
   </div>
+
   <div class="nav-side nav-right">
     <a href="/form" class="nav-item" aria-label="Circle">
       <img src="{{ url_for('static', filename='icons/circle-logo.png') }}" alt="Circle Icon" class="nav-icon" />
@@ -98,66 +188,6 @@
 <audio id="graceSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/levelup.mp3') }}"></audio>
 
 {% block scripts %}{% endblock %}
-
-<!-- 🎇 Style + Logic -->
-<style>
-.profile-icon {
-  width: 40px;
-  height: 40px;
-  margin-left: 1rem;
-  border-radius: 50%;
-  box-shadow: 0 0 4px #f6e7c1;
-}
-
-#hamburger-menu {
-  display: none;
-}
-@media (max-width: 768px) {
-  #hamburger-menu {
-    display: block;
-    margin-left: 1rem;
-  }
-  .menu-icon {
-    font-size: 1.8rem;
-    color: #f6e7c1;
-    cursor: pointer;
-  }
-  .side-nav {
-    position: fixed;
-    top: 0;
-    left: -250px;
-    height: 100%;
-    width: 250px;
-    background-color: #1a1a1a;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
-    padding-top: 60px;
-    z-index: 9999;
-    transition: left 0.3s ease-in-out;
-  }
-  #menu-toggle:checked + .menu-icon + .side-nav {
-    left: 0;
-  }
-  .side-nav ul {
-    list-style: none;
-    padding: 0;
-  }
-  .side-nav ul li {
-    padding: 1rem;
-    border-bottom: 1px solid #333;
-  }
-  .side-nav ul li a {
-    color: #f6e7c1;
-    text-decoration: none;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-  }
-  .side-nav ul li img {
-    width: 24px;
-    margin-right: 10px;
-  }
-}
-</style>
 
 <script>
 function showGraceFlash() {
@@ -225,5 +255,6 @@ function flashPoints() {
 
 </body>
 </html>
+
 
 
