@@ -1,65 +1,100 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="landing-container" style="text-align: center; padding: 3rem 1rem; max-width: 900px; margin: 0 auto;">
+<!-- 🔊 Ambient Intro Music (hidden until user clicks) -->
+<audio id="landingAudio" loop preload="auto">
+  <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
+</audio>
 
-  <h1 style="font-size: 2.8rem; margin-bottom: 0.5rem;">Welcome to the Resurgifi Beta</h1>
-  <p style="font-size: 0.9rem; color: #888; margin-bottom: 2rem;">Version 0.8.0 – Beta Preview</p>
-
-  <p style="font-size: 1.1rem; margin-bottom: 2rem;">
-    This version of Resurgifi is for you — our close friends and family. We’re building something meaningful here,
-    and your feedback is everything.
-  </p>
-
-  <div style="border: 1px solid #444; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; background-color: #1f2230;">
-    <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem;">📝 What We’re Asking From You:</h2>
-    <ul style="list-style: none; padding: 0; font-size: 1rem; text-align: left; max-width: 700px; margin: 0 auto;">
-      <li>• Please <strong>journal daily</strong> — even short entries help</li>
-      <li>• Use the <strong>Hero Circle</strong> to ask emotional or reflective questions</li>
-      <li>• Submit any ideas, bugs, or feature thoughts through the <a href="{{ url_for('feedback') }}" style="color: #76c7c0;">Feedback Form</a></li>
-    </ul>
-  </div>
-
-  <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2rem;">
-    <a href="{{ url_for('journal') }}" class="btn" style="margin: 0.5rem 0; padding: 0.75rem 2rem; font-size: 1.1rem; background-color: #3c6e71; color: #fff; border-radius: 10px; text-decoration: none; width: 100%; max-width: 300px;">
-      Start Journaling
-    </a>
-  
-    <a href="{{ url_for('menu') }}" class="btn" style="margin: 0.5rem 0 2rem; padding: 0.75rem 2rem; font-size: 1.1rem; background-color: #284b63; color: #fff; border-radius: 10px; text-decoration: none; width: 100%; max-width: 300px;">
-      Explore the App
-    </a>
-  </div>
-  
-
-  <hr style="margin: 3rem auto; width: 60%; border: 0; border-top: 1px solid #666;">
-
-  <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚙️ What’s Still in Progress</h2>
-  <ul style="list-style: none; padding: 0; font-size: 1rem; text-align: left; max-width: 700px; margin: 0 auto 2rem;">
-    <li>• Avatar customization (your “inner self” will evolve soon)</li>
-    <li>• Progression system — the Five Rings of Resurgence</li>
-    <li>• Recovery Circles (private invites to support each other)</li>
-    <li>• Squad Echo mentorship roles for long-term users</li>
-    <li>• Occasional rewards, gifts, and voice interactions</li>
-    <li>• Emergency info & support for crisis situations</li>
-  </ul>
-
-  <p style="font-size: 0.95rem; color: #aaa; max-width: 700px; margin: 0 auto;">
-    ⚠️ While this app is therapeutic, it is not a substitute for clinical care. If you or someone else is in crisis, please call or text <strong>988</strong> or go to the nearest emergency room.
-  </p>
-
-  <hr style="margin: 3rem auto; width: 60%; border: 0; border-top: 1px solid #666;">
-
-  <footer style="font-size: 0.95rem; color: #aaa; margin-top: 2rem;">
-    <p style="max-width: 700px; margin: 0 auto;">
-      With gratitude and hope,<br><br>
-      <strong>Kevin Conzo & Eileen Lynch</strong><br>
-      Founders of Resurgifi
-    </p>
-  </footer>
-
+<!-- 🌌 Intro Screen -->
+<div id="introScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: #f6e7c1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 2000;">
+  <h1 style="font-size: 2.8rem; margin-bottom: 1rem;">Welcome to Resurgifi</h1>
+  <p style="font-size: 1.2rem; max-width: 600px;">A mental health universe built from the inside out. 🎧 Sound is part of this journey — if your phone is on silent, we recommend turning it on.</p>
+  <button onclick="startExperience()" style="margin-top: 2rem; padding: 0.75rem 2rem; font-size: 1.2rem; background-color: #0d6efd; color: white; border: none; border-radius: 10px;">Enter the World</button>
 </div>
 
+<!-- 🎞️ Cinematic Carousel (hidden until intro dismissed) -->
+<div id="carouselContainer" style="display: none;">
+  <div id="resurgifiCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="false">
+    <div class="carousel-inner">
+
+      <!-- Slide 1: Welcome -->
+      <div class="carousel-item active text-center p-5">
+        <h1>Welcome to Resurgifi</h1>
+        <p>This is more than an app — it’s an emotional universe.</p>
+        <p>🎧 Sound is playing. If your phone is on silent, you might miss it. We recommend turning it on for the full experience.</p>
+        <img src="{{ url_for('static', filename='images/heroes/grace/Grace_Transparent.png') }}" style="max-height: 300px; opacity: 0.5;" alt="Grace Shadow">
+      </div>
+
+      <!-- Slide 2: The Problem -->
+      <div class="carousel-item text-center p-5">
+        <h2>"You ever leave treatment with a binder full of tools you’ll never touch again?"</h2>
+        <p>So did we. That’s why we built this.</p>
+        <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_transparent.png') }}" style="max-height: 300px; opacity: 0.4;">
+      </div>
+
+      <!-- Slide 3: What Resurgifi Is -->
+      <div class="carousel-item text-center p-5">
+        <h2>A recovery world where therapy tools come to life.</h2>
+        <p>You’ll talk to heroes who remember you. Battle villains made of cravings, shame, and fear. Rebuild through quests, journals, and emotional muscle.</p>
+        <img src="{{ url_for('static', filename='images/heroes/cognita/Cognita_Transparent.png') }}" style="max-height: 300px;">
+      </div>
+
+      <!-- Slide 4: The State of Inner -->
+      <div class="carousel-item text-center p-5">
+        <h2>Everything happens in the State of Inner</h2>
+        <p>Detox Docks. Bridge Between. Crystal Mountain. This map is your mind — and your battlefield.</p>
+        <img src="{{ url_for('static', filename='images/villains/thecrave/thecrave_transparent.png') }}" style="max-height: 300px;">
+      </div>
+
+      <!-- Slide 5: Why It’s Different -->
+      <div class="carousel-item text-center p-5">
+        <h2>This isn’t worksheet recovery.</h2>
+        <p>This is late-night group therapy meets graphic novel. Built by someone who’s been through it — not by a committee.</p>
+      </div>
+
+      <!-- Slide 6: You Are Here -->
+      <div class="carousel-item text-center p-5">
+        <h2>This is still in development — and you’re part of the team.</h2>
+        <p>Your feedback shapes the tools that could save lives. Welcome to the squad.</p>
+        <img src="{{ url_for('static', filename='images/heroes/lucentis/Lucentis_Transparent.png') }}" style="max-height: 300px;">
+        <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
+      </div>
+
+      <!-- Slide 7: Begin -->
+      <div class="carousel-item text-center p-5">
+        <h2>Ready?</h2>
+        <a href="{{ url_for('register') }}" class="btn btn-lg btn-success mt-4">Start Your Resurgence</a>
+      </div>
+
+    </div>
+
+    <!-- Carousel Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#resurgifiCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#resurgifiCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+
+<!-- ✨ Script to Launch Experience -->
+<script>
+function startExperience() {
+  document.getElementById('introScreen').style.display = 'none';
+  document.getElementById('carouselContainer').style.display = 'block';
+  const audio = document.getElementById('landingAudio');
+  if (audio) {
+    audio.play().catch(err => console.warn("Audio blocked:", err));
+  }
+}
+</script>
+
 {% endblock %}
+
 
 
 
