@@ -4,7 +4,7 @@
 {% block content %}
 <div class="main-content" style="max-width: 600px; margin: 2rem auto; text-align: center;">
   <h1>⚙️ Settings</h1>
-  <p class="mantra">Update your journey settings, nickname, and visibility below.</p>
+  <p class="mantra">Update your journey settings and nickname below.</p>
 
   <form method="POST" action="/settings" style="margin-top: 2rem;">
     <div class="card-dark" style="padding: 2rem;">
@@ -35,16 +35,14 @@
       <label for="nickname" style="font-size: 1.2rem; display: block; margin-top: 2rem;"><strong>📝 Your Nickname</strong></label>
       <input type="text" name="nickname" value="{{ nickname }}" placeholder="What do people call you?" style="margin-top: 0.5rem; padding: 0.6rem; width: 100%; font-size: 1rem; border-radius: 8px;">
 
-      <!-- 👁️ Visibility Toggle -->
-      <div style="margin-top: 2rem;">
-        <label style="font-size: 1.1rem;">
-          <input type="checkbox" name="show_journey_publicly" {% if show_journey_publicly %}checked{% endif %}>
-          Show my journey on public profile
-        </label>
-      </div>
+      <!-- 🔐 Moved Visibility Settings Note -->
+      <p style="margin-top: 2rem; font-size: 0.95rem; color: #bbb;">
+        Want to manage who can see your journey or city/state?  
+        <a href="/profile" style="color: #ffdd99; text-decoration: underline;">Update your profile visibility settings here</a>.
+      </p>
 
       <!-- ✅ Save -->
-      <button type="submit" class="global-button" style="margin-top: 2rem;">💾 Save Settings</button>
+      <button type="submit" class="global-button" style="margin-top: 1.5rem;">💾 Save Settings</button>
     </div>
   </form>
 

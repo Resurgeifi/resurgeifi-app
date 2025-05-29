@@ -5,9 +5,12 @@
 <div class="profile-container" style="max-width: 600px; margin: 2rem auto; text-align: center; padding: 0 1rem;">
   <h1 class="profile-header">{{ user.nickname or "Your" }}’s Profile</h1>
 
+  <p style="font-style: italic; color: #f6e7c1; font-size: 1.05rem; margin-bottom: 1.5rem;">
+    Your recovery journey is uniquely yours — here's a snapshot of where you stand today.
+  </p>
+
   <div class="profile-stats">
-    <p>
-      <strong>⭐ Points:</strong> 
+    <p><strong>⭐ Points:</strong> 
       <a href="#" onclick="showPointsInfo()" style="color: #f6e7c1; text-decoration: none;">
         {{ user.points or 0 }}
       </a>
@@ -19,7 +22,7 @@
   <!-- 👁️ Visibility Settings -->
   <div class="profile-visibility">
     <h3>Visibility Settings</h3>
-    <form method="POST" action="/profile/visibility">
+    <form method="POST" action="/profile/update-visibility">
       <div class="toggle-row">
         <label>Show my journey to the public</label>
         <label class="switch">
@@ -51,8 +54,8 @@
   <div class="resurgitag-section">
     <h2>🔗 Your Resurgitag</h2>
     <div class="resurgitag-box">{{ user.resurgitag }}</div>
-    <p class="resurgitag-note">
-      This tag is permanent and used to connect with others. You are allowed to change it once.
+    <p class="resurgitag-note" style="color: #f6e7c1; font-size: 1rem;">
+      Your Resurgitag is your recovery signal — a way to be found, followed, and encouraged inside the Circle.
     </p>
     
     {% if not user.resurgitag_locked %}
@@ -92,6 +95,7 @@
 .profile-header {
   font-size: 2rem;
   margin-bottom: 1rem;
+  color: #ffeecb;
 }
 
 .profile-stats {
@@ -104,6 +108,7 @@
 }
 .profile-stats p {
   margin: 0.5rem 0;
+  color: #ffeecb;
 }
 
 .profile-visibility {
@@ -117,12 +122,15 @@
 .profile-visibility h3 {
   margin-bottom: 1rem;
   color: #ffe6b3;
+  font-size: 1.2rem;
 }
 .toggle-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin: 0.8rem 0;
+  color: #f6e7c1;
+  font-size: 1rem;
 }
 .switch {
   position: relative;
@@ -167,6 +175,7 @@ input:checked + .slider:before {
 
 .resurgitag-section h2 {
   margin-bottom: 0.5rem;
+  color: #ffeecb;
 }
 
 .resurgitag-box {
@@ -179,8 +188,8 @@ input:checked + .slider:before {
 }
 
 .resurgitag-note {
-  font-size: 0.9rem;
-  color: #aaa;
+  font-size: 1rem;
+  color: #f6e7c1;
   margin-top: 0.5rem;
 }
 
@@ -189,6 +198,10 @@ input:checked + .slider:before {
   max-width: 280px;
   margin: 1rem auto;
   display: block;
+}
+.qr-section p {
+  color: #ddd;
+  font-size: 1rem;
 }
 
 .back-btn {
@@ -258,4 +271,3 @@ function hidePointsInfo() {
 }
 </script>
 {% endblock %}
-
