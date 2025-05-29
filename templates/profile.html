@@ -20,51 +20,57 @@
   </div>
 
   <!-- 🪪 Public Identity Card -->
-<div class="card mt-4" style="background-color: #2a2d37; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-  <div class="card-body">
-    <h4 class="card-title mb-3">🪪 Public Identity</h4>
+<form method="POST" action="/profile/update-visibility">
+  <div class="card mt-4" style="background-color: #2a2d37; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+    <div class="card-body">
+      <h4 class="card-title mb-3">🪪 Public Identity</h4>
 
-    <div class="form-group">
-      <label for="first_name" class="text-light">First Name</label>
-      <input type="text" class="form-control" name="first_name" id="first_name"
-             value="{{ current_user.first_name or '' }}">
-    </div>
+      <div class="form-group">
+        <label for="first_name" class="text-light">First Name</label>
+        <input type="text" class="form-control" name="first_name" id="first_name"
+               value="{{ current_user.first_name or '' }}">
+      </div>
 
-    <div class="form-group mt-3">
-      <label for="last_name" class="text-light">Last Name</label>
-      <input type="text" class="form-control" name="last_name" id="last_name"
-             value="{{ current_user.last_name or '' }}">
-    </div>
+      <div class="form-group mt-3">
+        <label for="last_name" class="text-light">Last Name</label>
+        <input type="text" class="form-control" name="last_name" id="last_name"
+               value="{{ current_user.last_name or '' }}">
+      </div>
 
-    <div class="form-group mt-3">
-      <label for="city" class="text-light">City</label>
-      <input type="text" class="form-control" name="city" id="city"
-             value="{{ current_user.city or '' }}">
-    </div>
+      <div class="form-group mt-3">
+        <label for="city" class="text-light">City</label>
+        <input type="text" class="form-control" name="city" id="city"
+               value="{{ current_user.city or '' }}">
+      </div>
 
-    <div class="form-group mt-3">
-      <label for="state" class="text-light">State</label>
-      <input type="text" class="form-control" name="state" id="state"
-             value="{{ current_user.state or '' }}">
-    </div>
+      <div class="form-group mt-3">
+        <label for="state" class="text-light">State</label>
+        <input type="text" class="form-control" name="state" id="state"
+               value="{{ current_user.state or '' }}">
+      </div>
 
-    <div class="form-check mt-4">
-      <input type="checkbox" class="form-check-input" id="show_real_name" name="show_real_name"
-             {% if current_user.show_real_name %}checked{% endif %}>
-      <label class="form-check-label text-light" for="show_real_name">
-        Show my real name on my profile
-      </label>
-    </div>
+      <div class="form-check mt-4">
+        <input type="checkbox" class="form-check-input" id="show_real_name" name="show_real_name"
+               {% if current_user.show_real_name %}checked{% endif %}>
+        <label class="form-check-label text-light" for="show_real_name">
+          Show my real name on my profile
+        </label>
+      </div>
 
-    <div class="form-check mt-2">
-      <input type="checkbox" class="form-check-input" id="show_location" name="show_location"
-             {% if current_user.show_location %}checked{% endif %}>
-      <label class="form-check-label text-light" for="show_location">
-        Show my location on my profile
-      </label>
+      <div class="form-check mt-2 mb-4">
+        <input type="checkbox" class="form-check-input" id="show_location" name="show_location"
+               {% if current_user.show_location %}checked{% endif %}>
+        <label class="form-check-label text-light" for="show_location">
+          Show my location on my profile
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-success w-100 mt-2" style="font-size: 1.05rem;">
+        💾 Save Identity & Visibility
+      </button>
     </div>
   </div>
-</div>
+</form>
 
   <div class="resurgitag-section">
     <h2>🔗 Your Resurgitag</h2>

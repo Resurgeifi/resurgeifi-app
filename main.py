@@ -667,11 +667,13 @@ def update_visibility():
 
         form = request.form
 
+        # ✅ Personal info
         user.first_name = form.get("first_name", "").strip() or None
         user.last_name = form.get("last_name", "").strip() or None
         user.city = form.get("city", "").strip() or None
         user.state = form.get("state", "").strip() or None
 
+        # ✅ Visibility toggles
         user.show_real_name = 'show_real_name' in form
         user.show_location = 'show_location' in form
 
@@ -685,6 +687,7 @@ def update_visibility():
         return redirect(url_for("profile"))
     finally:
         db.close()
+
 
 @app.route("/profile/public/<resurgitag>")
 def view_public_profile(resurgitag):
