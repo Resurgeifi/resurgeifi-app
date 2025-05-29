@@ -6,135 +6,110 @@
   <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
 </audio>
 
-<!-- 🌌 Flash Intro Overlay -->
-<div id="questFlash" class="quest-flash" onclick="startExperience()">
-  <div class="quest-quote">“You’ve opened your eyes inside the State of Inner…<br><strong>Tap to begin your resurgence.</strong>”</div>
-</div>
+<!-- 🌌 Cinematic Flash Intro Slide -->
+<div id="introSlides">
+  <div class="intro-slide active" onclick="startExperience()">
+    <div class="intro-text">“You’ve opened your eyes inside the State of Inner…<br><strong>Tap to begin your resurgence.</strong>”</div>
+  </div>
 
-<!-- 🎞️ Cinematic Carousel (hidden until intro dismissed) -->
-<div id="carouselContainer" style="display: none;">
-  <div id="resurgifiCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="false">
-    <div class="carousel-inner">
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">This is more than an app — it’s an emotional universe.<br><br>🎧 Audio is playing. Turn sound on for full immersion.</div>
+    <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="intro-image animated" alt="Grace">
+  </div>
 
-      <!-- Slide 1: Welcome -->
-      <div class="carousel-item active slide-card">
-        <h1>Welcome to Resurgifi</h1>
-        <p>This is more than an app — it’s an emotional universe.</p>
-        <p>🎧 Sound is playing. If your phone is on silent, you might miss it. We recommend turning it on for the full experience.</p>
-        <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="slide-image" alt="Grace Shadow">
-      </div>
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">“You ever leave treatment with a binder full of tools you’ll never touch again?”<br><br>So did we. That’s why we built this.</div>
+    <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_transparent.png') }}" class="intro-image animated">
+  </div>
 
-      <!-- Slide 2: The Problem -->
-      <div class="carousel-item slide-card">
-        <h2>"You ever leave treatment with a binder full of tools you’ll never touch again?"</h2>
-        <p>So did we. That’s why we built this.</p>
-        <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_transparent.png') }}" class="slide-image">
-      </div>
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">A recovery world where therapy tools come to life.<br><br>You’ll talk to heroes who remember you. Battle villains made of cravings, shame, and fear. Rebuild through quests, journals, and emotional muscle.</div>
+    <img src="{{ url_for('static', filename='images/heroes/cognita/Cognita_Transparent.png') }}" class="intro-image animated">
+  </div>
 
-      <!-- Slide 3: What Resurgifi Is -->
-      <div class="carousel-item slide-card">
-        <h2>A recovery world where therapy tools come to life.</h2>
-        <p>You’ll talk to heroes who remember you. Battle villains made of cravings, shame, and fear. Rebuild through quests, journals, and emotional muscle.</p>
-        <img src="{{ url_for('static', filename='images/heroes/cognita/Cognita_Transparent.png') }}" class="slide-image">
-      </div>
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">Everything happens in the State of Inner.<br><br>Detox Docks. Bridge Between. Crystal Mountain.<br>This map is your mind — and your battlefield.</div>
+    <img src="{{ url_for('static', filename='images/villains/thecrave/thecrave_transparent.png') }}" class="intro-image animated">
+  </div>
 
-      <!-- Slide 4: The State of Inner -->
-      <div class="carousel-item slide-card">
-        <h2>Everything happens in the State of Inner</h2>
-        <p>Detox Docks. Bridge Between. Crystal Mountain. This map is your mind — and your battlefield.</p>
-        <img src="{{ url_for('static', filename='images/villains/thecrave/thecrave_transparent.png') }}" class="slide-image">
-      </div>
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">This isn’t worksheet recovery.<br><br>This is late-night group therapy married with Saturday Morning Cartoons. Built by someone who’s been through it — not by a committee.</div>
+  </div>
 
-      <!-- Slide 5: Why It’s Different -->
-      <div class="carousel-item slide-card">
-        <h2>This isn’t worksheet recovery.</h2>
-        <p>This is late-night group therapy meets graphic novel. Built by someone who’s been through it — not by a committee.</p>
-      </div>
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">This is still in development — and you’re part of the team.<br><br>Your feedback shapes the tools that could save lives. Welcome to the squad.</div>
+    <img src="{{ url_for('static', filename='images/heroes/lucentis/Lucentis_Transparent.png') }}" class="intro-image animated">
+    <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
+  </div>
 
-      <!-- Slide 6: You Are Here -->
-      <div class="carousel-item slide-card">
-        <h2>This is still in development — and you’re part of the team.</h2>
-        <p>Your feedback shapes the tools that could save lives. Welcome to the squad.</p>
-        <img src="{{ url_for('static', filename='images/heroes/lucentis/Lucentis_Transparent.png') }}" class="slide-image">
-        <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
-      </div>
-
-      <!-- Slide 7: Begin -->
-      <div class="carousel-item slide-card">
-        <h2>Ready?</h2>
-        <a href="{{ url_for('register') }}" class="btn btn-lg btn-success mt-4">Start Your Resurgence</a>
-      </div>
-
-    </div>
-
-    <!-- Carousel Controls -->
-    <button class="carousel-control-prev" type="button" data-bs-target="#resurgifiCarousel" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Previous</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#resurgifiCarousel" data-bs-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Next</span>
-    </button>
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">Ready?</div>
+    <a href="{{ url_for('register') }}" class="btn btn-lg btn-success mt-4">Start Your Resurgence</a>
   </div>
 </div>
 
-<!-- ✨ Script to Launch Experience -->
+<!-- 🚀 Script: Advance Slides -->
 <script>
+let currentSlide = 0;
 function startExperience() {
-  document.getElementById('questFlash').style.display = 'none';
-  document.getElementById('carouselContainer').style.display = 'block';
-  const audio = document.getElementById('landingAudio');
-  if (audio) {
-    audio.play().catch(err => console.warn("Audio blocked:", err));
+  document.getElementById('landingAudio').play().catch(err => console.warn("Audio blocked:", err));
+  nextSlide();
+}
+function nextSlide() {
+  const slides = document.querySelectorAll('.intro-slide');
+  if (currentSlide < slides.length - 1) {
+    slides[currentSlide].classList.remove('active');
+    currentSlide++;
+    slides[currentSlide].classList.add('active');
   }
 }
 </script>
 
+<!-- 🎨 Style -->
 <style>
-.quest-flash {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: radial-gradient(circle, #000000 20%, #1a1a1a 100%);
-  display: flex;
-  align-items: center;
+.intro-slide {
+  display: none;
   justify-content: center;
-  z-index: 9999;
-  cursor: pointer;
-}
-.quest-quote {
-  color: #f6e7c1;
-  font-size: 1.8rem;
-  font-weight: 300;
-  text-align: center;
-  max-width: 600px;
-  padding: 2rem;
-  animation: fadeInText 3s ease forwards;
-}
-@keyframes fadeInText {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-.slide-card {
-  min-height: 100vh;
-  background: #2a2d3a;
-  padding: 2rem;
-  border-radius: 14px;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-  text-align: center;
-  display: flex;
+  align-items: center;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
+  height: 100vh;
+  width: 100vw;
+  background: radial-gradient(circle, #000000 20%, #1a1a1a 100%);
   color: #f6e7c1;
+  padding: 2rem;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 9999;
+  transition: opacity 1s ease;
+  opacity: 0;
 }
-.slide-image {
-  max-height: 300px;
-  opacity: 0.6;
+.intro-slide.active {
+  display: flex;
+  opacity: 1;
+  animation: fadeInSlide 1s forwards;
+}
+@keyframes fadeInSlide {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.intro-text {
+  font-size: 1.6rem;
+  font-weight: 300;
+  max-width: 700px;
+  margin-bottom: 2rem;
+}
+.intro-image {
+  max-height: 320px;
+  opacity: 0.8;
   margin-top: 1rem;
+}
+.animated {
+  animation: floatImage 6s ease-in-out infinite;
+}
+@keyframes floatImage {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 </style>
 
