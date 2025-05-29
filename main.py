@@ -667,11 +667,13 @@ def update_visibility():
 
         form = request.form
 
-        # Toggle logic
+        user.first_name = form.get("first_name", "").strip() or None
+        user.last_name = form.get("last_name", "").strip() or None
+        user.city = form.get("city", "").strip() or None
+        user.state = form.get("state", "").strip() or None
+
         user.show_real_name = 'show_real_name' in form
         user.show_location = 'show_location' in form
-        user.show_journey_to_friends = 'show_journey_to_friends' in form
-        user.show_journey_publicly = 'show_journey_publicly' in form
 
         db.commit()
         flash("Visibility preferences updated!", "success")

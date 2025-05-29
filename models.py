@@ -28,6 +28,7 @@ class User(db.Model):
     has_completed_onboarding = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     first_name = db.Column(db.String(100), nullable=True)
+    last_name = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(100), nullable=True)
     state = db.Column(db.String(100), nullable=True)
     show_real_name = db.Column(db.Boolean, default=False)
