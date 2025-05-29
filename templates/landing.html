@@ -18,56 +18,58 @@
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">“It is time for technology to meet us in our minds, to help the mind Resurge.”</div>
+    <div class="intro-text">“It’s time for technology to meet us in our minds — not just to track our pain, but to <em>transform</em> it.”</div>
   </div>
+
   <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">That’s why we built this. To give our State of Inner villians a face.</div>
+    <div class="intro-text">You’ve seen the books. The binders. The breathing apps.<br><br>We built <strong>Resurgifi</strong> to turn all that into a <em>battlefield and a training ground</em>.<br>The tools don’t just sit in a drawer — they <em>fight with you</em>.</div>
     <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}" class="intro-image animated">
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">A theraputic world where therapy tools come to life.</div>
-  </div>
-  <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">You’ll talk to heroes who remember you.<br>Battle villains made of cravings, shame, and fear.</div>
-  </div>
-  <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">Rebuild through quests, journals, and emotional muscle.</div>
+    <div class="intro-text">This is the <strong>Resurgence Squad</strong> — heroes born to defend your <em>State of Inner</em>.<br>They remember your name. They grow with you.</div>
     <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" class="intro-image animated">
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">Everything happens in the State of Inner.<br><br>Detox Docks. Bridge Between. Crystal Mountain.</div>
-  </div>
-  <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">This map is your mind — and your battlefield.</div>
+    <div class="intro-text">The villains are real too — cravings, fear, guilt, and that voice that says you’ll never change.<br><br>We gave them faces, names, and <strong>weak points</strong>.</div>
     <img src="{{ url_for('static', filename='images/villains/thecrave/thecrave_transparent.png') }}" class="intro-image animated">
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">This isn’t static tools where you just press play.<br><br> This is where you use tools to play.</div>
-  </div>
-  <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">This is late-night group therapy married with Saturday Morning Cartoons.</div>
-  </div>
-  <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">Built by someone who’s been through it, who has struggled. — not by a committee.</div>
+    <div class="intro-text">Journal with heroes. Take quests to grow emotional muscle.<br>Reflect, rebuild, and regroup — in a space that <em>feels like it gets you</em>.</div>
+    <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">This is still in development — and you’re part of the team.<br><br>Your feedback shapes the tools that could save lives. Welcome to the squad.</div>
+    <div class="intro-text">Every zone — from Detox Docks to Crystal Mountain — reflects your inner world.<br><br><strong>You’re not navigating a UI. You’re walking through yourself.</strong></div>
+    <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="intro-image animated">
+  </div>
+
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">This wasn’t made by a committee.<br>It was born from grief, relapse, and the real fight for peace.<br><br>And we’re still building it — with you.</div>
+  </div>
+
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">Resurgifi uses <strong>Tier-1 OpenAI</strong>, memory logic, and pacing flow to create a support system that <em>feels human</em>.<br><br>It’s not just chat. It’s connection.</div>
+  </div>
+
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">Whether you’re healing from grief, trauma, addiction, anxiety, or emptiness — this space adapts to your journey.<br><br>And the heroes? They’ve been waiting for you.</div>
+  </div>
+
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">We need your help — your feedback, your eyes, your voice.<br>This is the early build of a life-changing tool.<br><br><strong>You’re not just a user. You’re part of the mission.</strong></div>
     <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
     <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Ready?</div>
-  <a href="{{ url_for('register') }}" class="global-button" style="margin-top: 2rem;">Start Your Resurgence</a>
+    <div class="intro-text">Ready?</div>
+    <a href="{{ url_for('register') }}" class="global-button" style="margin-top: 2rem;">Start Your Resurgence</a>
+  </div>
 </div>
 
-</div>
-
-<!-- 🚀 Script: Advance Slides -->
 <script>
 let currentSlide = 0;
 function startExperience() {
@@ -84,7 +86,6 @@ function nextSlide() {
 }
 </script>
 
-<!-- 🎨 Style -->
 <style>
 .intro-slide {
   display: none;
