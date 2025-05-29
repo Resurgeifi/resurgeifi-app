@@ -18,6 +18,27 @@
     <p><strong>📅 Journey Start:</strong> {{ user.journey_start_date.strftime('%b %d, %Y') if user.journey_start_date else "—" }}</p>
     <p><strong>🌀 Journey Selection:</strong> {{ user.theme_choice or "Not selected" }}</p>
   </div>
+<div class="card mt-4" style="background-color: #2a2d37; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-align: left;">
+  <div class="card-body">
+    <h4 class="card-title mb-3" style="color: #ffe6b3;">🌐 Public Identity</h4>
+
+    {% if user.show_real_name %}
+      <p style="color: #f6e7c1; font-size: 1.05rem;">
+        <strong>🪪 Name:</strong> {{ user.first_name or '' }} {{ user.last_name or '' }}
+      </p>
+    {% endif %}
+
+    {% if user.show_location %}
+      <p style="color: #f6e7c1; font-size: 1.05rem;">
+        <strong>📍 Location:</strong> {{ user.city or '' }}, {{ user.state or '' }}
+      </p>
+    {% endif %}
+
+    {% if not user.show_real_name and not user.show_location %}
+      <p style="color: #999; font-style: italic;">Nothing is currently visible on your public profile.</p>
+    {% endif %}
+  </div>
+</div>
 
   <!-- [SNIPPET: unchanged up to form] -->
 
@@ -32,14 +53,46 @@
     <div class="card mt-2" style="background-color: #2a2d37; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
       <div class="card-body">
         <h4 class="card-title mb-3">🪪 Public Identity</h4>
-        <!-- [Your form fields here – unchanged] -->
-        <!-- First name, last name, city, state, checkboxes, etc. -->
-        <!-- Copy those fields here just as they are -->
         <div class="form-group">
-          <label for="first_name" class="text-light">First Name</label>
-          <input type="text" class="form-control" name="first_name" id="first_name"
-                 value="{{ user.first_name or '' }}">
-        </div>
+  <label for="first_name" class="text-light">First Name</label>
+  <input type="text" class="form-control" name="first_name" id="first_name"
+         value="{{ user.first_name or '' }}">
+</div>
+
+<div class="form-group mt-3">
+  <label for="last_name" class="text-light">Last Name</label>
+  <input type="text" class="form-control" name="last_name" id="last_name"
+         value="{{ user.last_name or '' }}">
+</div>
+
+<div class="form-group mt-3">
+  <label for="city" class="text-light">City</label>
+  <input type="text" class="form-control" name="city" id="city"
+         value="{{ user.city or '' }}">
+</div>
+
+<div class="form-group mt-3">
+  <label for="state" class="text-light">State</label>
+  <input type="text" class="form-control" name="state" id="state"
+         value="{{ user.state or '' }}">
+</div>
+
+<div class="form-check mt-4">
+  <input type="checkbox" class="form-check-input" id="show_real_name" name="show_real_name"
+         {% if user.show_real_name %}checked{% endif %}>
+  <label class="form-check-label text-light" for="show_real_name">
+    Show my real name on my profile
+  </label>
+</div>
+
+<div class="form-check mt-2 mb-4">
+  <input type="checkbox" class="form-check-input" id="show_location" name="show_location"
+         {% if user.show_location %}checked{% endif %}>
+  <label class="form-check-label text-light" for="show_location">
+    Show my location on my profile
+  </label>
+</div>
+
 
         <!-- ... other fields ... -->
 
