@@ -27,8 +27,13 @@ class User(db.Model):
     resurgitag_locked = db.Column(db.Boolean, default=False)
     has_completed_onboarding = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
-
+    first_name = db.Column(db.String(100), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    state = db.Column(db.String(100), nullable=True)
+    show_real_name = db.Column(db.Boolean, default=False)
+    show_location = db.Column(db.Boolean, default=False)
     show_journey_publicly = db.Column(db.Boolean, default=False)
+    show_journey_to_friends = db.Column(db.Boolean, default=True)
 
     # Onboarding fields
     core_trigger = db.Column(db.String(100), nullable=True)

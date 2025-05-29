@@ -16,6 +16,38 @@
     <p><strong>🌀 Journey Selection:</strong> {{ user.theme_choice or "Not selected" }}</p>
   </div>
 
+  <!-- 👁️ Visibility Settings -->
+  <div class="profile-visibility">
+    <h3>Visibility Settings</h3>
+    <form method="POST" action="/profile/visibility">
+      <div class="toggle-row">
+        <label>Show my journey to the public</label>
+        <label class="switch">
+          <input type="checkbox" name="show_journey_publicly" {% if user.show_journey_publicly %}checked{% endif %}>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <label>Show my journey to Circle friends</label>
+        <label class="switch">
+          <input type="checkbox" name="show_journey_to_friends" {% if user.show_journey_to_friends %}checked{% endif %}>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <label>Show my city/state</label>
+        <label class="switch">
+          <input type="checkbox" name="show_location" {% if user.show_location %}checked{% endif %}>
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <button type="submit" class="global-button" style="margin-top: 1.5rem;">💾 Save Visibility Settings</button>
+    </form>
+  </div>
+
   <div class="resurgitag-section">
     <h2>🔗 Your Resurgitag</h2>
     <div class="resurgitag-box">{{ user.resurgitag }}</div>
@@ -72,6 +104,65 @@
 }
 .profile-stats p {
   margin: 0.5rem 0;
+}
+
+.profile-visibility {
+  margin-top: 2.5rem;
+  background: #2a2a2a;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  text-align: left;
+  box-shadow: 0 0 10px rgba(255,255,255,0.04);
+}
+.profile-visibility h3 {
+  margin-bottom: 1rem;
+  color: #ffe6b3;
+}
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.8rem 0;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px; width: 20px;
+  left: 4px; bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #66d38e;
+}
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
 }
 
 .resurgitag-section h2 {
@@ -132,7 +223,6 @@
   transition: all 0.25s ease-in-out;
   opacity: 0;
 }
-
 .points-info-bubble.active {
   display: block;
   opacity: 1;
@@ -162,10 +252,10 @@ function showPointsInfo() {
   const bubble = document.getElementById("pointsInfoBubble");
   bubble.classList.add("active");
 }
-
 function hidePointsInfo() {
   const bubble = document.getElementById("pointsInfoBubble");
   bubble.classList.remove("active");
 }
 </script>
 {% endblock %}
+
