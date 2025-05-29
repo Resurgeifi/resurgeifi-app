@@ -278,9 +278,6 @@ def profile():
             flash("User not found.", "error")
             return redirect(url_for('login'))
 
-        # ⛔ Removed auto-generation of resurgitag
-        # ✅ Resurgitag now generated at registration only
-
         clean_tag = user.resurgitag.lstrip("@") if user.resurgitag else "unknown"
         base_url = os.getenv("BASE_URL", request.host_url.rstrip("/"))
         qr_data = f"{base_url}/profile/public/{clean_tag}"
@@ -297,9 +294,15 @@ def profile():
                                resurgitag=user.resurgitag,
                                points=user.points or 0,
                                days_on_journey=days_on_journey,
-                               qr_code_base64=qr_code_base64)
+                               qr_code_base64=qr_code_base64,
+                               first_name=user.first_name,
+                               last_name=user.last_name,
+                               city=user.city,
+                               state=user.state,
+                               show_real_name=user.show_real_name,
+                               show_location=user.show_location)
 
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
         db.rollback()
         flash("Something went wrong loading your profile. Please try again.")
         return redirect(url_for('login'))
