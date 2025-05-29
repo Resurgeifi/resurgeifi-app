@@ -288,6 +288,7 @@ def profile():
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         days_on_journey = (datetime.utcnow() - (user.journey_start_date or datetime.utcnow())).days
+        edit_identity = request.args.get("edit_identity") == "true"
 
         return render_template("profile.html", 
                                user=user,
@@ -300,7 +301,8 @@ def profile():
                                city=user.city,
                                state=user.state,
                                show_real_name=user.show_real_name,
-                               show_location=user.show_location)
+                               show_location=user.show_location,
+                               edit_identity=edit_identity)
 
     except SQLAlchemyError:
         db.rollback()

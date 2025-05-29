@@ -1,24 +1,28 @@
 {% extends "base.html" %}
-{% block title %}Resurgifi Friend View{% endblock %}
+{% block title %}Resurgifi Public Profile{% endblock %}
 
 {% block content %}
 <div class="profile-container" style="max-width: 600px; margin: 2rem auto; text-align: center; padding: 2rem; background-color: #1e1e2f; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.4);">
 
   {% if friend.show_name_publicly and friend.display_name %}
-    <h2 style="font-size: 1.8rem;">{{ friend.display_name }} <span style="font-size: 0.9rem; color: #ccc;">@{{ friend.resurgitag.lstrip('@') }}</span></h2>
+    <h2 style="font-size: 1.8rem; color: #ffeecb;">
+      {{ friend.display_name }} <span style="font-size: 0.9rem; color: #ccc;">@{{ friend.resurgitag.lstrip('@') }}</span>
+    </h2>
   {% else %}
-    <h2 style="font-size: 1.8rem;">@{{ friend.resurgitag.lstrip('@') }}</h2>
+    <h2 style="font-size: 1.8rem; color: #ffeecb;">@{{ friend.resurgitag.lstrip('@') }}</h2>
   {% endif %}
 
-  <p style="font-size: 1.2rem; margin-top: 1rem;">
+  <p style="font-size: 1.2rem; margin-top: 1rem; color: #f6e7c1;">
     Nickname: <strong>{{ friend.nickname or "Anonymous Traveler" }}</strong>
   </p>
 
   {% if friend.show_journey_publicly and friend.theme_choice %}
-    <p style="margin-top: 0.5rem;">Journey Type: <strong>{{ friend.theme_choice }}</strong></p>
+    <p style="margin-top: 0.5rem; color: #f6e7c1;">
+      Journey Type: <strong>{{ friend.theme_choice }}</strong>
+    </p>
   {% endif %}
 
-  <p style="margin-top: 0.5rem;">
+  <p style="margin-top: 0.5rem; color: #f6e7c1;">
     Days on Journey:
     {% if friend.journey_start_date %}
       <strong>{{ (current_time - friend.journey_start_date).days }}</strong>
@@ -28,10 +32,11 @@
   </p>
 
   <div style="margin-top: 2rem;">
-    <a href="/login" class="btn">Log in to connect</a>
+    <a href="/login" class="btn back-btn">🔐 Log In to Connect</a>
   </div>
 </div>
 {% endblock %}
+
 
 
 
