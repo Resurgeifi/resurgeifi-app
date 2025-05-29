@@ -59,15 +59,27 @@
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">
-    We need your help — and the insight of those you trust.<br>
-    This is an early build of something powerful, and your feedback shapes what it becomes.<br><br>
-    <strong>You’re not just a user. You’re part of the mission.</strong>
+    <div class="intro-text">
+      Other apps say “Calm down.”<br>
+      We say: <em>Let’s rise.</em><br><br>
+      They want you to get over it.<br>
+      <strong>Resurgifi</strong> helps you grow through it.<br><br>
+      This isn’t about soft music and moving on.<br>
+      This is your <em>comeback.</em><br>
+      This is your <em>resurgence.</em><br>
+      <strong>You’re about to Resurgifi your life.</strong>
+    </div>
   </div>
-  <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
-  <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
-</div>
 
+  <div class="intro-slide" onclick="nextSlide()">
+    <div class="intro-text">
+      We need your help — and the insight of those you trust.<br>
+      This is an early build of something powerful, and your feedback shapes what it becomes.<br><br>
+      <strong>You’re not just a user. You’re part of the mission.</strong>
+    </div>
+    <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
+    <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
+  </div>
 
   <div class="intro-slide" onclick="nextSlide()">
     <div class="intro-text">Are you with us?</div>
@@ -139,6 +151,7 @@ function nextSlide() {
 </style>
 
 {% endblock %}
+
 
 
 
