@@ -274,11 +274,14 @@ def profile():
     try:
         user = db.query(User).filter_by(id=user_id).first()
 
-        if not user.resurgitag:
-            user.resurgitag = generate_resurgitag(user.display_name or "User")
-            db.commit()
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for('login'))
 
-        clean_tag = user.resurgitag.lstrip("@")
+        # ⛔ Removed auto-generation of resurgitag
+        # ✅ Resurgitag now generated at registration only
+
+        clean_tag = user.resurgitag.lstrip("@") if user.resurgitag else "unknown"
         base_url = os.getenv("BASE_URL", request.host_url.rstrip("/"))
         qr_data = f"{base_url}/profile/public/{clean_tag}"
 
@@ -303,6 +306,7 @@ def profile():
 
     finally:
         db.close()
+
 @app.route("/circle/chat/<resurgitag>", methods=["POST"])
 @login_required
 def circle_chat(resurgitag):
@@ -749,6 +753,23 @@ def register():
 
             hashed_pw = generate_password_hash(password)
 
+            # 🧠 Generate unique resurgitag
+            fallback_nickname = "traveler"
+            existing_tags = {u.resurgitag for u in db.query(User).filter(User.resurgitag.isnot(None)).all()}
+
+            import random, string
+            def generate_resurgitag(base, existing_tags):
+                base = ''.join(e for e in base if e.isalnum()).lower()
+                suffix = ''.join(random.choices(string.digits, k=4))
+                tag = f"@{base}{suffix}"
+                while tag in existing_tags:
+                    suffix = ''.join(random.choices(string.digits, k=4))
+                    tag = f"@{base}{suffix}"
+                return tag
+
+            resurgitag = generate_resurgitag(fallback_nickname, existing_tags)
+
+            # ✅ Create new user with resurgitag
             new_user = User(
                 email=email,
                 password_hash=hashed_pw,
@@ -757,7 +778,9 @@ def register():
                 theme_choice=None,
                 consent=None,
                 journey_start_date=None,
-                timezone=None
+                timezone=None,
+                resurgitag=resurgitag,
+                resurgitag_locked=False
             )
 
             db.add(new_user)
@@ -769,6 +792,7 @@ def register():
 
             flash("Registration successful. Let’s begin your journey.", "success")
             return redirect(url_for("onboarding"))
+
         except SQLAlchemyError as e:
             db.rollback()
             flash("Something went wrong while creating your account.", "error")
@@ -1360,29 +1384,39 @@ def change_resurgitag():
     try:
         user = db.query(User).filter_by(id=user_id).first()
 
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("login"))
+
         if user.resurgitag_locked:
-            flash("You can only change your Resurgitag once.")
+            flash("You can only change your Resurgitag once.", "warning")
             return redirect(url_for("profile"))
 
         if request.method == "POST":
-            new_tag = request.form.get("new_tag", "").strip()
-            if new_tag and new_tag.startswith("@") and len(new_tag) <= 32:
-                existing = db.query(User).filter_by(resurgitag=new_tag).first()
-                if existing:
-                    flash("That tag is already taken. Try another.")
-                else:
-                    user.resurgitag = new_tag
-                    user.resurgitag_locked = True
-                    db.commit()
-                    flash("Your Resurgitag has been updated!")
-                    return redirect(url_for("profile"))
+            new_tag = request.form.get("new_tag", "").strip().lower()
+
+            if not new_tag.startswith("@"):
+                new_tag = "@" + new_tag
+
+            if len(new_tag) > 32:
+                flash("Tag must be 32 characters or less.", "error")
+                return render_template("change_tag.html", current_tag=user.resurgitag)
+
+            existing = db.query(User).filter_by(resurgitag=new_tag).first()
+            if existing:
+                flash("That tag is already taken. Try another.", "error")
             else:
-                flash("Tag must start with @ and be less than 32 characters.")
+                # Optional: Notify friends or log tag change
+                user.resurgitag = new_tag
+                user.resurgitag_locked = True
+                db.commit()
+                flash("Your Resurgitag has been updated!", "success")
+                return redirect(url_for("profile"))
+
         return render_template("change_tag.html", current_tag=user.resurgitag)
+
     finally:
         db.close()
-from flask import render_template, abort
-from models import HeroProfile
 
 @app.route('/hero/<resurgitag>')
 def hero_profile(resurgitag):
