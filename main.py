@@ -655,6 +655,35 @@ def settings():
     finally:
         db.close()
 
+@app.route("/profile/update-visibility", methods=["POST"])
+@login_required
+def update_visibility():
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter_by(id=session['user_id']).first()
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for('profile'))
+
+        form = request.form
+
+        # Toggle logic
+        user.show_real_name = 'show_real_name' in form
+        user.show_location = 'show_location' in form
+        user.show_journey_to_friends = 'show_journey_to_friends' in form
+        user.show_journey_publicly = 'show_journey_publicly' in form
+
+        db.commit()
+        flash("Visibility preferences updated!", "success")
+        return redirect(url_for("profile"))
+
+    except SQLAlchemyError:
+        db.rollback()
+        flash("Something went wrong while saving preferences.", "error")
+        return redirect(url_for("profile"))
+    finally:
+        db.close()
+
 @app.route("/profile/public/<resurgitag>")
 def view_public_profile(resurgitag):
     db = SessionLocal()
