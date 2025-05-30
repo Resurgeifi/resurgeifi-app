@@ -77,22 +77,23 @@
          value="{{ user.state or '' }}">
 </div>
 
-<div class="form-check mt-4">
-  <input type="checkbox" class="form-check-input" id="show_real_name" name="show_real_name"
-         {% if user.show_real_name %}checked{% endif %}>
-  <label class="form-check-label text-light" for="show_real_name">
-    Show my real name on my profile
+<!-- 🌕 Real Name Toggle -->
+<div class="toggle-row mt-4">
+  <span>Show my real name</span>
+  <label class="switch">
+    <input type="checkbox" name="show_real_name" {% if user.show_real_name %}checked{% endif %}>
+    <span class="slider round"></span>
   </label>
 </div>
 
-<div class="form-check mt-2 mb-4">
-  <input type="checkbox" class="form-check-input" id="show_location" name="show_location"
-         {% if user.show_location %}checked{% endif %}>
-  <label class="form-check-label text-light" for="show_location">
-    Show my location on my profile
+<!-- 📍 Location Toggle -->
+<div class="toggle-row mt-3">
+  <span>Show my location</span>
+  <label class="switch">
+    <input type="checkbox" name="show_location" {% if user.show_location %}checked{% endif %}>
+    <span class="slider round"></span>
   </label>
 </div>
-
 
         <!-- ... other fields ... -->
 
@@ -122,10 +123,24 @@
   </div>
   
   <div class="qr-section">
-    <h3>Share Your Resurgitag</h3>
-    <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code for your Resurgitag" />
-    <p>Let others follow your journey. Share your tag or scan the code.</p>
-  </div>
+  <h3>Share Your Resurgitag</h3>
+  <a href="{{ public_profile_url }}" target="_blank">
+    <img src="data:image/png;base64,{{ qr_code_base64 }}" 
+         alt="QR Code for your Resurgitag" 
+         style="cursor: pointer;" />
+  </a>
+  <p style="color: #ccc; font-size: 1rem; margin-top: 0.5rem;">
+    {{ public_profile_url }}
+    <button onclick="copyToClipboard('{{ public_profile_url }}')" 
+            style="margin-left: 10px; font-size: 0.85rem; padding: 0.2rem 0.6rem;">
+      📋 Copy
+    </button>
+  </p>
+  <div id="copy-confirm" class="copy-affirmation">
+  🌱 “You just made it easier for someone to find hope.”
+</div>
+  <p>Let others follow your journey. Share your tag or scan the code.</p>
+</div>
 
   <a href="/menu" class="btn back-btn">⬅️ Back to Menu</a>
 
@@ -257,6 +272,31 @@ input:checked + .slider:before {
   font-size: 1rem;
 }
 
+.copy-affirmation {
+  display: none;
+  position: relative;
+  font-size: 0.95rem;
+  color: #b1fcb7;
+  background: #1f2e1f;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-top: 1rem;
+  box-shadow: 0 0 20px rgba(140, 255, 170, 0.15);
+  animation: slideFadeIn 0.4s ease-out forwards;
+  opacity: 0;
+  transform: translateY(10px);
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@keyframes slideFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .back-btn {
   margin-top: 2rem;
   display: inline-block;
@@ -314,22 +354,24 @@ input:checked + .slider:before {
 </style>
 
 <script>
-function showPointsInfo() {
-  const bubble = document.getElementById("pointsInfoBubble");
-  bubble.classList.add("active");
-}
-function hidePointsInfo() {
-  const bubble = document.getElementById("pointsInfoBubble");
-  bubble.classList.remove("active");
-}
-</script>
-<script>
+  // 🪙 Show/hide points info bubble
+  function showPointsInfo() {
+    const bubble = document.getElementById("pointsInfoBubble");
+    bubble.classList.add("active");
+  }
+
+  function hidePointsInfo() {
+    const bubble = document.getElementById("pointsInfoBubble");
+    bubble.classList.remove("active");
+  }
+
+  // ✏️ Toggle identity edit form
   function toggleEditForm() {
     const formDiv = document.getElementById("editFormContainer");
     formDiv.style.display = (formDiv.style.display === "none") ? "block" : "none";
   }
 
-  // Auto-close form after a successful update
+  // ✅ Auto-close form if flash message appears
   window.addEventListener("DOMContentLoaded", function () {
     const successFlash = document.querySelector(".flash-success");
     if (successFlash) {
@@ -337,6 +379,32 @@ function hidePointsInfo() {
       if (formDiv) formDiv.style.display = "none";
     }
   });
-</script>
 
+  // 📋 Copy public profile URL to clipboard with inspiring affirmation
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function () {
+      const confirm = document.getElementById("copy-confirm");
+
+      // Optional rotation of affirmations
+      const messages = [
+        "🌱 “You just made it easier for someone to find hope.”",
+        "🌤 “This share might be someone’s turning point.”",
+        "🕯 “You’re not just seen — you’re *felt*.”"
+      ];
+      confirm.innerHTML = messages[Math.floor(Math.random() * messages.length)];
+
+      // Trigger fade/slide animation
+      confirm.style.display = "block";
+      confirm.classList.remove("copy-affirmation");
+      void confirm.offsetWidth; // force reflow
+      confirm.classList.add("copy-affirmation");
+
+      setTimeout(() => {
+        confirm.style.display = "none";
+      }, 3000);
+    }, function (err) {
+      alert("Copy failed: " + err);
+    });
+  }
+</script>
 {% endblock %}

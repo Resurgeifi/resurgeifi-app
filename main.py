@@ -282,6 +282,7 @@ def profile():
         base_url = os.getenv("BASE_URL", request.host_url.rstrip("/"))
         qr_data = f"{base_url}/profile/public/{clean_tag}"
 
+        # ✅ Generate QR code as base64
         qr_img = qrcode.make(qr_data)
         buffer = io.BytesIO()
         qr_img.save(buffer, format="PNG")
@@ -296,6 +297,7 @@ def profile():
                                points=user.points or 0,
                                days_on_journey=days_on_journey,
                                qr_code_base64=qr_code_base64,
+                               public_profile_url=qr_data,  # ✅ ADDED LINE
                                first_name=user.first_name,
                                last_name=user.last_name,
                                city=user.city,
