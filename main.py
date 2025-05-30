@@ -133,7 +133,17 @@ def login_required(f):
 
 @app.route('/landing')
 def landing_alias():
-    return render_template('landing.html')
+    # If logged in → skip cinematic completely
+    if "user_id" in session:
+        return redirect(url_for("menu"))
+
+    # If already seen this session → skip to login
+    if session.get("seen_intro"):
+        return redirect(url_for("login"))
+
+    # First-time visitor (this session)
+    session["seen_intro"] = True
+    return render_template("landing.html")
 
 # ✅ Generate emotional presence conversation
 def get_mock_conversation(absence_minutes):

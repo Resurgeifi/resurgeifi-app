@@ -7,10 +7,25 @@
 </audio>
 
 <!-- 🌌 Cinematic Flash Intro Slide -->
-<div id="introSlides">
-  <div class="intro-slide active" onclick="startExperience()">
-    <div class="intro-text">“You’ve opened your eyes inside the State of Inner…<br><strong>Tap to begin your resurgence.</strong>”</div>
+<div class="intro-slide active">
+  <div class="intro-text">
+    “You’ve opened your eyes inside the State of Inner…<br>
+    You don’t have to go it alone anymore.”
   </div>
+
+  <!-- 🌟 Begin -->
+  <button onclick="startExperience()" class="global-button" style="margin-top: 2rem;">
+    ✨ Begin Your Resurgence
+  </button>
+
+  <!-- ⏭️ Skip Intro (fade-in link) -->
+  <a href="{{ url_for('login') }}"
+     class="skip-link"
+     style="margin-top: 2rem; font-size: 1.05rem; color: #aaa; text-decoration: underline; background: none; border: none;">
+    Skip Intro
+  </a>
+</div>
+
 
   <div class="intro-slide" onclick="nextSlide()">
     <div class="intro-text">This is more than an app — it’s an emotional universe.<br><br>🎧 Audio is playing. Turn sound on for full immersion.</div>
@@ -101,6 +116,14 @@ function nextSlide() {
     slides[currentSlide].classList.add('active');
   }
 }
+// 👁 Reveal Skip Intro link after delay
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const skip = document.querySelector('.skip-link');
+    if (skip) skip.classList.add('show');
+  }, 2000);
+});
+
 </script>
 
 <style>
@@ -148,6 +171,15 @@ function nextSlide() {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+.skip-link {
+  opacity: 0;
+  transition: opacity 1.2s ease-in;
+  display: inline-block;
+}
+.skip-link.show {
+  opacity: 1;
+}
+
 </style>
 
 {% endblock %}
