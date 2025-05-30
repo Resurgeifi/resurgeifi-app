@@ -44,7 +44,8 @@ from models import (
     VillainProfile,
     CircleMessage,
     DailyReflection,
-    UserQuestEntry
+    UserQuestEntry,
+    WishingWellMessage
 )
 
 from flask_migrate import Migrate
@@ -1208,8 +1209,6 @@ def wishing_well():
 
     finally:
         db.close()
-
-
 
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required
