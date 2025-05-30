@@ -1190,6 +1190,9 @@ def wishing_well():
             flash("🌠 Your wish has been cast into the Well.", "success")
             return redirect(url_for("wishing_well"))
 
+        # ✅ TEST: Confirm model is defined
+        print("✅ WishingWellMessage loaded:", WishingWellMessage)
+
         # Get all public wishes
         recent_wishes = (
             db.query(WishingWellMessage)
@@ -1209,6 +1212,7 @@ def wishing_well():
 
     finally:
         db.close()
+
 
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required
