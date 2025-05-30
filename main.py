@@ -1189,7 +1189,7 @@ def wishing_well():
             flash("🌠 Your wish has been cast into the Well.", "success")
             return redirect(url_for("wishing_well"))
 
-        # Get all public wishes (could later be filtered by mood, tags, etc.)
+        # Get all public wishes
         recent_wishes = (
             db.query(WishingWellMessage)
             .filter_by(message_type="wish", is_public=True)
@@ -1202,11 +1202,13 @@ def wishing_well():
 
     except Exception as e:
         db.rollback()
+        print("🧨 Wishing Well Error:", e)
         flash("Something went wrong. Try again soon.", "error")
         return redirect(url_for("menu"))
 
     finally:
         db.close()
+
 
 
 @app.route("/feedback", methods=["GET", "POST"])

@@ -27,7 +27,7 @@
 
 <!-- ✍️ Modal: Send a Wish -->
 <div id="wish-modal">
-  <form method="POST" action="/wishing-well">
+  <form method="POST" action="{{ url_for('wishing_well') }}">
     <textarea name="wish_message" placeholder="Leave your message..." required></textarea><br>
     <label><input type="checkbox" name="is_public"> Make public for other travelers</label><br>
     <button type="submit">Send Wish</button>
