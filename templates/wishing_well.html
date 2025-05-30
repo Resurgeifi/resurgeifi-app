@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- 🌌 Wishing Well Background Container -->
+<div id="well-container">
+  <!-- 📜 Scroll Click Zone -->
+  <div id="scroll-zone" title="Read next scroll"></div>
+
+  <!-- ✒️ Feather Pen (write a wish) -->
+  <div id="feather-pen" title="Leave a message"></div>
+
+  <!-- 🕳️ Well Mouth (view archive if empty) -->
+  <div id="well-mouth" title="View Archived Messages"></div>
+</div>
+
+<!-- 📜 Modal: Read Scroll -->
+<div id="scroll-modal">
+  <div class="scroll-message-wrapper">
+    <img src="/static/backgrounds/scroll_open.png" alt="Open Scroll" class="scroll-bg">
+    <div class="scroll-text">
+      <p id="scroll-message">[Message will appear here]</p>
+      <p id="scroll-signed" class="scroll-signed">— Grace</p>
+    </div>
+    <button onclick="closeScroll()" class="scroll-close">Close</button>
+  </div>
+</div>
+
+<!-- ✍️ Modal: Send a Wish -->
+<div id="wish-modal">
+  <form method="POST" action="/wishing-well">
+    <textarea name="wish_message" placeholder="Leave your message..." required></textarea><br>
+    <label><input type="checkbox" name="is_public"> Make public for other travelers</label><br>
+    <button type="submit">Send Wish</button>
+    <button type="button" onclick="closeWishModal()">Cancel</button>
+  </form>
+</div>
+
+<!-- 🧾 Optional: Recent Public Wishes -->
+{% if wishes %}
+  <div class="recent-wishes">
+    <h3>🌠 Messages from fellow travelers</h3>
+    <ul>
+      {% for wish in wishes %}
+        <li>“{{ wish.content }}” <small>– {{ wish.timestamp.strftime('%b %d, %Y') }}</small></li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+<style>
+  #well-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background-image: url("/static/backgrounds/well_5.png");
+    background-size: cover;
+    background-position: center;
+  }
+
+  #scroll-zone {
+    position: absolute;
+    top: 35%;
+    left: 15%;
+    width: 70%;
+    height: 25%;
+    cursor: pointer;
+    animation: pulse 2s infinite ease-in-out;
+  }
+
+  #feather-pen {
+    position: absolute;
+    bottom: 24%;
+    right: 5%;
+    width: 48px;
+    height: 64px;
+    cursor: pointer;
+  }
+
+  #well-mouth {
+    position: absolute;
+    bottom: 10%;
+    left: 48%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+  }
+
+  #scroll-modal,
+  #wish-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .scroll-message-wrapper {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    aspect-ratio: 3/2;
+  }
+
+  .scroll-bg {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+
+  .scroll-text {
+    position: absolute;
+    top: 15%;
+    left: 10%;
+    width: 80%;
+    height: 65%;
+    font-family: 'Patrick Hand', sans-serif;
+    font-size: 1.3rem;
+    color: #333;
+    overflow-y: auto;
+  }
+
+  .scroll-signed {
+    margin-top: 1rem;
+    text-align: right;
+    font-weight: bold;
+    color: #444;
+  }
+
+  .scroll-close {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff6da;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  #wish-modal textarea {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 1rem;
+  }
+
+  .recent-wishes {
+    background: rgba(0,0,0,0.5);
+    color: #eee;
+    padding: 1rem;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  @keyframes pulse {
+    0%, 100% { filter: drop-shadow(0 0 4px gold); }
+    50% { filter: drop-shadow(0 0 12px #ffd700); }
+  }
+</style>
+
+<script>
+  let scrollCount = 5;
+  const messages = [
+    "You're still here. That counts.",
+    "The water remembers you.",
+    "A friend joined your Circle.",
+    "You came back. That’s everything.",
+    "You made it through today."
+  ];
+  const signers = ["Grace", "System", "Sarah", "Velessa", "Lucentis"];
+
+  document.getElementById("scroll-zone").onclick = () => {
+    if (scrollCount > 0) {
+      const index = 5 - scrollCount;
+      document.getElementById("scroll-message").innerText = messages[index];
+      document.getElementById("scroll-signed").innerText = "— " + signers[index];
+      document.getElementById("scroll-modal").style.display = "flex";
+    } else {
+      document.getElementById("scroll-message").innerText = "There are no more scrolls. Try clicking the well to view past messages.";
+      document.getElementById("scroll-signed").innerText = "— The Well";
+      document.getElementById("scroll-modal").style.display = "flex";
+    }
+  };
+
+  function closeScroll() {
+    document.getElementById("scroll-modal").style.display = "none";
+    if (scrollCount > 0) {
+      scrollCount--;
+      document.getElementById("well-container").style.backgroundImage =
+        `url('/static/backgrounds/well_${scrollCount}.png')`;
+    }
+  }
+
+  document.getElementById("feather-pen").onclick = () => {
+    document.getElementById("wish-modal").style.display = "flex";
+  };
+
+  function closeWishModal() {
+    document.getElementById("wish-modal").style.display = "none";
+  }
+
+  document.getElementById("well-mouth").onclick = () => {
+    if (scrollCount === 0) {
+      alert("🧾 Archive would open here.");
+    }
+  };
+</script>
+
+{% endblock %}

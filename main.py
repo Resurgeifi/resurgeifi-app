@@ -1166,6 +1166,48 @@ UPLOAD_FOLDER = '/tmp'
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+@app.route("/wishing-well", methods=["GET", "POST"])
+@login_required
+def wishing_well():
+    db = SessionLocal()
+    user_id = session["user_id"]
+
+    try:
+        if request.method == "POST":
+            message = request.form.get("wish_message")
+            is_public = request.form.get("is_public") == "on"
+
+            new_wish = WishingWellMessage(
+                user_id=user_id,
+                sender="user",
+                message_type="wish",
+                content=message,
+                is_public=is_public
+            )
+            db.add(new_wish)
+            db.commit()
+            flash("🌠 Your wish has been cast into the Well.", "success")
+            return redirect(url_for("wishing_well"))
+
+        # Get all public wishes (could later be filtered by mood, tags, etc.)
+        recent_wishes = (
+            db.query(WishingWellMessage)
+            .filter_by(message_type="wish", is_public=True)
+            .order_by(WishingWellMessage.timestamp.desc())
+            .limit(15)
+            .all()
+        )
+
+        return render_template("wishing_well.html", wishes=recent_wishes)
+
+    except Exception as e:
+        db.rollback()
+        flash("Something went wrong. Try again soon.", "error")
+        return redirect(url_for("menu"))
+
+    finally:
+        db.close()
+
 
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required
