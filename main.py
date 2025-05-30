@@ -1166,7 +1166,7 @@ UPLOAD_FOLDER = '/tmp'
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-@app.route("/wishing-well", methods=["GET", "POST"])
+@app.route("/wishing_well", methods=["GET", "POST"])
 @login_required
 def wishing_well():
     db = SessionLocal()
