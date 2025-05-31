@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+<audio id="scrollSound" preload="auto">
+  <source src="{{ url_for('static', filename='audio/scrollsplash.mp3') }}" type="audio/mpeg">
+</audio>
 
 <!-- 🌌 Wishing Well Scene -->
 <div id="well-background" style="
@@ -162,8 +165,16 @@
   });
 
   function closeScroll() {
-    document.getElementById("scroll-modal").style.display = "none";
+  document.getElementById("scroll-modal").style.display = "none";
+
+  // 💦 Play splash sound on close
+  const splash = document.getElementById("scrollSound");
+  if (splash) {
+    splash.currentTime = 0;
+    splash.play().catch(err => console.warn("Sound play failed:", err));
   }
+}
+
 
   function openWishModal() {
     document.getElementById("wish-modal").style.display = "flex";
