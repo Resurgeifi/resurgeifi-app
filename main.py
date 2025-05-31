@@ -1190,10 +1190,25 @@ def wishing_well():
             flash("🌠 Your wish has been cast into the Well.", "success")
             return redirect(url_for("wishing_well"))
 
-        # ✅ TEST: Confirm model is defined
-        print("✅ WishingWellMessage loaded:", WishingWellMessage)
+        # ✅ Get last 5 unread scroll messages for this user
+        unread_scrolls = (
+            db.query(WishingWellMessage)
+            .filter_by(user_id=user_id, message_type="scroll", is_read=False)
+            .order_by(WishingWellMessage.timestamp.asc())
+            .limit(5)
+            .all()
+        )
 
-        # Get all public wishes
+        # Convert to simplified JSON for template
+        scroll_payload = [
+            {
+                "content": scroll.content,
+                "signed_by": scroll.sender or "The Well"
+            }
+            for scroll in unread_scrolls
+        ]
+
+        # Optional: get public wishes for bottom of the page
         recent_wishes = (
             db.query(WishingWellMessage)
             .filter_by(message_type="wish", is_public=True)
@@ -1202,7 +1217,11 @@ def wishing_well():
             .all()
         )
 
-        return render_template("wishing_well.html", wishes=recent_wishes)
+        return render_template(
+            "wishing_well.html",
+            unread_scrolls=scroll_payload,
+            wishes=recent_wishes
+        )
 
     except Exception as e:
         db.rollback()
@@ -1600,6 +1619,45 @@ def universal_fallback(any_path):
 @app.errorhandler(404)
 def fallback_404(error):
     return render_template("coming_soon.html"), 404
+@app.route("/dev/seed_scrolls")
+@login_required
+def dev_seed_scrolls():
+    db = SessionLocal()
+    user_id = session["user_id"]
+
+    try:
+        # Create 5 fake scroll messages
+        messages = [
+            ("You came back. That’s everything.", "System"),
+            ("A friend joined your Circle.", "Sarah"),
+            ("The water remembers you.", "Lucentis"),
+            ("You're still here. That counts.", "Velessa"),
+            ("You made it through today.", "Grace")
+        ]
+
+        for content, sender in messages:
+            msg = WishingWellMessage(
+                user_id=user_id,
+                sender=sender,
+                message_type="scroll",
+                content=content,
+                is_public=False,
+                is_read=False  # <-- make sure this exists in your model!
+            )
+            db.add(msg)
+
+        db.commit()
+        flash("✅ Dev scrolls seeded into your wishing well.", "success")
+        return redirect(url_for("wishing_well"))
+
+    except Exception as e:
+        db.rollback()
+        flash("🧨 Could not seed scrolls.", "error")
+        print("Seeding error:", e)
+        return redirect(url_for("menu"))
+
+    finally:
+        db.close()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)

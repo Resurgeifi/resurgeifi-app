@@ -1,248 +1,151 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- 🌌 Wishing Well Background Container -->
-<div id="well-container">
-  <!-- 📜 Scroll Click Zone -->
-  <div id="scroll-zone" title="Read next scroll"></div>
-
-  <!-- ✒️ Feather Pen (write a wish) -->
-  <div id="feather-pen" title="Leave a message"></div>
-
-  <!-- 🕳️ Well Mouth (view archive if empty) -->
-  <div id="well-mouth" title="View Archived Messages"></div>
-</div>
-
-<!-- 📜 Modal: Read Scroll -->
-<div id="scroll-modal">
-  <div class="scroll-message-wrapper">
-    <img src="/static/backgrounds/scroll_open.png" alt="Open Scroll" class="scroll-bg">
-    <div class="scroll-text">
-      <p id="scroll-message">[Message will appear here]</p>
-      <p id="scroll-signed" class="scroll-signed">— Grace</p>
-    </div>
-    <button onclick="closeScroll()" class="scroll-close">Close</button>
-  </div>
-</div>
-
-<!-- ✍️ Modal: Send a Wish -->
-<div id="wish-modal">
-  <form method="POST" action="{{ url_for('wishing_well') }}">
-    <textarea name="wish_message" placeholder="Leave your message..." required maxlength="280"></textarea><br>
-    <label><input type="checkbox" name="is_public"> Make public for other travelers</label><br>
-    <button type="submit">Send Wish</button>
-    <button type="button" onclick="closeWishModal()">Cancel</button>
-    <p id="char-count" style="margin-top: 0.5rem; font-size: 0.9rem; color: #bbb;">0 / 280</p>
-  </form>
-</div>
-
-<!-- 🧾 Optional: Recent Public Wishes -->
-{% if wishes %}
-  <div class="recent-wishes">
-    <h3>🌠 Messages from fellow travelers</h3>
-    <ul>
-      {% for wish in wishes %}
-        <li>“{{ wish.content }}” <small>– {{ wish.timestamp.strftime('%b %d, %Y') }}</small></li>
-      {% endfor %}
-    </ul>
-  </div>
-{% endif %}
-
-<style>
-  .well-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-  max-width: 100%;
-  overflow: hidden; /* Prevent image from bleeding outside */
-}
-
-.wishing-well-img {
+<!-- 🌌 Wishing Well Scene -->
+<div id="well-background" style="
+  position: relative;
   width: 100%;
-  max-width: 500px; /* Or adjust based on design */
-  height: auto;
-  display: block;
-  object-fit: contain;
-}
+  max-width: 600px;
+  aspect-ratio: 1 / 1;
+  margin: 2rem auto;
+  background-image: url('/static/backgrounds/well_0.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+">
 
+  <!-- 📜 Scroll Icons (up to 5, based on unread_scrolls) -->
+  {% for i in range(unread_scrolls|length) %}
+    <div class="scroll-icon" id="scroll-{{ i }}" data-index="{{ i }}" style="
+      position: absolute;
+      width: 12%;
+      aspect-ratio: 1 / 1;
+      background-image: url('/static/icons/scroll.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      cursor: pointer;
+      z-index: 3;
+      {% if i == 0 %}top: 18%; left: 40%;
+      {% elif i == 1 %}top: 28%; left: 52%;
+      {% elif i == 2 %}top: 38%; left: 44%;
+      {% elif i == 3 %}top: 48%; left: 56%;
+      {% elif i == 4 %}top: 58%; left: 38%;
+      {% endif %}
+    "></div>
+  {% endfor %}
 
-  #scroll-zone {
+  <!-- ✒️ Feather Pen Zone (right side of the well) -->
+  <div id="feather-pen" title="Leave a message" onclick="openWishModal()" style="
     position: absolute;
-    top: 35%;
-    left: 15%;
-    width: 70%;
-    height: 25%;
+    top: 30%;
+    right: -25%;
+    width: 120px;
+    height: 160px;
     cursor: pointer;
-    animation: pulse 2s infinite ease-in-out;
-  }
+    z-index: 3;
+  "></div>
 
-  #feather-pen {
-    position: absolute;
-    bottom: 24%;
-    right: 5%;
-    width: 48px;
-    height: 64px;
-    cursor: pointer;
-  }
-
-  #well-mouth {
+  <!-- 🕳️ Well Mouth Zone -->
+  <div id="well-mouth" title="View Archived Messages" onclick="openArchive()" style="
     position: absolute;
     bottom: 10%;
     left: 48%;
     width: 60px;
     height: 60px;
     cursor: pointer;
-  }
+    z-index: 3;
+  "></div>
+</div>
 
-  #scroll-modal,
-  #wish-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.6);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-  }
+<!-- 📜 Scroll Modal -->
+<div id="scroll-modal" style="display: none;">
+  <div class="scroll-message-wrapper" style="text-align: center; padding: 2rem;">
+    <img src="/static/backgrounds/scroll_open.png" alt="Open Scroll" class="scroll-bg" style="width: 100%; max-width: 600px;">
+    <div class="scroll-text" style="margin-top: 1rem; font-family: 'Patrick Hand', sans-serif; font-size: 1.25rem;">
+      <p id="scroll-message">[Message will appear here]</p>
+      <p id="scroll-signed" class="scroll-signed">— Grace</p>
+    </div>
+    <button onclick="closeScroll()" class="scroll-close" style="
+      margin-top: 1rem;
+      background: #fff6da;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    ">Close</button>
+  </div>
+</div>
 
-  .scroll-message-wrapper {
-    position: relative;
-    width: 90%;
-    max-width: 600px;
-    aspect-ratio: 3/2;
-  }
+<!-- ✍️ Wish Modal -->
+<div id="wish-modal" style="display: none;">
+  <form method="POST" action="{{ url_for('wishing_well') }}" style="text-align: center; padding: 2rem;">
+    <textarea name="wish_message" placeholder="Leave your message..." required maxlength="280" style="
+      width: 90%;
+      height: 120px;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      font-family: 'Courier New', monospace;
+      border-radius: 6px;
+      resize: none;
+    "></textarea><br>
+    <label><input type="checkbox" name="is_public"> Make public for other travelers</label><br><br>
+    <button type="submit">Send Wish</button>
+    <button type="button" onclick="closeWishModal()">Cancel</button>
+    <p id="char-count" style="margin-top: 0.5rem; font-size: 0.9rem; color: #bbb;">0 / 280</p>
+  </form>
+</div>
 
-  .scroll-bg {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    display: block;
-  }
-
-  .scroll-text {
-    position: absolute;
-    top: 22%;
-    left: 12%;
-    width: 76%;
-    height: 55%;
-    font-family: 'Patrick Hand', sans-serif;
-    font-size: 1.35rem;
-    color: #3b2e1d;
-    line-height: 1.6;
-    text-align: left;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-  }
-
-  .scroll-signed {
-    position: absolute;
-    bottom: 16%;
-    right: 12%;
-    font-family: 'Patrick Hand', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: #3b2e1d;
-  }
-
-  .scroll-close {
-    position: absolute;
-    bottom: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #fff6da;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  }
-
-  #wish-modal textarea {
-    width: 100%;
-    height: 120px;
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    font-size: 1.1rem;
-    font-family: 'Courier New', monospace;
-    border-radius: 6px;
-    resize: none;
-  }
-
-  .recent-wishes {
-    background: rgba(0,0,0,0.5);
-    color: #eee;
-    padding: 1rem;
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    max-height: 150px;
-    overflow-y: auto;
-  }
-
-  @keyframes pulse {
-    0%, 100% { filter: drop-shadow(0 0 4px gold); }
-    50% { filter: drop-shadow(0 0 12px #ffd700); }
-  }
-</style>
-
+<!-- 🧠 Scroll Logic -->
 <script>
-  let scrollCount = 5;
-  const messages = [
-    "You're still here. That counts.",
-    "The water remembers you.",
-    "A friend joined your Circle.",
-    "You came back. That’s everything.",
-    "You made it through today."
-  ];
-  const signers = ["Grace", "System", "Sarah", "Velessa", "Lucentis"];
+  const scrolls = {{ unread_scrolls|tojson }};
+  let openedCount = 0;
 
-  document.getElementById("scroll-zone").onclick = () => {
-    if (scrollCount > 0) {
-      const index = 5 - scrollCount;
-      document.getElementById("scroll-message").innerText = messages[index];
-      document.getElementById("scroll-signed").innerText = "— " + signers[index];
+  scrolls.forEach((scroll, i) => {
+    const icon = document.getElementById(`scroll-${i}`);
+    icon.addEventListener('click', () => {
+      document.getElementById("scroll-message").innerText = scroll.content;
+      document.getElementById("scroll-signed").innerText = "— " + scroll.signed_by;
       document.getElementById("scroll-modal").style.display = "flex";
-    } else {
-      document.getElementById("scroll-message").innerText = "There are no more scrolls. Try clicking the well to view past messages.";
-      document.getElementById("scroll-signed").innerText = "— The Well";
-      document.getElementById("scroll-modal").style.display = "flex";
-    }
-  };
+      icon.style.display = "none";
+      openedCount++;
+
+      // Optional: disable or style archive access
+      if (openedCount >= scrolls.length) {
+        document.getElementById("well-mouth").style.opacity = 0.4;
+      }
+    });
+  });
 
   function closeScroll() {
     document.getElementById("scroll-modal").style.display = "none";
-    if (scrollCount > 0) {
-      scrollCount--;
-      document.getElementById("well-container").style.backgroundImage =
-        `url('/static/backgrounds/well_${scrollCount}.png')`;
-    }
   }
 
-  document.getElementById("feather-pen").onclick = () => {
+  function openWishModal() {
     document.getElementById("wish-modal").style.display = "flex";
-  };
+  }
 
   function closeWishModal() {
     document.getElementById("wish-modal").style.display = "none";
   }
 
-  document.getElementById("well-mouth").onclick = () => {
-    if (scrollCount === 0) {
+  function openArchive() {
+    if (openedCount >= scrolls.length) {
       alert("🧾 Archive would open here.");
     }
-  };
+  }
 
-  // 🧮 Live character counter
+  // Live character counter
   const textarea = document.querySelector('textarea[name="wish_message"]');
   const counter = document.getElementById("char-count");
-  textarea.setAttribute("maxlength", 280);
   textarea.addEventListener("input", () => {
     counter.textContent = `${textarea.value.length} / 280`;
   });
 </script>
 
 {% endblock %}
+
 
