@@ -73,6 +73,8 @@ class WishingWellMessage(db.Model):
     is_public = db.Column(db.Boolean, default=False)
     is_read = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    recipient_tag = db.Column(db.String(100), nullable=True)  # NEW: optional @resurgitag field
 
     user = db.relationship("User", backref="wishing_well_messages")
 

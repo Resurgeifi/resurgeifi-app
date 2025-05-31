@@ -26,11 +26,11 @@
       background-position: center;
       cursor: pointer;
       z-index: 3;
-      {% if i == 0 %}top: 18%; left: 40%;
-      {% elif i == 1 %}top: 28%; left: 52%;
-      {% elif i == 2 %}top: 38%; left: 44%;
-      {% elif i == 3 %}top: 48%; left: 56%;
-      {% elif i == 4 %}top: 58%; left: 38%;
+      {% if i == 0 %}top: 14%; left: 38%;
+      {% elif i == 1 %}top: 18%; left: 50%;
+      {% elif i == 2 %}top: 25%; left: 42%;
+      {% elif i == 3 %}top: 30%; left: 35%;
+      {% elif i == 4 %}top: 32%; left: 48%;
       {% endif %}
     "></div>
   {% endfor %}
@@ -59,12 +59,54 @@
 </div>
 
 <!-- 📜 Scroll Modal -->
-<div id="scroll-modal" style="display: none;">
-  <div class="scroll-message-wrapper" style="text-align: center; padding: 2rem;">
-    <img src="/static/backgrounds/scroll_open.png" alt="Open Scroll" class="scroll-bg" style="width: 100%; max-width: 600px;">
-    <div class="scroll-text" style="margin-top: 1rem; font-family: 'Patrick Hand', sans-serif; font-size: 1.25rem;">
+<div id="scroll-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.6);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+">
+  <div class="scroll-message-wrapper" style="
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    aspect-ratio: 3 / 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  ">
+    <img src="/static/backgrounds/scroll_open.png" alt="Open Scroll" class="scroll-bg" style="
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    ">
+    <div class="scroll-text" style="
+      position: absolute;
+      top: 22%;
+      left: 12%;
+      width: 76%;
+      height: 55%;
+      font-family: 'Patrick Hand', sans-serif;
+      font-size: 1.25rem;
+      color: #3b2e1d;
+      line-height: 1.6;
+      text-align: left;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    ">
       <p id="scroll-message">[Message will appear here]</p>
-      <p id="scroll-signed" class="scroll-signed">— Grace</p>
+      <p id="scroll-signed" class="scroll-signed" style="
+        position: absolute;
+        bottom: -2rem;
+        right: 0;
+        font-size: 1.1rem;
+        font-weight: bold;
+      ">— Grace</p>
     </div>
     <button onclick="closeScroll()" class="scroll-close" style="
       margin-top: 1rem;
@@ -113,7 +155,6 @@
       icon.style.display = "none";
       openedCount++;
 
-      // Optional: disable or style archive access
       if (openedCount >= scrolls.length) {
         document.getElementById("well-mouth").style.opacity = 0.4;
       }
@@ -147,5 +188,6 @@
 </script>
 
 {% endblock %}
+
 
 
