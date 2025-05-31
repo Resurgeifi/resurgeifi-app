@@ -24,7 +24,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # 🌍 Flask Core
-from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify, g
+from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify, g, Response
 from flask_mail import Mail, Message
 from flask_cors import CORS
 
@@ -33,6 +33,7 @@ from dotenv import load_dotenv
 
 # 🤖 AI Integration
 from openai import OpenAI
+import requests  # ✅ For ElevenLabs streaming
 
 # 🧩 Resurgifi Internal
 from models import (
@@ -50,7 +51,7 @@ from models import (
 
 from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.exc import SQLAlchemyError  # ✅ NEW: Handle rollback issues
+from sqlalchemy.exc import SQLAlchemyError
 from rams import HERO_NAMES, build_context, select_heroes, build_prompt
 from markupsafe import Markup
 import qrcode
@@ -95,6 +96,44 @@ with app.app_context():
 # ✅ OpenAI Setup
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
+
+# ✅ ElevenLabs Setup
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+GRACE_VOICE_ID = "hIeqtoW1V7vxkxl7mya3"
+
+@app.route("/api/tts", methods=["POST"])
+def text_to_speech():
+    text = request.json.get("text", "")
+    if not text:
+        return {"error": "No text provided."}, 400
+
+    headers = {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "text": text,
+        "model_id": "eleven_monolingual_v1",
+        "voice_settings": {
+            "stability": 0.7,
+            "similarity_boost": 0.75
+        }
+    }
+
+    response = requests.post(
+        f"https://api.elevenlabs.io/v1/text-to-speech/{GRACE_VOICE_ID}/stream",
+        headers=headers,
+        json=payload,
+        stream=True
+    )
+
+    if response.status_code != 200:
+        return {"error": "TTS failed", "details": response.text}, 500
+
+    return Response(response.iter_content(chunk_size=4096),
+                    content_type="audio/mpeg")
+
 
 # ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
@@ -1658,49 +1697,6 @@ def dev_seed_scrolls():
 
     finally:
         db.close()
-import os
-import requests
-from flask import Flask, request, Response
-
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")
-
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-GRACE_VOICE_ID = "hIeqtoW1V7vxkxl7mya3"
-
-
-@app.route("/api/tts", methods=["POST"])
-def text_to_speech():
-    text = request.json.get("text", "")
-    if not text:
-        return {"error": "No text provided."}, 400
-
-    headers = {
-        "xi-api-key": ELEVENLABS_API_KEY,
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "text": text,
-        "model_id": "eleven_monolingual_v1",
-        "voice_settings": {
-            "stability": 0.7,
-            "similarity_boost": 0.75
-        }
-    }
-
-    response = requests.post(
-        f"https://api.elevenlabs.io/v1/text-to-speech/{GRACE_VOICE_ID}/stream",
-        headers=headers,
-        json=payload,
-        stream=True
-    )
-
-    if response.status_code != 200:
-        return {"error": "TTS failed", "details": response.text}, 500
-
-    return Response(response.iter_content(chunk_size=4096),
-                    content_type="audio/mpeg")
 
 # Optional but useful for local testing
 if __name__ == '__main__':
