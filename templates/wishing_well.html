@@ -28,10 +28,11 @@
 <!-- ✍️ Modal: Send a Wish -->
 <div id="wish-modal">
   <form method="POST" action="{{ url_for('wishing_well') }}">
-    <textarea name="wish_message" placeholder="Leave your message..." required></textarea><br>
+    <textarea name="wish_message" placeholder="Leave your message..." required maxlength="280"></textarea><br>
     <label><input type="checkbox" name="is_public"> Make public for other travelers</label><br>
     <button type="submit">Send Wish</button>
     <button type="button" onclick="closeWishModal()">Cancel</button>
+    <p id="char-count" style="margin-top: 0.5rem; font-size: 0.9rem; color: #bbb;">0 / 280</p>
   </form>
 </div>
 
@@ -113,25 +114,27 @@
 
   .scroll-text {
     position: absolute;
-    top: 14%;
+    top: 22%;
     left: 12%;
-    right: 12%;
-    bottom: 14%;
-    font-family: 'Patrick Hand', cursive;
-    font-size: 1.2rem;
+    width: 76%;
+    height: 55%;
+    font-family: 'Patrick Hand', sans-serif;
+    font-size: 1.35rem;
     color: #3b2e1d;
     line-height: 1.6;
+    text-align: left;
     overflow-y: auto;
-    padding: 0.5rem;
-    background: rgba(255,255,255,0.0);
-    text-shadow: 0 1px 0 #fff;
+    padding-right: 0.5rem;
   }
 
   .scroll-signed {
-    margin-top: 1rem;
-    text-align: right;
-    font-weight: bold;
-    color: #5a422e;
+    position: absolute;
+    bottom: 16%;
+    right: 12%;
+    font-family: 'Patrick Hand', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #3b2e1d;
   }
 
   .scroll-close {
@@ -150,11 +153,13 @@
 
   #wish-modal textarea {
     width: 100%;
-    height: 100px;
+    height: 120px;
     margin-bottom: 1rem;
-    padding: 0.5rem;
-    font-size: 1rem;
+    padding: 0.75rem;
+    font-size: 1.1rem;
     font-family: 'Courier New', monospace;
+    border-radius: 6px;
+    resize: none;
   }
 
   .recent-wishes {
@@ -220,6 +225,15 @@
       alert("🧾 Archive would open here.");
     }
   };
+
+  // 🧮 Live character counter
+  const textarea = document.querySelector('textarea[name="wish_message"]');
+  const counter = document.getElementById("char-count");
+  textarea.setAttribute("maxlength", 280);
+  textarea.addEventListener("input", () => {
+    counter.textContent = `${textarea.value.length} / 280`;
+  });
 </script>
 
 {% endblock %}
+
