@@ -1668,6 +1668,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 GRACE_VOICE_ID = "hIeqtoW1V7vxkxl7mya3"
 
+print("✅ /api/tts route registered with POST method")
 @app.route("/api/tts", methods=["POST"])
 def text_to_speech():
     text = request.json.get("text", "")
