@@ -1668,7 +1668,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 GRACE_VOICE_ID = "hIeqtoW1V7vxkxl7mya3"
 
-print("✅ /api/tts route registered with POST method")
+
 @app.route("/api/tts", methods=["POST"])
 def text_to_speech():
     text = request.json.get("text", "")
@@ -1702,12 +1702,6 @@ def text_to_speech():
     return Response(response.iter_content(chunk_size=4096),
                     content_type="audio/mpeg")
 
-@app.route("/debug/env")
-def debug_env():
-    return {
-        "ELEVENLABS_API_KEY": ELEVENLABS_API_KEY[:5] + "..." if ELEVENLABS_API_KEY else None
-    }
-
+# Optional but useful for local testing
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
-
