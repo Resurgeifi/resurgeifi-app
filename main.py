@@ -1213,6 +1213,21 @@ def wishing_well():
     finally:
         db.close()
 
+@app.context_processor
+def inject_global_well_status():
+    from models import WishingWellMessage
+    if "user_id" in session:
+        db = SessionLocal()
+        try:
+            has_unread = db.query(WishingWellMessage).filter_by(
+                user_id=session["user_id"],
+                message_type="wish",
+                is_read=False
+            ).count() > 0
+            return {"has_wish_messages": has_unread}
+        finally:
+            db.close()
+    return {"has_wish_messages": False}
 
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required

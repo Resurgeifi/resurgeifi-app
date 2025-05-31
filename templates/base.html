@@ -8,6 +8,25 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
   <style>
+    /* 🎯 Wishing Well Icon */
+   #well-icon-link {
+    position: fixed;
+  bottom: 90px;
+  left: 20px;
+  z-index: 999;
+}
+
+#well-icon {
+  width: 54px;
+  height: auto;
+  filter: drop-shadow(0 0 6px #ffc);
+  transition: transform 0.3s ease;
+}
+
+#well-icon:hover {
+  transform: scale(1.1);
+}
+
     .profile-icon {
       width: 40px;
       height: 40px;
@@ -26,13 +45,19 @@
         margin-left: 1rem;
       }
 
-      .menu-icon {
-        font-size: 1.8rem;
-        color: #f6e7c1;
-        cursor: pointer;
-        z-index: 10001;
-        position: relative;
+    .menu-icon {
+      font-size: 1.8rem;
+      color: #f6e7c1;
+      cursor: pointer;
+      z-index: 10001;
+      position: relative;
+      background: none;       /* 👈 clears white bg */
+      border: none;
+      display: inline-block;
+      padding: 0;
+      margin: 0;
       }
+
 
       .side-nav {
         position: fixed;
@@ -113,6 +138,11 @@
       </div>
       <div id="sidebar-backdrop"></div>
     </div>
+    <!-- 🔔 Wishing Well Icon Trigger -->
+    <a href="/wishing_well" id="well-icon-link" title="Check the Well">
+    <img src="{{ url_for('static', filename='icons/wellmessage.png' if g.user and g.user.has_well_messages else 'icons/wellnone.png') }}" id="well-icon" />
+    </a>
+
 
     <!-- 👤 Profile Icon -->
     <a href="/profile" id="profile-icon">
