@@ -49,14 +49,23 @@
 {% endif %}
 
 <style>
-  #well-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    background-image: url("/static/backgrounds/well_5.png");
-    background-size: cover;
-    background-position: center;
-  }
+  .well-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  max-width: 100%;
+  overflow: hidden; /* Prevent image from bleeding outside */
+}
+
+.wishing-well-img {
+  width: 100%;
+  max-width: 500px; /* Or adjust based on design */
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
 
   #scroll-zone {
     position: absolute;

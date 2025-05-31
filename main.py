@@ -643,7 +643,7 @@ def settings():
             user.show_journey_publicly = 'show_journey_publicly' in form
 
             db.commit()
-            flash("Settings updated successfully.", "success")
+            flash("Your updated Nickname is successful.", "success")
             return redirect(url_for('settings'))
 
         # 🧠 Pull saved values for GET
