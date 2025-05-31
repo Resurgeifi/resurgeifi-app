@@ -110,12 +110,28 @@ function startExperience() {
 }
 function nextSlide() {
   const slides = document.querySelectorAll('.intro-slide');
+
   if (currentSlide < slides.length - 1) {
     slides[currentSlide].classList.remove('active');
     currentSlide++;
     slides[currentSlide].classList.add('active');
+
+    // 🎙 Try to play preloaded audio
+    const preloadedAudio = slideAudioCache[currentSlide];
+    if (preloadedAudio) {
+      preloadedAudio.currentTime = 0;
+      preloadedAudio.play().catch(err => console.warn("Preloaded audio error:", err));
+    } else {
+      // 🛠️ Fallback: read text dynamically via ElevenLabs
+      const text = slides[currentSlide].querySelector(".intro-text")?.innerText;
+      if (text) {
+        playVoice(text.replace(/Resurgifi/gi, "Ree-sur-ji-fy"));
+      }
+    }
   }
 }
+
+
 // 👁 Reveal Skip Intro link after delay
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
@@ -123,6 +139,68 @@ window.addEventListener('DOMContentLoaded', () => {
     if (skip) skip.classList.add('show');
   }, 2000);
 });
+
+async function playVoice(text) {
+  try {
+    const response = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    if (!response.ok) {
+      console.warn("Voice fetch failed:", await response.text());
+      return;
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    audio.play().catch(err => console.warn("Playback error:", err));
+  } catch (err) {
+    console.error("TTS request failed:", err);
+  }
+}
+
+let slideAudioCache = [];
+
+async function preloadSlideVoices() {
+  const slides = document.querySelectorAll('.intro-slide');
+
+  for (let i = 0; i < slides.length; i++) {
+    const textElement = slides[i].querySelector('.intro-text');
+    if (!textElement) {
+      slideAudioCache.push(null);
+      continue;
+    }
+
+    const rawText = textElement.innerText;
+    const adjustedText = rawText.replace(/Resurgifi/gi, "Ree-sur-ji-fy");
+
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: adjustedText })
+      });
+
+      if (!response.ok) {
+        console.warn("TTS preload failed for slide", i, await response.text());
+        slideAudioCache.push(null);
+        continue;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      slideAudioCache.push(new Audio(url));
+    } catch (err) {
+      console.error("TTS preload error for slide", i, err);
+      slideAudioCache.push(null);
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', preloadSlideVoices);
 
 </script>
 

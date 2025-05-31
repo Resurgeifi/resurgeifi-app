@@ -1658,6 +1658,54 @@ def dev_seed_scrolls():
 
     finally:
         db.close()
+import os
+import requests
+from flask import Flask, request, Response
+
+app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
+
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+GRACE_VOICE_ID = "hIeqtoW1V7vxkxl7mya3"
+
+@app.route("/api/tts", methods=["POST"])
+def text_to_speech():
+    text = request.json.get("text", "")
+    if not text:
+        return {"error": "No text provided."}, 400
+
+    headers = {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "text": text,
+        "model_id": "eleven_monolingual_v1",
+        "voice_settings": {
+            "stability": 0.7,
+            "similarity_boost": 0.75
+        }
+    }
+
+    response = requests.post(
+        f"https://api.elevenlabs.io/v1/text-to-speech/{GRACE_VOICE_ID}/stream",
+        headers=headers,
+        json=payload,
+        stream=True
+    )
+
+    if response.status_code != 200:
+        return {"error": "TTS failed", "details": response.text}, 500
+
+    return Response(response.iter_content(chunk_size=4096),
+                    content_type="audio/mpeg")
+
+@app.route("/debug/env")
+def debug_env():
+    return {
+        "ELEVENLABS_API_KEY": ELEVENLABS_API_KEY[:5] + "..." if ELEVENLABS_API_KEY else None
+    }
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
