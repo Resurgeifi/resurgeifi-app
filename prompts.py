@@ -1,7 +1,6 @@
 import os
 from openai import OpenAI
 from hero_lore import HERO_LORE
-from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
 from rams import build_prompt
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
