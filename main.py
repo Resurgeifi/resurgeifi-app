@@ -1758,6 +1758,8 @@ def dev_seed_scrolls():
 
     finally:
         db.close()
+for rule in app.url_map.iter_rules():
+    print(f"🧭 ROUTE: {rule}")
 
 # Optional but useful for local testing
 if __name__ == '__main__':
