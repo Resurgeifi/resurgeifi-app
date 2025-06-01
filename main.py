@@ -416,8 +416,8 @@ def show_hero_chat(resurgitag):
     user = db.query(User).filter_by(id=user_id).first()
     contact = db.query(User).filter_by(resurgitag=resurgitag).first()
     if not user or not contact:
-    flash("Contact not found.")
-    return redirect(url_for("circle"))
+        flash("Contact not found.")
+        return redirect(url_for("circle"))
 
     # Pull last 7 days of QueryHistory
     from datetime import datetime, timedelta
