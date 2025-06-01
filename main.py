@@ -396,8 +396,8 @@ def circle_chat(resurgitag):
     hero_name = hero_profile.display_name
 
     # 🧠 Build prompt & get AI reply
-    prompt = build_context(current_user=user_id, hero_name=hero_name, user_input=user_input)
-    response = call_openai(prompt)
+    prompt = build_context(user_id=user_id, hero_name=hero_name, user_input=user_input)
+    response = call_openai(prompt)  # ← MISSING LINE ADDED HERE
 
     # 💾 Save history
     chat = QueryHistory(
@@ -410,6 +410,7 @@ def circle_chat(resurgitag):
     db.commit()
 
     return jsonify({"response": response})
+
 
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
