@@ -427,48 +427,54 @@ def circle_chat(resurgitag):
 
     return jsonify({"response": response})
 
-@app.route("/circle/chat/<resurgitag>", methods=["GET"])
+@app.route("/circle/chat/<resurgitag>", methods=["POST"])
 @login_required
-def show_hero_chat(resurgitag):
+def circle_chat(resurgitag):
     db = SessionLocal()
     user_id = session.get("user_id")
-    resurgitag = resurgitag.lower().lstrip("@")
+    user_input = request.json.get("message")
 
-    user = db.query(User).filter_by(id=user_id).first()
+    if not user_input:
+        return jsonify({"error": "Message missing"}), 400
 
-    # Try to get contact from User table
-    contact = db.query(User).filter_by(resurgitag=resurgitag).first()
-    is_hero = False
+    from models import HeroProfile
+    hero_profile = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
+    if not hero_profile:
+        return jsonify({"error": "Hero profile not found"}), 404
 
-    if contact and getattr(contact, "is_hero", False):
-        is_hero = True
-        contact_name = contact.nickname or contact.display_name or contact.resurgitag
-    else:
-        # Try HeroProfile fallback
-        hero = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
-        if hero:
-            is_hero = True
-            contact = hero
-            contact_name = hero.display_name
-        else:
-            flash("Hero not found.")
-            return redirect(url_for("circle"))
+    hero_name = hero_profile.display_name
 
-    # Pull thread using resurgitag
-    from datetime import datetime, timedelta
+    # 🧠 Pull prior conversation for memory injection
     week_ago = datetime.utcnow() - timedelta(days=7)
-
-    thread = db.query(QueryHistory).filter_by(
-        user_id=user.id,
+    thread_query = db.query(QueryHistory).filter_by(
+        user_id=user_id,
         contact_tag=resurgitag
     ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
 
-    messages = []
-    for entry in thread:
-        messages.append({"speaker": "You", "text": entry.question})
-        messages.append({"speaker": contact_name, "text": entry.response})
+    # 🔄 Format conversation into context (memory)
+    context = [
+        {"question": entry.question, "response": entry.response}
+        for entry in thread_query
+    ]
 
-    return render_template("chat.html", resurgitag=resurgitag, messages=messages)
+    # 🔥 Get tone-aware, memory-informed hero response
+    response = call_openai(
+        user_input=user_input,
+        hero_name=hero_name,
+        context=context
+    )
+
+    # 💾 Save this exchange to QueryHistory
+    chat = QueryHistory(
+        user_id=user_id,
+        contact_tag=resurgitag,
+        question=user_input,
+        response=response
+    )
+    db.add(chat)
+    db.commit()
+
+    return jsonify({"response": response})
 
 @app.route("/circle")
 @login_required
