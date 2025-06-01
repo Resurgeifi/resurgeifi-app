@@ -1559,9 +1559,9 @@ def hero_profile(resurgitag):
 
     # 🔗 Static hero links
     hero_links = {
-        'lucentis': ['grace2', 'velessa'],
-        'grace2': ['lucentis', 'sirrenity'],
-        'velessa': ['grace2', 'cognita'],
+        'lucentis': ['grace', 'velessa'],
+        'grace': ['lucentis', 'sirrenity'],
+        'velessa': ['grace', 'cognita'],
         'sirrenity': ['cognita', 'lucentis'],
         'cognita': ['sirrenity', 'velessa']
     }
