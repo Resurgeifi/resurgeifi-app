@@ -166,7 +166,7 @@ async function playVoice(text) {
     const response = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text: text.replace(/Resurgifi/gi, "Resurgah-fye") })
     });
 
     if (!response.ok) {
@@ -218,7 +218,7 @@ async function preloadSlideVoices() {
     }
 
     const rawText = textElement.innerText;
-    const adjustedText = rawText.replace(/Resurgifi/gi, "Ree-sur-ji-fy");
+    const adjustedText = rawText.replace(/Resurgifi/gi, "Resurgah_fye");
 
     try {
       const response = await fetch("/api/tts", {
