@@ -1545,6 +1545,10 @@ def change_resurgitag():
 
     finally:
         db.close()
+@app.route("/circle")
+@login_required
+def circle():
+    return redirect(url_for("form"))  # or wherever the new Circle interface lives
 
 @app.route('/hero/<resurgitag>')
 def hero_profile(resurgitag):
