@@ -419,9 +419,10 @@ def circle_chat(resurgitag):
     chat = QueryHistory(
         user_id=user_id,
         contact_tag=resurgitag,
-        user_input=user_input,
-        ai_response=response
+        question=user_input,
+        response=response
     )
+
     db.add(chat)
     db.commit()
 
