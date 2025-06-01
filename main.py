@@ -388,93 +388,56 @@ def circle_chat(resurgitag):
         return jsonify({"error": "Message missing"}), 400
 
     from models import HeroProfile
-    hero_profile = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
-    if not hero_profile:
-        return jsonify({"error": "Hero profile not found"}), 404
+    from prompts import VILLAIN_PROMPTS
 
-    hero_name = hero_profile.display_name
+    tag = resurgitag.strip().lower()
 
-    # 🧠 Pull prior conversation for context
-    week_ago = datetime.utcnow() - timedelta(days=7)
-    thread_query = db.query(QueryHistory).filter_by(
-        user_id=user_id,
-        contact_tag=resurgitag
-    ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
+    # 🔍 Try to find matching hero first
+    hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
+    if hero_profile:
+        hero_name = hero_profile.display_name
 
-    thread = []
-    for entry in thread_query:
-        thread.append({"speaker": "You", "text": entry.question})
-        thread.append({"speaker": hero_name, "text": entry.response})  # ← fixed contact_name
+        # 🧠 Pull recent conversation for memory
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        thread_query = db.query(QueryHistory).filter_by(
+            user_id=user_id,
+            contact_tag=tag
+        ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
 
-    # ⛏️ Append current user input as the newest message
-    thread.append({"speaker": "You", "text": user_input, "time": datetime.utcnow().isoformat()})
+        context = [
+            {"question": entry.question, "response": entry.response}
+            for entry in thread_query
+        ]
 
-    # 🧱 Build prompt
-    context = build_context(user_id=user_id, session_data=thread)
-    prompt = build_prompt(hero_name, user_input, context)
+        response = call_openai(
+            user_input=user_input,
+            hero_name=hero_name,
+            context=context
+        )
 
-    response = call_openai(prompt)
+        # 💾 Save hero chat to DB
+        chat = QueryHistory(
+            user_id=user_id,
+            contact_tag=tag,
+            question=user_input,
+            response=response
+        )
+        db.add(chat)
+        db.commit()
 
-    # 💾 Save to QueryHistory
-    chat = QueryHistory(
-        user_id=user_id,
-        contact_tag=resurgitag,
-        question=user_input,
-        response=response
-    )
-    db.add(chat)
-    db.commit()
+        return jsonify({"response": response})
 
-    return jsonify({"response": response})
+    # 🕷️ If no hero match, check villain alias map
+    villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
+    if tag in villain_map:
+        villain_name = villain_map[tag]
+        response = call_openai(user_input=user_input, hero_name=villain_name)
 
-@app.route("/circle/chat/<resurgitag>", methods=["POST"])
-@login_required
-def circle_chat(resurgitag):
-    db = SessionLocal()
-    user_id = session.get("user_id")
-    user_input = request.json.get("message")
+        # 🧠 Do NOT save villain chats
+        return jsonify({"response": response})
 
-    if not user_input:
-        return jsonify({"error": "Message missing"}), 400
+    return jsonify({"error": "No matching hero or villain found."}), 404
 
-    from models import HeroProfile
-    hero_profile = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
-    if not hero_profile:
-        return jsonify({"error": "Hero profile not found"}), 404
-
-    hero_name = hero_profile.display_name
-
-    # 🧠 Pull prior conversation for memory injection
-    week_ago = datetime.utcnow() - timedelta(days=7)
-    thread_query = db.query(QueryHistory).filter_by(
-        user_id=user_id,
-        contact_tag=resurgitag
-    ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
-
-    # 🔄 Format conversation into context (memory)
-    context = [
-        {"question": entry.question, "response": entry.response}
-        for entry in thread_query
-    ]
-
-    # 🔥 Get tone-aware, memory-informed hero response
-    response = call_openai(
-        user_input=user_input,
-        hero_name=hero_name,
-        context=context
-    )
-
-    # 💾 Save this exchange to QueryHistory
-    chat = QueryHistory(
-        user_id=user_id,
-        contact_tag=resurgitag,
-        question=user_input,
-        response=response
-    )
-    db.add(chat)
-    db.commit()
-
-    return jsonify({"response": response})
 
 @app.route("/circle")
 @login_required
