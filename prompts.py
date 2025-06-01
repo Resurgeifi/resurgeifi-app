@@ -164,6 +164,17 @@ def call_openai(user_input, hero_name="Cognita", context=None):
                 messages.append({"role": "assistant", "content": entry["response"]})
         messages.append({"role": "user", "content": user_input})
 
+    # 🛠️ DEBUG LOGGING - FULL OPENAI CALL
+    print("\n--- 📡 OpenAI CALL DEBUG ---")
+    print(f"🧠 Hero Tag: {tag}")
+    print(f"🗣️ User Input: {user_input}")
+    print(f"📝 Model: gpt-4o | Temp: 0.85 | Max Tokens: 300")
+    print("🧵 Message Payload:")
+    for m in messages:
+        role = m['role'].capitalize()
+        print(f"  [{role}] {m['content'][:200]}{'...' if len(m['content']) > 200 else ''}")
+    print("--- END DEBUG ---\n")
+
     # 🧠 OpenAI call
     try:
         response = client.chat.completions.create(
