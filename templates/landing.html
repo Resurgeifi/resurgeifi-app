@@ -145,8 +145,9 @@ let slideAudioCache = [];
 
 async function playVoice(text) {
   const ambient = document.getElementById('landingAudio');
-  const duckVolume = 0.1;
-  const fullVolume = 1.0;
+  const duckVolume = 0.05;      // Lower than before when Grace is speaking
+  const baseVolume = 0.2;       // This is your NEW normal music volume
+
 
   function fadeAudio(element, targetVolume, callback) {
     const interval = setInterval(() => {
@@ -240,7 +241,7 @@ async function preloadSlideVoices() {
         if (ambient) fadeAudio(ambient, duckVolume);
       };
       audio.onended = () => {
-        if (ambient) fadeAudio(ambient, fullVolume);
+        if (ambient) fadeAudio(ambient, baseVolume);
       };
 
       slideAudioCache.push(audio);
