@@ -386,13 +386,16 @@ def circle_chat(resurgitag):
     if not user_input:
         return jsonify({"error": "Message missing"}), 400
 
-    # 🔍 Lookup contact
-    contact = db.query(User).filter_by(resurgitag=resurgitag).first()
-    if not contact:
-        return jsonify({"error": "Contact not found"}), 404
+    # 🔍 Lookup hero profile
+    from models import HeroProfile
+
+    hero_profile = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
+    if not hero_profile:
+        return jsonify({"error": "Hero profile not found"}), 404
+
+    hero_name = hero_profile.display_name
 
     # 🧠 Build prompt & get AI reply
-    hero_name = contact.hero_name
     prompt = build_context(current_user=user_id, hero_name=hero_name, user_input=user_input)
     response = call_openai(prompt)
 
@@ -407,6 +410,7 @@ def circle_chat(resurgitag):
     db.commit()
 
     return jsonify({"response": response})
+
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
 def show_hero_chat(resurgitag):
