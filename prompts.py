@@ -118,5 +118,21 @@ VILLAIN_PROMPTS = {
     "Warden Fall": WARDEN_FALL_PROMPT,
     "Anxia": ANXIA_PROMPT
 }
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def call_openai(prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a wise, emotionally intelligent guide in recovery."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.85,
+        max_tokens=300
+    )
+    return response.choices[0].message.content.strip()
 
 
