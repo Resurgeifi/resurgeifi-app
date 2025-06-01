@@ -104,10 +104,12 @@
 
 <script>
 let currentSlide = 0;
+
 function startExperience() {
   document.getElementById('landingAudio').play().catch(err => console.warn("Audio blocked:", err));
   nextSlide();
 }
+
 function nextSlide() {
   const slides = document.querySelectorAll('.intro-slide');
 
@@ -131,7 +133,6 @@ function nextSlide() {
   }
 }
 
-
 // 👁 Reveal Skip Intro link after delay
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
@@ -140,7 +141,26 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 2000);
 });
 
+let slideAudioCache = [];
+
 async function playVoice(text) {
+  const ambient = document.getElementById('landingAudio');
+  const duckVolume = 0.1;
+  const fullVolume = 1.0;
+
+  function fadeAudio(element, targetVolume, callback) {
+    const interval = setInterval(() => {
+      const current = element.volume;
+      const delta = (targetVolume - current) * 0.2;
+      element.volume = Math.max(0, Math.min(1, current + delta));
+      if (Math.abs(targetVolume - element.volume) < 0.01) {
+        element.volume = targetVolume;
+        clearInterval(interval);
+        if (callback) callback();
+      }
+    }, 50);
+  }
+
   try {
     const response = await fetch("/api/tts", {
       method: "POST",
@@ -156,13 +176,19 @@ async function playVoice(text) {
     const audioBlob = await response.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
+
+    audio.onplay = () => {
+      if (ambient) fadeAudio(ambient, duckVolume);
+    };
+    audio.onended = () => {
+      if (ambient) fadeAudio(ambient, fullVolume);
+    };
+
     audio.play().catch(err => console.warn("Playback error:", err));
   } catch (err) {
     console.error("TTS request failed:", err);
   }
 }
-
-let slideAudioCache = [];
 
 async function preloadSlideVoices() {
   const slides = document.querySelectorAll('.intro-slide');
@@ -175,7 +201,6 @@ async function preloadSlideVoices() {
       const current = element.volume;
       const delta = (targetVolume - current) * 0.2;
       element.volume = Math.max(0, Math.min(1, current + delta));
-
       if (Math.abs(targetVolume - element.volume) < 0.01) {
         element.volume = targetVolume;
         clearInterval(interval);
@@ -211,7 +236,6 @@ async function preloadSlideVoices() {
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
 
-      // 👂 Add ducking/fading logic to each preloaded voice
       audio.onplay = () => {
         if (ambient) fadeAudio(ambient, duckVolume);
       };
@@ -227,6 +251,7 @@ async function preloadSlideVoices() {
   }
 }
 </script>
+
 
 <style>
 .intro-slide {
