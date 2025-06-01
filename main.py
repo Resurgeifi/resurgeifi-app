@@ -391,10 +391,6 @@ def circle_chat(resurgitag):
     if not contact:
         return jsonify({"error": "Contact not found"}), 404
 
-    # 🔒 Only allow chats with heroes (for now)
-    if not contact.is_hero:
-        return jsonify({"error": "Direct messaging is not available with this user yet."}), 403
-
     # 🧠 Build prompt & get AI reply
     hero_name = contact.hero_name
     prompt = build_context(current_user=user_id, hero_name=hero_name, user_input=user_input)
@@ -419,9 +415,9 @@ def show_hero_chat(resurgitag):
 
     user = db.query(User).filter_by(id=user_id).first()
     contact = db.query(User).filter_by(resurgitag=resurgitag).first()
-    if not user or not contact or not contact.is_hero:
-        flash("Hero not found.")
-        return redirect(url_for("circle"))
+    if not user or not contact:
+    flash("Contact not found.")
+    return redirect(url_for("circle"))
 
     # Pull last 7 days of QueryHistory
     from datetime import datetime, timedelta
