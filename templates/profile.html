@@ -15,7 +15,7 @@
         {{ user.points or 0 }}
       </a>
     </p>
-    <p>strong>Tap your points to see how to earn.</strong></p>
+    <p><strong>Tap your points to see how to earn.</strong></p>
     <p><strong>📅 Journey Start:</strong> {{ user.journey_start_date.strftime('%b %d, %Y') if user.journey_start_date else "—" }}</p>
     <p><strong>🌀 Journey Selection:</strong> {{ user.theme_choice or "Not selected" }}</p>
   </div>
