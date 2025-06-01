@@ -198,40 +198,6 @@ def landing_alias():
     session["seen_intro"] = True
     return render_template("landing.html")
 
-# ✅ Generate emotional presence conversation
-def get_mock_conversation(absence_minutes):
-    if absence_minutes < 60:
-        return []
-
-    messages = []
-
-    if absence_minutes < 180:
-        messages += [
-            {"speaker": "Grace", "text": "You ever just... sit in the quiet and let your heart catch up?"},
-            {"speaker": "Lucentis", "text": "This stillness has weight. But not the heavy kind."},
-            {"speaker": "Cognita", "text": "Silence is just unprocessed data."}
-        ]
-    elif absence_minutes < 360:
-        messages += [
-            {"speaker": "Sir Renity", "text": "Remember that time at Stepville when we tried a group ice bath? Never again."},
-            {"speaker": "Velessa", "text": "The laughter was worth the freeze though."},
-            {"speaker": "Grace", "text": "Still got chills thinking about it."}
-        ]
-    elif absence_minutes < 720:
-        messages += [
-            {"speaker": "Lucentis", "text": "If the wind could speak, I think it would sound like Grace when she’s thoughtful."},
-            {"speaker": "Cognita", "text": "Don’t give her ideas. She’ll start rhyming again."},
-            {"speaker": "Velessa", "text": "I’m just waiting for someone to bring snacks."}
-        ]
-    elif absence_minutes < 4320:
-        messages += [
-            {"speaker": "Sir Renity", "text": "Three sunrises and no word. He’s got to be climbing his own mountain."},
-            {"speaker": "Grace", "text": "Or maybe just sleeping in. That counts too."},
-            {"speaker": "Cognita", "text": "We don’t disappear. We just pause the thread."}
-        ]
-
-    return messages[:12]
-
 # ✅ Grant admin to user
 @app.route("/admin/grant_admin", methods=["POST"])
 @login_required
