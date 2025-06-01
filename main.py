@@ -342,6 +342,42 @@ def profile():
 
     finally:
         db.close()
+@app.route("/circle/chat/<resurgitag>", methods=["GET"])
+@login_required
+def show_hero_chat(resurgitag):
+    db = SessionLocal()
+    user_id = session.get("user_id")
+    resurgitag = resurgitag.strip().lower().lstrip("@")
+
+    user = db.query(User).filter_by(id=user_id).first()
+
+    # 🔍 Try User table first
+    contact = db.query(User).filter_by(resurgitag=resurgitag).first()
+    if contact and getattr(contact, "is_hero", False):
+        contact_name = getattr(contact, "nickname", None) or getattr(contact, "display_name", None) or contact.resurgitag
+    else:
+        # 🔁 Fallback to HeroProfile
+        hero = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
+        if hero:
+            contact = hero
+            contact_name = hero.display_name or resurgitag
+        else:
+            flash("Hero not found.")
+            return redirect(url_for("circle"))
+
+    # 💬 Pull chat history
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    thread = db.query(QueryHistory).filter_by(
+        user_id=user.id,
+        contact_tag=resurgitag
+    ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
+
+    messages = []
+    for entry in thread:
+        messages.append({"speaker": "You", "text": entry.question})
+        messages.append({"speaker": contact_name, "text": entry.response})
+
+    return render_template("chat.html", resurgitag=resurgitag, messages=messages)
 
 @app.route("/circle/chat/<resurgitag>", methods=["POST"])
 @login_required
@@ -356,12 +392,11 @@ def circle_chat(resurgitag):
     from models import HeroProfile
     from prompts import VILLAIN_PROMPTS
 
-    tag = resurgitag.strip().lower()  # 👈 Normalize for DB and OpenAI
+    tag = resurgitag.strip().lower()  # 🧼 Normalize input
 
-    # 🔍 Try to find matching hero first
+    # 🦸 Try hero first
     hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
     if hero_profile:
-        # 🧠 Pull recent conversation for memory
         week_ago = datetime.utcnow() - timedelta(days=7)
         thread_query = db.query(QueryHistory).filter_by(
             user_id=user_id,
@@ -373,14 +408,8 @@ def circle_chat(resurgitag):
             for entry in thread_query
         ]
 
-        # ✅ Use `tag` as hero_name (not display_name) to match dict keys
-        response = call_openai(
-            user_input=user_input,
-            hero_name=tag,
-            context=context
-        )
+        response = call_openai(user_input=user_input, hero_name=tag, context=context)
 
-        # 💾 Save hero chat to DB
         chat = QueryHistory(
             user_id=user_id,
             contact_tag=tag,
@@ -392,13 +421,11 @@ def circle_chat(resurgitag):
 
         return jsonify({"response": response})
 
-    # 🕷️ If no hero match, check villain alias map
+    # 🧟‍♂️ Then check for villain
     villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
     if tag in villain_map:
         villain_name = villain_map[tag]
         response = call_openai(user_input=user_input, hero_name=villain_name)
-
-        # 🧠 Do NOT save villain chats
         return jsonify({"response": response})
 
     return jsonify({"error": "No matching hero or villain found."}), 404

@@ -117,7 +117,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
     from hero_lore import HERO_LORE
 
-    tag = hero_name.lower()
+    tag = hero_name.strip().lower()
     is_villain = tag in VILLAIN_PROMPTS
 
     if is_villain:
@@ -126,9 +126,8 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_input}
         ]
-
     else:
-        # Pull prompt and lore
+        # ✅ Pull prompt and lore safely
         hero_prompts = HERO_PROMPTS.get(tag, {})
         hero_lore = HERO_LORE.get(tag, {})
 
@@ -141,7 +140,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             else hero_prompts.get("default")
         ) or ""
 
-        # ✨ Integrate lore pieces
+        # ✨ Lore blocks
         lore_chunks = []
         if "origin" in hero_lore:
             lore_chunks.append(f"Origin: {hero_lore['origin']}")
@@ -162,15 +161,14 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         messages.append({"role": "user", "content": user_input})
 
     # 🧠 OpenAI call
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=messages,
-        temperature=0.85,
-        max_tokens=300
-    )
-
-    # ✅ Debug prints
-    print("📤 System Message Sent to OpenAI:\n", system_message)
-    print("📥 Full Response from OpenAI:\n", response)
-
-    return response.choices[0].message.content.strip()
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            temperature=0.85,
+            max_tokens=300
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"🔥 OpenAI Error for {tag}: {e}")
+        return "Something went wrong. Try again in a moment."
