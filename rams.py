@@ -185,6 +185,16 @@ Let this shape your tone. Do not reference this directly.
         "thread": full_thread
     }
 
+def get_prompt(hero_name, style="default"):
+    name = hero_name.lower().strip()
+    hero_prompt = HERO_PROMPTS.get(name, {})
+    
+    if isinstance(hero_prompt, dict):
+        return hero_prompt.get(style) or hero_prompt.get("default")
+    elif isinstance(hero_prompt, str):  # support legacy single-string format
+        return hero_prompt
+    else:
+        return VILLAIN_PROMPTS.get(name) or f"You are {hero_name}, a mysterious figure in the user's recovery world."
 
 def normalize_thread(thread):
     """
@@ -226,7 +236,8 @@ def build_prompt(hero, user_input, context, onboarding=None):
 """
 
     # 🔄 Prompt selection
-    prompt_template = HERO_PROMPTS.get(hero) or VILLAIN_PROMPTS.get(hero)
+    prompt_template = get_prompt(hero)
+
     if not prompt_template:
         prompt_template = f"You are {hero}, a mysterious figure in the user's recovery world."
 
