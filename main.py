@@ -356,7 +356,7 @@ def circle_chat(resurgitag):
     from models import HeroProfile
     from prompts import VILLAIN_PROMPTS
 
-    tag = resurgitag.strip().lower()
+    tag = resurgitag.strip().lower()  # 👈 Normalize for DB and OpenAI
 
     # 🔍 Try to find matching hero first
     hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
@@ -373,7 +373,7 @@ def circle_chat(resurgitag):
             for entry in thread_query
         ]
 
-        # ✅ Use `tag` as hero_name to match dict keys like "grace2"
+        # ✅ Use `tag` as hero_name (not display_name) to match dict keys
         response = call_openai(
             user_input=user_input,
             hero_name=tag,
