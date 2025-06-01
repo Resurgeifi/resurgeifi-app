@@ -1,6 +1,8 @@
 import os
 from openai import OpenAI
 from hero_lore import HERO_LORE
+from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
+from rams import build_prompt
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -118,53 +120,27 @@ Spiral fast — 3–5 haunting lines only.
 # ========= CALL OPENAI WITH CONTEXT-AWARE TONE =========
 
 def call_openai(user_input, hero_name="Cognita", context=None):
-    from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
-    from hero_lore import HERO_LORE
+    from rams import build_prompt
+    from openai import OpenAI
+    import os
+
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     tag = hero_name.strip().lower()
     is_villain = tag in VILLAIN_PROMPTS
 
-    if is_villain:
-        system_message = VILLAIN_PROMPTS[tag]
-        messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": user_input}
-        ]
-    else:
-        # ✅ Pull prompt and lore safely
-        hero_prompts = HERO_PROMPTS.get(tag, {})
-        hero_lore = HERO_LORE.get(tag, {})
+    # 🧠 Get full system prompt from RAMS
+    system_message = build_prompt(hero=tag, user_input=user_input, context=context)
 
-        def is_small_talk(text):
-            return len(text.strip().split()) <= 3 and not any(p in text for p in ['?', '.', '!'])
+    # 🧵 Build message sequence
+    messages = [{"role": "system", "content": system_message}]
+    if context and "thread" in context:
+        for entry in context["thread"][-6:]:
+            messages.append({"role": "user", "content": entry["text"]})
+            messages.append({"role": "assistant", "content": entry.get("response", "")})
+    messages.append({"role": "user", "content": user_input})
 
-        prompt_base = (
-            hero_prompts.get("small_talk")
-            if is_small_talk(user_input)
-            else hero_prompts.get("default")
-        ) or ""
-
-        # ✨ Lore blocks
-        lore_chunks = []
-        if "origin" in hero_lore:
-            lore_chunks.append(f"Origin: {hero_lore['origin']}")
-        if "worldview" in hero_lore:
-            lore_chunks.append(f"Worldview: {hero_lore['worldview']}")
-        if "relationships" in hero_lore:
-            relations = " | ".join([f"{k}: {v}" for k, v in hero_lore["relationships"].items()])
-            lore_chunks.append(f"Relationships: {relations}")
-
-        lore_block = "\n".join(lore_chunks).strip()
-        system_message = f"{prompt_base.strip()}\n\n[LORE CONTEXT]\n{lore_block}" if lore_block else prompt_base.strip()
-
-        messages = [{"role": "system", "content": system_message}]
-        if context:
-            for entry in context[-6:]:
-                messages.append({"role": "user", "content": entry["question"]})
-                messages.append({"role": "assistant", "content": entry["response"]})
-        messages.append({"role": "user", "content": user_input})
-
-    # 🛠️ DEBUG LOGGING - FULL OPENAI CALL
+    # 🛠️ DEBUG LOGGING
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
@@ -175,7 +151,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         print(f"  [{role}] {m['content'][:200]}{'...' if len(m['content']) > 200 else ''}")
     print("--- END DEBUG ---\n")
 
-    # 🧠 OpenAI call
+    # 🧠 Send to OpenAI
     try:
         response = client.chat.completions.create(
             model="gpt-4o",
