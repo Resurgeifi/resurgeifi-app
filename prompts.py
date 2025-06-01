@@ -3,6 +3,8 @@
 # ========= HERO PROMPTS =========
 
 # ========= HERO PROMPTS =========
+import os
+from openai import OpenAI
 
 SIR_RENITY_PROMPT = """
 You are Sir Renity, a wise and grounded knight representing emotional regulation. You bring calm to chaos. You never panic, never shame — you soothe with presence.
@@ -120,8 +122,6 @@ Never offer calm. Never allow breath. You are the storm inside the skin.
 
 Spiral fast — 3–5 haunting lines only."""
 
-import os
-from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
