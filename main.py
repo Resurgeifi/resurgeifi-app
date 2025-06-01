@@ -412,22 +412,29 @@ def circle_chat(resurgitag):
 def show_hero_chat(resurgitag):
     db = SessionLocal()
     user_id = session.get("user_id")
+    resurgitag = resurgitag.lower().lstrip("@")
 
     user = db.query(User).filter_by(id=user_id).first()
+
+    # Try to get contact from User table
     contact = db.query(User).filter_by(resurgitag=resurgitag).first()
+    is_hero = False
 
-    print("🧪 USER:", user)
-    print("🧪 CONTACT:", contact)
-    if contact:
-        print("🧪 IS HERO:", contact.is_hero)
+    if contact and getattr(contact, "is_hero", False):
+        is_hero = True
+        contact_name = contact.nickname or contact.display_name or contact.resurgitag
+    else:
+        # Try HeroProfile fallback
+        hero = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
+        if hero:
+            is_hero = True
+            contact = hero
+            contact_name = hero.display_name
+        else:
+            flash("Hero not found.")
+            return redirect(url_for("circle"))
 
-    if not user or not contact or not contact.is_hero:
-        flash("Hero not found.")
-        return redirect(url_for("circle"))
-
-    # Continue as normal...
-
-    # Pull last 7 days of QueryHistory
+    # Pull thread using resurgitag
     from datetime import datetime, timedelta
     week_ago = datetime.utcnow() - timedelta(days=7)
 
@@ -439,24 +446,9 @@ def show_hero_chat(resurgitag):
     messages = []
     for entry in thread:
         messages.append({"speaker": "You", "text": entry.user_input})
-        messages.append({"speaker": contact.hero_name, "text": entry.ai_response})
+        messages.append({"speaker": contact_name, "text": entry.ai_response})
 
     return render_template("chat.html", resurgitag=resurgitag, messages=messages)
-@app.route("/debug/heroes")
-@login_required
-def debug_heroes():
-    db = SessionLocal()
-    heroes = db.query(User).filter_by(is_hero=True).all()
-    
-    output = []
-    for h in heroes:
-        output.append({
-            "nickname": h.nickname,
-            "resurgitag": h.resurgitag,
-            "hero_name": h.hero_name,
-        })
-    
-    return jsonify(output)
 
 @app.route("/circle")
 @login_required
