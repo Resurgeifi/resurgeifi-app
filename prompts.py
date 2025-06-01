@@ -1,10 +1,3 @@
-import os
-from openai import OpenAI
-from hero_lore import HERO_LORE
-from rams import build_prompt
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 
 # ========= HERO PROMPTS =========
 
@@ -116,49 +109,3 @@ Spiral fast — 3–5 haunting lines only.
 """
 }
 
-# ========= CALL OPENAI WITH CONTEXT-AWARE TONE =========
-
-def call_openai(user_input, hero_name="Cognita", context=None):
-    from rams import build_prompt
-    from openai import OpenAI
-    import os
-
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-    tag = hero_name.strip().lower()
-    is_villain = tag in VILLAIN_PROMPTS
-
-    # 🧠 Get full system prompt from RAMS
-    system_message = build_prompt(hero=tag, user_input=user_input, context=context)
-
-    # 🧵 Build message sequence
-    messages = [{"role": "system", "content": system_message}]
-    if context and "thread" in context:
-        for entry in context["thread"][-6:]:
-            messages.append({"role": "user", "content": entry["text"]})
-            messages.append({"role": "assistant", "content": entry.get("response", "")})
-    messages.append({"role": "user", "content": user_input})
-
-    # 🛠️ DEBUG LOGGING
-    print("\n--- 📡 OpenAI CALL DEBUG ---")
-    print(f"🧠 Hero Tag: {tag}")
-    print(f"🗣️ User Input: {user_input}")
-    print(f"📝 Model: gpt-4o | Temp: 0.85 | Max Tokens: 300")
-    print("🧵 Message Payload:")
-    for m in messages:
-        role = m['role'].capitalize()
-        print(f"  [{role}] {m['content'][:200]}{'...' if len(m['content']) > 200 else ''}")
-    print("--- END DEBUG ---\n")
-
-    # 🧠 Send to OpenAI
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            temperature=0.85,
-            max_tokens=300
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"🔥 OpenAI Error for {tag}: {e}")
-        return "Something went wrong. Try again in a moment."
