@@ -415,9 +415,17 @@ def show_hero_chat(resurgitag):
 
     user = db.query(User).filter_by(id=user_id).first()
     contact = db.query(User).filter_by(resurgitag=resurgitag).first()
-    if not user or not contact:
-        flash("Contact not found.")
+
+    print("🧪 USER:", user)
+    print("🧪 CONTACT:", contact)
+    if contact:
+        print("🧪 IS HERO:", contact.is_hero)
+
+    if not user or not contact or not contact.is_hero:
+        flash("Hero not found.")
         return redirect(url_for("circle"))
+
+    # Continue as normal...
 
     # Pull last 7 days of QueryHistory
     from datetime import datetime, timedelta
@@ -434,6 +442,21 @@ def show_hero_chat(resurgitag):
         messages.append({"speaker": contact.hero_name, "text": entry.ai_response})
 
     return render_template("chat.html", resurgitag=resurgitag, messages=messages)
+@app.route("/debug/heroes")
+@login_required
+def debug_heroes():
+    db = SessionLocal()
+    heroes = db.query(User).filter_by(is_hero=True).all()
+    
+    output = []
+    for h in heroes:
+        output.append({
+            "nickname": h.nickname,
+            "resurgitag": h.resurgitag,
+            "hero_name": h.hero_name,
+        })
+    
+    return jsonify(output)
 
 @app.route("/circle")
 @login_required
