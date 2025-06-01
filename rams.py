@@ -37,15 +37,15 @@ def call_openai(user_input, hero_name="Cognita", context=None):
 
     messages = [{"role": "system", "content": system_message}]
     for entry in thread[-6:]:
-     if "speaker" in entry and entry["speaker"].lower() == "user":
-        messages.append({"role": "user", "content": entry["text"]})
-     elif "speaker" in entry:
-        messages.append({"role": "assistant", "content": entry["text"]})
-    else:
-        # Legacy fallback: iterate key/value pairs
-        for speaker, msg in entry.items():
-            role = "user" if speaker.lower() == "you" else "assistant"
-            messages.append({"role": role, "content": msg})
+        if "speaker" in entry and entry["speaker"].lower() == "user":
+            messages.append({"role": "user", "content": entry["text"]})
+        elif "speaker" in entry:
+            messages.append({"role": "assistant", "content": entry["text"]})
+        else:
+            # Legacy fallback: iterate key/value pairs
+            for speaker, msg in entry.items():
+                role = "user" if speaker.lower() == "you" else "assistant"
+                messages.append({"role": role, "content": msg})
 
     # DEBUG
     print("\n--- 📡 OpenAI CALL DEBUG ---")
