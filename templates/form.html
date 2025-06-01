@@ -7,7 +7,12 @@
      alt="Circle Title"
      class="circle-title-img" />
 
-<!-- 🧠 Hero Arc Lineup -->
+<!-- 🔱 Hero Connections -->
+<h2 class="section-title" style="text-align: center; margin-top: 3rem; color: #f6e7c1;">
+  🔱 Hero Connections
+</h2>
+
+<!-- 🧠 Hero Arc Lineup (circle layout preserved) -->
 <div class="hero-arc-lineup">
   {% for hero in ["Cognita", "Velessa", "SirRenity", "Grace", "Lucentis"] %}
     <div class="hero">
@@ -17,7 +22,7 @@
   {% endfor %}
 </div>
 
-<!-- 🗣️ Hero Bio Flash -->
+<!-- 🗣️ Hero Bio Flash Modal -->
 <div id="heroBio"
      style="display: none;
             position: fixed;
@@ -35,17 +40,19 @@
             box-shadow: 0 0 30px black;">
   <img id="heroBioImg" src="" alt="" style="width: 150px; height: auto; margin-bottom: 1rem; border-radius: 12px; box-shadow: 0 0 10px #f4a259;">
   <p id="heroBioText" style="font-size: 1.1rem; font-weight: 500;"></p>
-  <button onclick="document.getElementById('heroBio').style.display='none'" class="global-button" style="margin-top: 1rem;">Close</button>
+  <div style="display: flex; justify-content: space-around; margin-top: 1.5rem;">
+    <a id="chatHeroBtn" href="#" class="global-button" style="flex: 1; margin-right: 0.5rem;">Enter Chat</a>
+    <button onclick="document.getElementById('heroBio').style.display='none'" class="global-button gray-button" style="flex: 1; margin-left: 0.5rem;">Close</button>
+  </div>
 </div>
 
-<!-- 🚪 CTA -->
-<div style="text-align: center; margin-top: 2.5rem; margin-bottom: 6rem;">
-  <h1>🌀 Ready to Enter the Circle?</h1>
-  <p class="mantra">The heroes are gathered. They're waiting for you.</p>
+<!-- 👥 User Connections -->
+<h2 class="section-title" style="text-align: center; margin-top: 4rem; color: #f6e7c1;">
+  👥 Your Connections
+</h2>
 
-  <a href="{{ url_for('circle') }}" class="global-button" style="font-size: 1.2em; margin-top: 1rem;">
-    Enter Chat
-  </a>
+<div class="circle-message" style="text-align: center; font-style: italic; color: #a8a8a8; margin-bottom: 5rem;">
+  You haven’t connected with any other travelers yet...
 </div>
 {% endblock %}
 
@@ -55,36 +62,43 @@
     const bios = {
       "cognita": {
         text: "🧠 Cognita – Mindshift Operative: Helps you rewrite your inner code and reframe stuck thoughts.",
-        img: "/static/images/heroes/Cognita_Transparent.png"
+        img: "/static/images/heroes/Cognita_Transparent.png",
+        chat: "/circle/chat/@cognita"
       },
       "velessa": {
         text: "🌸 Velessa – Goddess of the Present: She pauses the noise so you can feel your breath again.",
-        img: "/static/images/heroes/Velessa_Transparent.png"
+        img: "/static/images/heroes/Velessa_Transparent.png",
+        chat: "/circle/chat/@velessa"
       },
       "sirrenity": {
         text: "🛡️ Sir Renity – Guardian of Calm: His stillness disarms the storm inside you.",
-        img: "/static/images/heroes/SirRenity_Transparent.png"
+        img: "/static/images/heroes/SirRenity_Transparent.png",
+        chat: "/circle/chat/@sirrenity"
       },
       "grace": {
         text: "✨ Grace – The Light Within: A constant whisper that you are worth saving.",
-        img: "/static/images/heroes/Grace_Transparent.png"
+        img: "/static/images/heroes/Grace_Transparent.png",
+        chat: "/circle/chat/@grace2"
       },
       "lucentis": {
         text: "🔆 Lucentis – Bringer of Clarity: When you are lost in the fog, he’s the light that finds you.",
-        img: "/static/images/heroes/Lucentis_Transparent.png"
+        img: "/static/images/heroes/Lucentis_Transparent.png",
+        chat: "/circle/chat/@lucentis"
       }
     };
 
     document.querySelectorAll('.hero-img').forEach(img => {
       img.addEventListener('click', () => {
         const name = img.alt.trim().replace(/\s+/g, "").toLowerCase();
-        const hero = bios[name] || { text: "Hero bio coming soon.", img: "" };
+        const hero = bios[name] || { text: "Hero bio coming soon.", img: "", chat: "#" };
         document.getElementById("heroBioText").textContent = hero.text;
         document.getElementById("heroBioImg").src = hero.img;
+        document.getElementById("chatHeroBtn").href = hero.chat;
         document.getElementById("heroBio").style.display = "block";
       });
     });
   });
 </script>
 {% endblock %}
+
 

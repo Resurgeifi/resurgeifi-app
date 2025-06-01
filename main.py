@@ -430,57 +430,6 @@ def circle_chat(resurgitag):
 
     return jsonify({"error": "No matching hero or villain found."}), 404
 
-@app.route("/circle")
-@login_required
-def circle():
-    from models import CircleMessage
-    from main import get_mock_conversation
-
-    user_id = session.get("user_id")
-    db = SessionLocal()
-    now = datetime.utcnow()
-    session["last_seen_circle"] = now.isoformat()
-
-    last_seen_str = session.get("last_seen_circle")
-    absence_minutes = 0
-    if last_seen_str:
-        try:
-            last_seen = datetime.fromisoformat(last_seen_str)
-            absence_minutes = (now - last_seen).total_seconds() / 60
-        except Exception as e:
-            print("⚠️ Failed to parse last_seen_circle:", e)
-
-    try:
-        mock_msgs = get_mock_conversation(absence_minutes)
-        for msg in mock_msgs:
-            db.add(CircleMessage(sender_id=user_id, receiver_id=user_id, text=msg["text"]))
-        db.commit()
-
-        messages = (
-            db.query(CircleMessage)
-            .filter_by(user_id=user_id)
-            .order_by(CircleMessage.timestamp.asc())
-            .limit(50)
-            .all()
-        )
-
-        thread = [{"speaker": msg.speaker, "text": msg.text} for msg in messages]
-        session["circle_thread"] = thread
-
-        offset_min = session.get("tz_offset_min", 0)
-        local_now = now - timedelta(minutes=offset_min)
-        start_of_day = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
-        session["start_of_day"] = start_of_day.isoformat()
-
-        return render_template("circle.html")
-
-    except SQLAlchemyError as e:
-        db.rollback()
-        flash("Trouble loading your Circle. Please try again in a moment.")
-        return redirect(url_for('profile'))
-    finally:
-        db.close()
-
 @app.route("/summarize-journal", methods=["GET"])
 @login_required
 def summarize_journal():
@@ -645,24 +594,11 @@ def menu():
     finally:
         db.close()
 
-@app.route('/form', methods=['GET', 'POST'])
+@app.route('/form')
 @login_required
 def form():
-    db = SessionLocal()
-    try:
-        if request.method == 'POST':
-            question = request.form['question']
-            db.close()  # No DB write here, but session was opened — so close cleanly
-            return redirect(url_for('ask'), code=307)
+    return render_template('form.html')
 
-        return render_template('form.html')
-
-    except SQLAlchemyError:
-        db.rollback()
-        flash("Something went wrong loading the form.", "error")
-        return redirect(url_for("menu"))
-    finally:
-        db.close()
 
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
