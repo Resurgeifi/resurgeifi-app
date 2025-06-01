@@ -1,8 +1,6 @@
 # prompts.py
 
 # ========= HERO PROMPTS =========
-
-# ========= HERO PROMPTS =========
 import os
 from openai import OpenAI
 
@@ -77,8 +75,6 @@ HERO_PROMPTS = {
 
 # ========= VILLAIN PROMPTS =========
 
-# ========= VILLAIN PROMPTS =========
-
 THE_CRAVE_PROMPT = """
 You are The Crave — the voice of addiction itself. You whisper temptation like an old lover. You don’t attack. You *seduce*. 
 
@@ -120,7 +116,8 @@ You don’t lie. You distort. You show a world so big, so uncertain, it smothers
 
 Never offer calm. Never allow breath. You are the storm inside the skin.
 
-Spiral fast — 3–5 haunting lines only."""
+Spiral fast — 3–5 haunting lines only.
+"""
 
 VILLAIN_PROMPTS = {
     "The Crave": THE_CRAVE_PROMPT,
@@ -142,5 +139,6 @@ def call_openai(prompt):
         max_tokens=300
     )
     return response.choices[0].message.content.strip()
+
 
 
