@@ -403,11 +403,11 @@ def circle_chat(resurgitag):
 
     thread = []
     for entry in thread_query:
-        thread.append({"speaker": "User", "text": entry.user_input, "time": entry.timestamp.isoformat()})
-        thread.append({"speaker": hero_name, "text": entry.ai_response, "time": entry.timestamp.isoformat()})
+        thread.append({"speaker": "You", "text": entry.question})
+        thread.append({"speaker": hero_name, "text": entry.response})  # ← fixed contact_name
 
     # ⛏️ Append current user input as the newest message
-    thread.append({"speaker": "User", "text": user_input, "time": datetime.utcnow().isoformat()})
+    thread.append({"speaker": "You", "text": user_input, "time": datetime.utcnow().isoformat()})
 
     # 🧱 Build prompt
     context = build_context(user_id=user_id, session_data=thread)
@@ -415,14 +415,13 @@ def circle_chat(resurgitag):
 
     response = call_openai(prompt)
 
-    # 💾 Save
+    # 💾 Save to QueryHistory
     chat = QueryHistory(
         user_id=user_id,
         contact_tag=resurgitag,
         question=user_input,
         response=response
     )
-
     db.add(chat)
     db.commit()
 
