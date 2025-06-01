@@ -361,8 +361,6 @@ def circle_chat(resurgitag):
     # 🔍 Try to find matching hero first
     hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
     if hero_profile:
-        hero_name = hero_profile.display_name
-
         # 🧠 Pull recent conversation for memory
         week_ago = datetime.utcnow() - timedelta(days=7)
         thread_query = db.query(QueryHistory).filter_by(
@@ -375,9 +373,10 @@ def circle_chat(resurgitag):
             for entry in thread_query
         ]
 
+        # ✅ Use `tag` as hero_name to match dict keys like "grace2"
         response = call_openai(
             user_input=user_input,
-            hero_name=hero_name,
+            hero_name=tag,
             context=context
         )
 
@@ -403,7 +402,6 @@ def circle_chat(resurgitag):
         return jsonify({"response": response})
 
     return jsonify({"error": "No matching hero or villain found."}), 404
-
 
 @app.route("/circle")
 @login_required
