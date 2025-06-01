@@ -180,8 +180,29 @@ Let this shape your tone. Do not reference this directly.
     }
 
 
+def normalize_thread(thread):
+    """
+    Converts a thread of dict pairs like {"You": "...", "grace": "..."} into
+    [{'speaker': 'User', 'text': '...'}, {'speaker': 'Grace', 'text': '...'}]
+    Only applies if original formatting is incorrect.
+    """
+    normalized = []
+    for item in thread:
+        if isinstance(item, dict):
+            if "speaker" in item and "text" in item:
+                normalized.append(item)  # Already formatted correctly
+            else:
+                for speaker, text in item.items():
+                    normalized.append({
+                        "speaker": "User" if speaker.strip().lower() == "you" else speaker.capitalize(),
+                        "text": text.strip()
+                    })
+    return normalized
+
 def build_prompt(hero, user_input, context, onboarding=None):
-    thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
+    raw_thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
+    thread = normalize_thread(raw_thread)  # ✅ PATCHED HERE
+
     is_playful = detect_playful_or_dry(thread)
     is_relapse = detect_relapse_fantasy(thread)
     repeated = detect_repetitive_phrases(thread)
