@@ -18,29 +18,36 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     tag = hero_name.strip().lower()
     is_villain = tag in VILLAIN_PROMPTS
 
-    # 🧠 Get full system prompt from RAMS
-    system_message = build_prompt(hero=tag, user_input=user_input, context=context)
+    thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
+    formatted_thread = context.get("formatted_thread", "") if isinstance(context, dict) else ""
+    emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
+    nickname = context.get("nickname", "Friend") if isinstance(context, dict) else "Friend"
 
-    # 🧵 Build message sequence
+    # 🧠 Prompt
+    system_message = build_prompt(
+        hero=tag,
+        user_input=user_input,
+        context={
+            "thread": thread,
+            "formatted_thread": formatted_thread,
+            "emotional_profile": emotional_profile,
+            "nickname": nickname,
+        }
+    )
+
     messages = [{"role": "system", "content": system_message}]
-    if context and "thread" in context:
-        for entry in context["thread"][-6:]:
-            messages.append({"role": "user", "content": entry["text"]})
-            messages.append({"role": "assistant", "content": entry.get("response", "")})
+    for entry in thread[-6:]:
+        messages.append({"role": "user", "content": entry["text"]})
+        messages.append({"role": "assistant", "content": entry.get("response", "")})
     messages.append({"role": "user", "content": user_input})
 
-    # 🛠️ DEBUG LOGGING
+    # DEBUG
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
-    print(f"📝 Model: gpt-4o | Temp: 0.85 | Max Tokens: 300")
-    print("🧵 Message Payload:")
-    for m in messages:
-        role = m['role'].capitalize()
-        print(f"  [{role}] {m['content'][:200]}{'...' if len(m['content']) > 200 else ''}")
+    print("🧵 Messages:", messages[-3:])
     print("--- END DEBUG ---\n")
 
-    # 🧠 Send to OpenAI
     try:
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -173,8 +180,8 @@ Let this shape your tone. Do not reference this directly.
     }
 
 
-def build_prompt(hero, user_input, context, next_hero=None, previous_hero=None, onboarding=None):
-    thread = context.get("thread", [])
+def build_prompt(hero, user_input, context, onboarding=None):
+    thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
     is_playful = detect_playful_or_dry(thread)
     is_relapse = detect_relapse_fantasy(thread)
     repeated = detect_repetitive_phrases(thread)
