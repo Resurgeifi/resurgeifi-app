@@ -1,6 +1,7 @@
 # 🧱 Standard Library
 import os
 import random
+import re
 from datetime import datetime, timedelta
 from uuid import uuid4
 
@@ -18,6 +19,17 @@ def generate_resurgitag(base_name):
     base = ''.join(c for c in base_name if c.isalnum())[:10].capitalize()
     suffix = ''.join(random.choices("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", k=2))
     return f"@{base}_{suffix}"
+
+def clean_text_for_voice(raw_text, speaker_name=None):
+    """Clean up text to improve voice performance."""
+    text = raw_text.replace("...", "…")  # replace with ellipsis character
+    text = re.sub(r'\.(\w)', r'. \1', text)  # ensure pause after periods
+
+    if speaker_name and speaker_name.lower() == "grace":
+        text = text.replace("dot", ".")  # special rule for Grace if needed
+
+    return text.strip()
+
 
 # 🔒 Auth + Security
 from functools import wraps
@@ -103,7 +115,7 @@ GRACE_VOICE_ID = "hIeqtoW1V7vxkxl7mya3"
 
 @app.route("/api/tts", methods=["POST"])
 def text_to_speech():
-    text = request.json.get("text", "")
+    text = clean_text_for_voice(request.json.get("text", ""))
     if not text:
         return {"error": "No text provided."}, 400
 
@@ -844,21 +856,12 @@ def register():
 
             hashed_pw = generate_password_hash(password)
 
-            # 🧠 Generate unique resurgitag
+            # 🧠 Generate unique resurgitag using global function
             fallback_nickname = "traveler"
             existing_tags = {u.resurgitag for u in db.query(User).filter(User.resurgitag.isnot(None)).all()}
-
-            import random, string
-            def generate_resurgitag(base, existing_tags):
-                base = ''.join(e for e in base if e.isalnum()).lower()
-                suffix = ''.join(random.choices(string.digits, k=4))
-                tag = f"@{base}{suffix}"
-                while tag in existing_tags:
-                    suffix = ''.join(random.choices(string.digits, k=4))
-                    tag = f"@{base}{suffix}"
-                return tag
-
-            resurgitag = generate_resurgitag(fallback_nickname, existing_tags)
+            resurgitag = generate_resurgitag(fallback_nickname)
+            while resurgitag in existing_tags:
+                resurgitag = generate_resurgitag(fallback_nickname)
 
             # ✅ Create new user with resurgitag
             new_user = User(
@@ -884,7 +887,7 @@ def register():
             flash("Registration successful. Let’s begin your journey.", "success")
             return redirect(url_for("onboarding"))
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             db.rollback()
             flash("Something went wrong while creating your account.", "error")
             return redirect(url_for("register"))

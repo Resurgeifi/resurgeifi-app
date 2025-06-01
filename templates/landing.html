@@ -166,6 +166,23 @@ let slideAudioCache = [];
 
 async function preloadSlideVoices() {
   const slides = document.querySelectorAll('.intro-slide');
+  const ambient = document.getElementById('landingAudio');
+  const duckVolume = 0.1;
+  const fullVolume = 1.0;
+
+  function fadeAudio(element, targetVolume, callback) {
+    const interval = setInterval(() => {
+      const current = element.volume;
+      const delta = (targetVolume - current) * 0.2;
+      element.volume = Math.max(0, Math.min(1, current + delta));
+
+      if (Math.abs(targetVolume - element.volume) < 0.01) {
+        element.volume = targetVolume;
+        clearInterval(interval);
+        if (callback) callback();
+      }
+    }, 50);
+  }
 
   for (let i = 0; i < slides.length; i++) {
     const textElement = slides[i].querySelector('.intro-text');
@@ -192,16 +209,23 @@ async function preloadSlideVoices() {
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      slideAudioCache.push(new Audio(url));
+      const audio = new Audio(url);
+
+      // 👂 Add ducking/fading logic to each preloaded voice
+      audio.onplay = () => {
+        if (ambient) fadeAudio(ambient, duckVolume);
+      };
+      audio.onended = () => {
+        if (ambient) fadeAudio(ambient, fullVolume);
+      };
+
+      slideAudioCache.push(audio);
     } catch (err) {
       console.error("TTS preload error for slide", i, err);
       slideAudioCache.push(null);
     }
   }
 }
-
-document.addEventListener('DOMContentLoaded', preloadSlideVoices);
-
 </script>
 
 <style>
