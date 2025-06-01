@@ -122,6 +122,12 @@ Never offer calm. Never allow breath. You are the storm inside the skin.
 
 Spiral fast — 3–5 haunting lines only."""
 
+VILLAIN_PROMPTS = {
+    "The Crave": THE_CRAVE_PROMPT,
+    "The Undermind": THE_UNDERMIND_PROMPT,
+    "Warden Fall": WARDEN_FALL_PROMPT,
+    "Anxia": ANXIA_PROMPT
+}
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
