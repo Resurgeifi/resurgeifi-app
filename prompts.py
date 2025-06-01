@@ -132,7 +132,6 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         hero_prompts = HERO_PROMPTS.get(tag, {})
         hero_lore = HERO_LORE.get(tag, {})
 
-        # ✏️ Select prompt type
         def is_small_talk(text):
             return len(text.strip().split()) <= 3 and not any(p in text for p in ['?', '.', '!'])
 
@@ -155,14 +154,11 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         lore_block = "\n".join(lore_chunks).strip()
         system_message = f"{prompt_base.strip()}\n\n[LORE CONTEXT]\n{lore_block}" if lore_block else prompt_base.strip()
 
-        # 🎯 Final message stack
         messages = [{"role": "system", "content": system_message}]
-
         if context:
             for entry in context[-6:]:
                 messages.append({"role": "user", "content": entry["question"]})
                 messages.append({"role": "assistant", "content": entry["response"]})
-
         messages.append({"role": "user", "content": user_input})
 
     # 🧠 OpenAI call
@@ -172,4 +168,9 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         temperature=0.85,
         max_tokens=300
     )
+
+    # ✅ Debug prints
+    print("📤 System Message Sent to OpenAI:\n", system_message)
+    print("📥 Full Response from OpenAI:\n", response)
+
     return response.choices[0].message.content.strip()
