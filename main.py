@@ -392,9 +392,9 @@ def circle_chat(resurgitag):
     from models import HeroProfile
     from prompts import VILLAIN_PROMPTS
 
-    tag = resurgitag.strip().lower()  # 🧼 Normalize input
+    tag = resurgitag.strip().lower()
 
-    # 🦸 Try hero first
+    # 🦸 Check Hero DB
     hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
     if hero_profile:
         week_ago = datetime.utcnow() - timedelta(days=7)
@@ -407,6 +407,16 @@ def circle_chat(resurgitag):
             {"question": entry.question, "response": entry.response}
             for entry in thread_query
         ]
+
+        # 🪩 DEBUG: print full OpenAI call payload
+        print("\n--- OpenAI CALL DEBUG ---")
+        print("🧠 Hero Tag:", tag)
+        print("🗣️ User Input:", user_input)
+        print("🧵 Context Thread:")
+        for i, msg in enumerate(context):
+            print(f"  {i+1}. You: {msg['question']}")
+            print(f"     {tag}: {msg['response']}")
+        print("-------------------------\n")
 
         response = call_openai(user_input=user_input, hero_name=tag, context=context)
 
@@ -421,10 +431,11 @@ def circle_chat(resurgitag):
 
         return jsonify({"response": response})
 
-    # 🧟‍♂️ Then check for villain
+    # 🧟‍♂️ Check Villain fallback
     villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
     if tag in villain_map:
         villain_name = villain_map[tag]
+        print(f"⚠️ OpenAI Villain Call – Name: {villain_name}, Input: {user_input}")
         response = call_openai(user_input=user_input, hero_name=villain_name)
         return jsonify({"response": response})
 
