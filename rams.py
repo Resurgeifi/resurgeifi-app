@@ -23,6 +23,10 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
     nickname = context.get("nickname", "Friend") if isinstance(context, dict) else "Friend"
 
+    # ✅ Fallback if thread is empty (prevents hallucinated roles)
+    if not thread:
+        thread = [{"speaker": "User", "text": user_input}]
+
     # 🧠 Prompt
     system_message = build_prompt(
         hero=tag,
