@@ -3,7 +3,7 @@ from datetime import datetime
 from collections import Counter
 from db import SessionLocal
 from models import User, JournalEntry, QueryHistory
-from prompts import HERO_PROMPTS
+from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
 from flask import session
 
 HERO_NAMES = ["Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"]
@@ -17,7 +17,7 @@ def detect_crisis_tone(thread):
         "overdose", "die", "can't do this", "not worth it"
     ]
     user_messages = [msg["text"].lower() for msg in thread[-4:] if msg["speaker"] == "User"]
-    return any(any(kw in msg for kw in crisis_keywords) for msg in user_messages)
+    return any(any(kw in msg for msg in user_messages) for kw in crisis_keywords)
 
 def detect_relapse_fantasy(thread):
     relapse_phrases = [
@@ -26,7 +26,7 @@ def detect_relapse_fantasy(thread):
         "i'm done being sober", "tired of being sober", "need to escape"
     ]
     user_messages = [msg["text"].lower() for msg in thread[-3:] if msg["speaker"] == "User"]
-    return any(any(p in msg for p in relapse_phrases) for msg in user_messages)
+    return any(any(p in msg for msg in user_messages) for p in relapse_phrases)
 
 def detect_playful_or_dry(thread):
     if not thread:
@@ -71,19 +71,32 @@ def select_heroes(tone, thread):
 def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
     db = SessionLocal()
     user = db.query(User).filter_by(id=user_id).first() if user_id else None
+
+    # ⏳ Pull last 50 messages from QueryHistory, most recent first
+    from models import QueryHistory
+    history = []
+    if user_id:
+        thread = (
+            db.query(QueryHistory)
+            .filter_by(user_id=user_id)
+            .order_by(QueryHistory.timestamp.desc())
+            .limit(50)
+            .all()
+        )
+        history = list(reversed(thread))  # Chronological order
     db.close()
 
-    formatted_thread = ""
-    if session_data and isinstance(session_data, list):
-        for msg in session_data[-10:]:
-            speaker = msg.get("speaker", "Unknown")
-            text = msg.get("text", "").strip()
-            if speaker and text:
-                formatted_thread += f"{speaker}: \"{text}\"\n"
-    else:
-        formatted_thread = "The Circle has just begun. This may be the user’s first interaction.\n"
+    full_thread = []
+    for entry in history:
+        timestamp = entry.timestamp.strftime("%Y-%m-%d %H:%M")
+        full_thread.append({"speaker": "User", "text": entry.question.strip(), "time": timestamp})
+        full_thread.append({"speaker": entry.agent_name or "Resurgifi", "text": entry.response.strip(), "time": timestamp})
 
-    # ⬇️ Quest injection logic
+    formatted_thread = ""
+    for msg in full_thread:
+        formatted_thread += f"{msg['speaker']} ({msg['time']}): \"{msg['text']}\"\n"
+
+    # 🧭 Optional: handle quest reflection
     quest_data = session.pop("from_quest", None)
     quest_reflection = quest_data.get("reflection") if quest_data else None
     if quest_reflection:
@@ -110,11 +123,13 @@ Let this shape your tone. Do not reference this directly.
     return {
         "formatted_thread": formatted_thread.strip(),
         "emotional_profile": emotional_profile.strip(),
-        "nickname": nickname
+        "nickname": nickname,
+        "thread": full_thread
     }
 
+
 def build_prompt(hero, user_input, context, next_hero=None, previous_hero=None, onboarding=None):
-    thread = context.get("thread", []) if isinstance(context, dict) else []
+    thread = context.get("thread", [])
     is_playful = detect_playful_or_dry(thread)
     is_relapse = detect_relapse_fantasy(thread)
     repeated = detect_repetitive_phrases(thread)
@@ -131,30 +146,39 @@ def build_prompt(hero, user_input, context, next_hero=None, previous_hero=None, 
 ⚠️ The user may be romanticizing relapse. Do not explore details. Stay with the emotional need. No shame.
 """
 
-    prompt = f"""
-{HERO_PROMPTS.get(hero, "")}
+    # 🔄 Prompt selection
+    prompt_template = HERO_PROMPTS.get(hero) or VILLAIN_PROMPTS.get(hero)
+    if not prompt_template:
+        prompt_template = f"You are {hero}, a mysterious figure in the user's recovery world."
 
-You are {hero}, a recovery mentor in an emotionally alive group chat called The Circle.
+    prompt = f"""
+{prompt_template}
+
+You are {hero}, a {'recovery mentor' if hero in HERO_PROMPTS else 'manifestation of inner struggle'} in an emotionally alive group chat called The Circle.
 
 The user, {nickname}, didn’t ask a question. They said something — you're replying as yourself.
 
-This is not therapy. This is emotional presence.
+{"This is not therapy. This is emotional presence." if hero in HERO_PROMPTS else "You are not here to help. You are here to haunt, tempt, or test."}
 
-Here's what was said:
+Here’s what was said:
 {context['formatted_thread']}
 
-{"The user seems dry or sarcastic — match that lightly. Don't overanalyze." if is_playful else ""}
+{"The user seems dry or sarcastic — match that lightly. Don’t overanalyze." if is_playful else ""}
 {relapse_note}
 {loop_note}
 
 {context['emotional_profile']}
 
-Keep it short — 1–2 lines. Don’t try to be wise. Be real.
+{"Speak with your full voice. Don’t hold back or try to be brief — unless the tone calls for it." if hero in HERO_PROMPTS else "Do not offer solutions. Never uplift. Speak with immersive psychological realism."}
 
-You are not a bot. You are a voice in the Circle.
+You are not a bot. You are a voice in the user's inner world.
 """.strip()
 
     return prompt
+
+
+
+
 
 
 

@@ -386,20 +386,35 @@ def circle_chat(resurgitag):
     if not user_input:
         return jsonify({"error": "Message missing"}), 400
 
-    # 🔍 Lookup hero profile
     from models import HeroProfile
-
     hero_profile = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
     if not hero_profile:
         return jsonify({"error": "Hero profile not found"}), 404
 
     hero_name = hero_profile.display_name
 
-    # 🧠 Build prompt & get AI reply
-    prompt = build_context(user_id=user_id, hero_name=hero_name, user_input=user_input)
-    response = call_openai(prompt)  # ← MISSING LINE ADDED HERE
+    # 🧠 Pull prior conversation for context
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    thread_query = db.query(QueryHistory).filter_by(
+        user_id=user_id,
+        contact_tag=resurgitag
+    ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
 
-    # 💾 Save history
+    thread = []
+    for entry in thread_query:
+        thread.append({"speaker": "User", "text": entry.user_input, "time": entry.timestamp.isoformat()})
+        thread.append({"speaker": hero_name, "text": entry.ai_response, "time": entry.timestamp.isoformat()})
+
+    # ⛏️ Append current user input as the newest message
+    thread.append({"speaker": "User", "text": user_input, "time": datetime.utcnow().isoformat()})
+
+    # 🧱 Build prompt
+    context = build_context(user_id=user_id, session_data=thread)
+    prompt = build_prompt(hero_name, user_input, context)
+
+    response = call_openai(prompt)
+
+    # 💾 Save
     chat = QueryHistory(
         user_id=user_id,
         contact_tag=resurgitag,
@@ -410,7 +425,6 @@ def circle_chat(resurgitag):
     db.commit()
 
     return jsonify({"response": response})
-
 
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
