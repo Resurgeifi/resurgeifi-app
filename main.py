@@ -64,8 +64,7 @@ from models import (
 from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from rams import HERO_NAMES, build_context, select_heroes, build_prompt
-from prompts import call_openai
+from rams import HERO_NAMES, build_context, select_heroes, build_prompt, call_openai
 from markupsafe import Markup
 import qrcode
 import io
