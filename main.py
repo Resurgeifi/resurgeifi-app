@@ -465,8 +465,8 @@ def show_hero_chat(resurgitag):
 
     messages = []
     for entry in thread:
-        messages.append({"speaker": "You", "text": entry.user_input})
-        messages.append({"speaker": contact_name, "text": entry.ai_response})
+        messages.append({"speaker": "You", "text": entry.question})
+        messages.append({"speaker": contact_name, "text": entry.response})
 
     return render_template("chat.html", resurgitag=resurgitag, messages=messages)
 
