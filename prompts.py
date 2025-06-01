@@ -117,11 +117,11 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
     from hero_lore import HERO_LORE
 
-    is_villain = hero_name in VILLAIN_PROMPTS
     tag = hero_name.lower()
+    is_villain = tag in VILLAIN_PROMPTS
 
     if is_villain:
-        system_message = VILLAIN_PROMPTS[hero_name]
+        system_message = VILLAIN_PROMPTS[tag]
         messages = [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_input}
@@ -129,7 +129,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
 
     else:
         # Pull prompt and lore
-        hero_prompts = HERO_PROMPTS.get(hero_name, {})
+        hero_prompts = HERO_PROMPTS.get(tag, {})
         hero_lore = HERO_LORE.get(tag, {})
 
         # ✏️ Select prompt type
@@ -152,8 +152,8 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             relations = " | ".join([f"{k}: {v}" for k, v in hero_lore["relationships"].items()])
             lore_chunks.append(f"Relationships: {relations}")
 
-        lore_block = "\n".join(lore_chunks)
-        system_message = f"{prompt_base.strip()}\n\n[LORE CONTEXT]\n{lore_block.strip()}"
+        lore_block = "\n".join(lore_chunks).strip()
+        system_message = f"{prompt_base.strip()}\n\n[LORE CONTEXT]\n{lore_block}" if lore_block else prompt_base.strip()
 
         # 🎯 Final message stack
         messages = [{"role": "system", "content": system_message}]
