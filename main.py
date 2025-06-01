@@ -411,6 +411,33 @@ def circle_chat(resurgitag):
     db.commit()
 
     return jsonify({"response": response})
+@app.route("/circle/chat/<resurgitag>", methods=["GET"])
+@login_required
+def show_hero_chat(resurgitag):
+    db = SessionLocal()
+    user_id = session.get("user_id")
+
+    user = db.query(User).filter_by(id=user_id).first()
+    contact = db.query(User).filter_by(resurgitag=resurgitag).first()
+    if not user or not contact or not contact.is_hero:
+        flash("Hero not found.")
+        return redirect(url_for("circle"))
+
+    # Pull last 7 days of QueryHistory
+    from datetime import datetime, timedelta
+    week_ago = datetime.utcnow() - timedelta(days=7)
+
+    thread = db.query(QueryHistory).filter_by(
+        user_id=user.id,
+        contact_tag=resurgitag
+    ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
+
+    messages = []
+    for entry in thread:
+        messages.append({"speaker": "You", "text": entry.user_input})
+        messages.append({"speaker": contact.hero_name, "text": entry.ai_response})
+
+    return render_template("chat.html", resurgitag=resurgitag, messages=messages)
 
 @app.route("/circle")
 @login_required

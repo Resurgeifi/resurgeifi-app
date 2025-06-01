@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Chat with {{ resurgitag }}{% endblock %}
+
+{% block content %}
+<div class="chat-header">
+  <h2 class="chat-hero-name">@{{ resurgitag }}</h2>
+  <p class="mantra">"They’re listening. Say what’s real."</p>
+</div>
+
+<div id="chat-box" class="circle-chat-box">
+  {% for msg in messages %}
+    <div class="circle-message"><strong>{{ msg.speaker }}:</strong> {{ msg.text }}</div>
+  {% endfor %}
+</div>
+
+<form id="chatForm" class="circle-form">
+  <textarea id="userMessage" rows="3" placeholder="Type something real..." required></textarea>
+  <button type="submit" class="global-button">Send</button>
+</form>
+
+<div style="text-align: center; margin-bottom: 5rem;">
+  <button class="global-button gray-button" id="reflectBtn">🪞 Summarize Journal</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("chatForm");
+  const chatBox = document.getElementById("chat-box");
+  const messageInput = document.getElementById("userMessage");
+  const reflectBtn = document.getElementById("reflectBtn");
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (!message) return;
+
+    const userDiv = document.createElement("div");
+    userDiv.className = "circle-message";
+    userDiv.innerHTML = `<strong>You:</strong> ${message}`;
+    chatBox.appendChild(userDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    messageInput.value = "";
+
+    try {
+      const resurgitag = "{{ resurgitag }}";
+      const res = await fetch(`/circle/chat/${resurgitag}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await res.json();
+      const reply = data.response;
+
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "circle-message typing";
+      typingDiv.innerHTML = `<em>${resurgitag} is typing...</em>`;
+      chatBox.appendChild(typingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
+      typingDiv.remove();
+
+      const replyDiv = document.createElement("div");
+      replyDiv.className = "circle-message";
+      replyDiv.innerHTML = `<strong>${resurgitag}:</strong> ${reply}`;
+      chatBox.appendChild(replyDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (err) {
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "circle-message error";
+      errorDiv.innerHTML = `<strong>Error:</strong> Could not reach your guide.`;
+      chatBox.appendChild(errorDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  });
+
+  if (reflectBtn) {
+    reflectBtn.addEventListener("click", () => {
+      window.location.href = "/summarize-journal";
+    });
+  }
+});
+</script>
+{% endblock %}
