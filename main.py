@@ -1398,46 +1398,38 @@ def reset_test_user():
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
-    import json
     db = SessionLocal()
+    user = db.query(User).filter_by(id=session['user_id']).first()
+    if not user:
+        flash("User not found.")
+        return redirect(url_for('onboarding'))
 
-    try:
-        user_id = session.get("user_id")
-        if not user_id:
-            return "Unauthorized", 401
+    form = request.form
 
-        data = request.get_json()
-        user = db.query(User).filter_by(id=user_id).first()
+    # ⛏️ Extract form data
+    q1 = form.get("q1")  # Core trigger
+    q2 = form.get("q2")  # Default coping strategy
+    q3 = form.getlist("q3")  # Hero trait preferences (checkboxes)
 
-        if not user:
-            return "User not found", 404
+    # 🧠 Save to user object
+    user.core_trigger = q1
+    user.default_coping = q2
+    user.hero_traits = q3
+    user.onboarding_complete = True
 
-        # ✅ Update user fields
-        user.core_trigger = data.get("q1")
-        user.default_coping = data.get("q2")
-        user.hero_traits = data.get("q3", [])
-        user.nickname = data.get("nickname")
-        user.journey_start_date = datetime.utcnow()
-        user.theme_choice = data.get("journey")  # Or adjust if needed
-        user.has_completed_onboarding = True
+    db.commit()  # 💾 Save changes before using data
 
-        # ✅ Generate and store bio
-        generate_and_store_bio(
-            user_id=user.id,
-            q1=user.core_trigger,
-            q2=user.default_coping,
-            q3_traits=user.hero_traits or []
-        )
+    # ✅ Generate and store bio from raw form values
+    generate_and_store_bio(
+        user_id=user.id,
+        q1=q1,
+        q2=q2,
+        q3_traits=q3
+    )
 
-        db.commit()
-        return "Success", 200
-
-    except Exception as e:
-        print("🔥 Onboarding submission error:", str(e))
-        db.rollback()
-        return "Error processing onboarding", 500
-    finally:
-        db.close()
+    db.close()
+    flash("Onboarding complete. Welcome aboard. 🛟")
+    return redirect(url_for('menu'))
 
 
 @app.route("/onboarding", methods=["GET"])

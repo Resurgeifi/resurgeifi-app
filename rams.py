@@ -17,28 +17,46 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     tag = hero_name.strip().lower()
     is_villain = tag in VILLAIN_PROMPTS
 
+    # Pull thread & context
     thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
     formatted_thread = context.get("formatted_thread", "") if isinstance(context, dict) else ""
     emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
     nickname = context.get("nickname", "Friend") if isinstance(context, dict) else "Friend"
 
+    # If no thread, create one from the latest user input
     if not thread:
         thread = [{"speaker": "User", "text": user_input}]
 
+    # Build the main prompt from context
     system_message = build_prompt(
-    hero=tag,
-    user_input=user_input,
-    context={
-        "thread": thread,
-        "formatted_thread": formatted_thread,
-        "emotional_profile": emotional_profile,
-        "nickname": nickname,
-        "user_id": session.get("user_id")  # ✅ Add this line
+        hero=tag,
+        user_input=user_input,
+        context={
+            "thread": thread,
+            "formatted_thread": formatted_thread,
+            "emotional_profile": emotional_profile,
+            "nickname": nickname,
+            "user_id": session.get("user_id")
+        }
+    )
+
+    # 🧠 Add identity lock to prevent POV confusion
+    hero_identity_message = {
+        "role": "system",
+        "content": f"""
+You are {hero_name}, a supportive hero in a recovery app called Resurgifi. 
+You are speaking to the user '{nickname}', who is in early recovery. 
+Do not speak as the user. Never refer to yourself as "You."
+You are {hero_name}. Maintain emotional boundaries. Offer support, not mimicry.
+""".strip()
     }
-)
 
+    # 🧵 Assemble full message stack
+    messages = [
+        hero_identity_message,
+        {"role": "system", "content": system_message}
+    ]
 
-    messages = [{"role": "system", "content": system_message}]
     for entry in thread[-6:]:
         if "speaker" in entry and entry["speaker"].lower() == "user":
             messages.append({"role": "user", "content": entry["text"]})
@@ -49,12 +67,14 @@ def call_openai(user_input, hero_name="Cognita", context=None):
                 role = "user" if speaker.lower() == "you" else "assistant"
                 messages.append({"role": role, "content": msg})
 
+    # 🧪 Debug logging
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
     print("🧵 Messages:", messages[-3:])
     print("--- END DEBUG ---\n")
 
+    # 🚀 Fire OpenAI request
     try:
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -263,8 +283,10 @@ def build_prompt(hero, user_input, context):
                 bio = db.query(UserBio).filter_by(user_id=user.id).first()
                 if bio:
                     user_bio_text = bio.bio_text
-                # Get tone summary (if we ever want to expand)
-                tone_summary = user.tone_summary or ""
+                # Safely get tone summary
+                tone_summary = getattr(user, "tone_summary", "").strip()
+                if not tone_summary:
+                    tone_summary = "neutral but emotionally raw"  # ✅ fallback
                 # Get last 2-3 journal entries
                 journals = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).limit(3).all()
                 journal_snippets = [j.entry_text[:300] for j in journals if j.entry_text]
@@ -273,23 +295,32 @@ def build_prompt(hero, user_input, context):
     finally:
         db.close()
 
-    # Build prompt
+    # ✅ Construct identity-safe system prompt
     base_prompt = f"""
-You are {hero.capitalize()}, a Resurgifi guide helping someone in emotional recovery.
-This is their nickname: {nickname}.
+You are {hero.capitalize()}, a Resurgifi hero guiding someone in emotional recovery.
 
-Backstory: {user_bio_text}
+You are speaking to a human named {nickname}.
+They are not an AI. You are not the user. You are {hero.capitalize()}.
 
-Tone Summary: {tone_summary}
+Backstory (what you know about them):
+{user_bio_text or '[No backstory provided yet]'}
 
-Recent Journal Reflections:
-- {chr(10).join(journal_snippets)}
+Tone Summary (emotional state):
+{tone_summary}
+
+Recent Journal Entries:
+- {chr(10).join(journal_snippets) if journal_snippets else '[No journal entries yet]'}
 
 Conversation so far:
 {formatted_thread}
 
-Respond with empathy, clarity, and purpose.
-Always speak as yourself. Do not summarize — respond like you're sitting beside them.
+🧠 Your Rules:
+- Never refer to yourself as "you"
+- Do not mirror the user’s identity
+- Respond like a steady, emotionally intelligent guide
+- Stay boundaried — care deeply, but don’t collapse into their mindset
+
+Speak as yourself. Offer clarity, warmth, and truth. Do not summarize. Reflect and respond as if you're sitting beside them — not inside them.
 """
 
     return base_prompt.strip()

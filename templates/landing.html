@@ -104,6 +104,9 @@
 
 <script>
 let currentSlide = 0;
+const baseVolume = 0.2;
+const duckVolume = 0.05;
+
 
 function startExperience() {
   document.getElementById('landingAudio').play().catch(err => console.warn("Audio blocked:", err));
@@ -241,8 +244,9 @@ async function preloadSlideVoices() {
         if (ambient) fadeAudio(ambient, duckVolume);
       };
       audio.onended = () => {
-        if (ambient) fadeAudio(ambient, baseVolume);
+        if (ambient) fadeAudio(ambient, baseVolume);  // ✅ safe consistent return volume
       };
+
 
       slideAudioCache.push(audio);
     } catch (err) {
@@ -251,6 +255,14 @@ async function preloadSlideVoices() {
     }
   }
 }
+// ✅ Ensure landing audio starts at a safe volume across all devices
+document.addEventListener("DOMContentLoaded", () => {
+  const ambient = document.getElementById('landingAudio');
+  if (ambient) {
+    ambient.volume = 0.2;  // Default safe volume for intro
+  }
+});
+
 </script>
 
 
