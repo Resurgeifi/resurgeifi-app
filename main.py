@@ -389,8 +389,6 @@ def circle_chat(resurgitag):
         return jsonify({"error": "Message missing"}), 400
 
     from models import HeroProfile
-    from prompts import VILLAIN_PROMPTS
-
     tag = resurgitag.strip().lower()
 
     # 🦸 Check Hero DB

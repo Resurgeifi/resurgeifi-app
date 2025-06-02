@@ -3,8 +3,8 @@ from datetime import datetime
 from collections import Counter
 from db import SessionLocal
 from models import User, JournalEntry, QueryHistory
-from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
 from flask import session
+from inner_codex import INNER_CODEX
 
 HERO_NAMES = ["Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"]
 
@@ -239,17 +239,21 @@ Let this shape your tone. Do not reference this directly.
         "thread": full_thread
     }
 
-
 def get_prompt(hero_name, style="default"):
     name = hero_name.lower().strip()
-    hero_prompt = HERO_PROMPTS.get(name, {})
 
-    if isinstance(hero_prompt, dict):
-        return hero_prompt.get(style) or hero_prompt.get("default")
-    elif isinstance(hero_prompt, str):
-        return hero_prompt
-    else:
-        return VILLAIN_PROMPTS.get(name) or f"You are {hero_name}, a mysterious figure in the user's recovery world."
+    # Check HERO section
+    hero_data = INNER_CODEX["heroes"].get(name)
+    if hero_data and "prompts" in hero_data:
+        return hero_data["prompts"].get(style) or hero_data["prompts"].get("default")
+
+    # Check VILLAIN section
+    villain_data = INNER_CODEX["villains"].get(hero_name)
+    if isinstance(villain_data, dict) and "prompt" in villain_data:
+        return villain_data["prompt"]
+
+    # Fallback
+    return f"You are {hero_name}, a mysterious figure in the user's recovery world."
 
 
 def normalize_thread(thread):
