@@ -418,11 +418,13 @@ def circle_chat(resurgitag):
         response = call_openai(user_input=user_input, hero_name=tag, context=context)
 
         chat = QueryHistory(
-            user_id=user_id,
-            contact_tag=tag,
-            question=user_input,
-            response=response
-        )
+        user_id=user_id,
+        contact_tag=tag,
+        agent_name=session.get("hero_name"),
+        question=user_input,
+        response=response
+)
+
         db.add(chat)
         db.commit()
 

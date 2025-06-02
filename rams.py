@@ -6,6 +6,20 @@ from models import User, JournalEntry, QueryHistory
 from flask import session
 from inner_codex import INNER_CODEX
 
+HERO_PROMPTS = {
+    name.lower(): {
+        "default": f"You are {name} — {hero.get('title', '')}. You represent {hero.get('represents', '')}. "
+                   f"{hero.get('worldview', '')} Respond with emotional realism, 4–5 lines max.",
+        "small_talk": f"You are {name}. When greeted, offer a warm and simple check-in like a real person would."
+    }
+    for name, hero in INNER_CODEX.get("heroes", {}).items()
+}
+
+VILLAIN_PROMPTS = {
+    name.lower(): f"You are {name} — embodiment of {desc}. Whisper their doubts. 3–5 lines. No encouragement."
+    for name, desc in INNER_CODEX.get("villains", {}).items()
+}
+
 HERO_NAMES = ["Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"]
 
 def call_openai(user_input, hero_name="Cognita", context=None):
