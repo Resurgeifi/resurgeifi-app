@@ -313,7 +313,7 @@ def build_prompt(hero, user_input, context):
                     tone_summary = "neutral but emotionally raw"  # ✅ fallback
                 # Get last 2-3 journal entries
                 journals = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).limit(3).all()
-                journal_snippets = [j.entry_text[:300] for j in journals if j.entry_text]
+                journal_snippets = [j.entry.content[:300] for j in journals if j.entry.content]
     except Exception as e:
         print("🔥 build_prompt DB error:", str(e))
     finally:
