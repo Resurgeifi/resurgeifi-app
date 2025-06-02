@@ -23,11 +23,11 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
     nickname = context.get("nickname", "Friend") if isinstance(context, dict) else "Friend"
 
-    # If no thread, create one from the latest user input
+    # If no thread, create one from user input
     if not thread:
         thread = [{"speaker": "User", "text": user_input}]
 
-    # Build the main prompt from context
+    # Build system prompt
     system_message = build_prompt(
         hero=tag,
         user_input=user_input,
@@ -40,7 +40,6 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         }
     )
 
-    # 🧠 Add identity lock to prevent POV confusion
     hero_identity_message = {
         "role": "system",
         "content": f"""
@@ -51,13 +50,13 @@ You are {hero_name}. Maintain emotional boundaries. Offer support, not mimicry.
 """.strip()
     }
 
-    # 🧵 Assemble full message stack
+    # Build conversation history
     messages = [
         hero_identity_message,
         {"role": "system", "content": system_message}
     ]
 
-    for entry in thread[-6:]:
+    for entry in thread[-30:]:
         if "speaker" in entry and entry["speaker"].lower() == "user":
             messages.append({"role": "user", "content": entry["text"]})
         elif "speaker" in entry:
@@ -67,14 +66,17 @@ You are {hero_name}. Maintain emotional boundaries. Offer support, not mimicry.
                 role = "user" if speaker.lower() == "you" else "assistant"
                 messages.append({"role": role, "content": msg})
 
-    # 🧪 Debug logging
+    # Final user input
+    messages.append({"role": "user", "content": user_input})
+
+    # Debug
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
     print("🧵 Messages:", messages[-3:])
     print("--- END DEBUG ---\n")
 
-    # 🚀 Fire OpenAI request
+    # Make the call
     try:
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -86,7 +88,6 @@ You are {hero_name}. Maintain emotional boundaries. Offer support, not mimicry.
     except Exception as e:
         print(f"🔥 OpenAI Error for {tag}: {e}")
         return "Something went wrong. Try again in a moment."
-
 
 def pull_recent_journal_summary(user_id):
     db = SessionLocal()
@@ -167,13 +168,17 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
     user = db.query(User).filter_by(id=user_id).first() if user_id else None
 
     from models import QueryHistory, UserBio
+
     history = []
-    if user_id:
+    agent_tag = session_data.get("hero_name") if session_data else None
+
+    if user_id and agent_tag:
         thread = (
             db.query(QueryHistory)
             .filter_by(user_id=user_id)
+            .filter(QueryHistory.agent_name == agent_tag)
             .order_by(QueryHistory.timestamp.desc())
-            .limit(50)
+            .limit(30)
             .all()
         )
         history = list(reversed(thread))
@@ -233,6 +238,7 @@ Let this shape your tone. Do not reference this directly.
         "nickname": nickname,
         "thread": full_thread
     }
+
 
 def get_prompt(hero_name, style="default"):
     name = hero_name.lower().strip()

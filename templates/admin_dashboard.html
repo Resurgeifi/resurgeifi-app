@@ -17,7 +17,7 @@
           <p><strong>Recent Signups:</strong></p>
           <ul>
             {% for user in stats.recent_users %}
-              <li>@{{ user.resurgitag }} ({{ user.display_name or "Unnamed" }})</li>
+              <li>{{ user.resurgitag }} ({{ user.display_name or "Unnamed" }})</li>
             {% endfor %}
           </ul>
         </div>
