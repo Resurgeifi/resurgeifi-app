@@ -1057,11 +1057,8 @@ def ask():
         # 🧠 Circle memory
         thread = session.get("circle_thread", [])
         thread.append({"speaker": "User", "text": user_message})
-        thread = thread[-20:]  # Keep it lean
+        thread = thread[-20:]
 
-        # ✅ Save user message to DB
-        hero_user = db.query(User).filter_by(resurgitag=f"@{hero}", resurgitag_locked=True).first()
-        db.session.add(CircleMessage(sender_id=user_id, receiver_id=hero_user.id, text=user_message))
         session["last_input_ts"] = datetime.utcnow().isoformat()
 
         tone = session.get("tone", "neutral")
@@ -1114,10 +1111,11 @@ def ask():
                     delay = 1200 + i * 900
                 else:
                     continue
+
                 hero_user = db.query(User).filter_by(resurgitag=f"@{hero}", resurgitag_locked=True).first()
 
+                db.session.add(CircleMessage(sender_id=user_id, receiver_id=hero_user.id, text=user_message))
                 db.session.add(CircleMessage(sender_id=hero_user.id, receiver_id=user_id, text=reply))
-                thread.append({"speaker": hero, "text": reply})
 
                 db.session.add(QueryHistory(
                     user_id=user.id,
@@ -1125,6 +1123,8 @@ def ask():
                     agent_name=hero,
                     response=reply
                 ))
+
+                thread.append({"speaker": hero, "text": reply})
 
                 results.append({
                     "hero": hero,
@@ -1148,7 +1148,7 @@ def ask():
         if len(user_messages) >= 3 and not session.get(today_key):
             user.points = (user.points or 0) + 3
             session[today_key] = True
-            session["points_just_added"] = 3  # Optional: used for UI flash
+            session["points_just_added"] = 3
 
         session["circle_thread"] = thread[-20:]
         db.session.commit()
