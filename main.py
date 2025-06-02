@@ -60,7 +60,7 @@ from models import (
     UserQuestEntry,
     WishingWellMessage
 )
-
+from useronboarding import generate_and_store_bio  
 from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -1394,6 +1394,7 @@ def reset_test_user():
 
     flash("TestUser created/reset. Starting onboarding.", "success")
     return redirect(url_for("onboarding"))
+
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
@@ -1411,13 +1412,22 @@ def submit_onboarding():
         if not user:
             return "User not found", 404
 
+        # ✅ Update user fields
         user.core_trigger = data.get("q1")
         user.default_coping = data.get("q2")
         user.hero_traits = data.get("q3", [])
         user.nickname = data.get("nickname")
         user.journey_start_date = datetime.utcnow()
-        user.theme_choice = data.get("journey")  # Or adjust key to match front-end
+        user.theme_choice = data.get("journey")  # Or adjust if needed
         user.has_completed_onboarding = True
+
+        # ✅ Generate and store bio
+        generate_and_store_bio(
+            user_id=user.id,
+            q1=user.core_trigger,
+            q2=user.default_coping,
+            q3_traits=user.hero_traits or []
+        )
 
         db.commit()
         return "Success", 200
@@ -1428,6 +1438,7 @@ def submit_onboarding():
         return "Error processing onboarding", 500
     finally:
         db.close()
+
 
 @app.route("/onboarding", methods=["GET"])
 @login_required

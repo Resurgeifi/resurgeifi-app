@@ -1,5 +1,7 @@
 # useronboarding.py
 
+from models import UserBio, db
+
 # ========== Q1: What brings you here today? ==========
 ONBOARDING_Q1_STORIES = {
     "Major loss or grieving": (
@@ -72,8 +74,7 @@ ONBOARDING_Q3_TRAITS = {
     "Reminds me who I am": "I love people who hold a mirror up to the good in me — especially when I forget it myself."
 }
 
-# Final structure to generate a fake user backstory from their onboarding
-# Example function to compose story:
+# ========== Final Composer Function ==========
 def build_user_backstory(q1, q2, q3_traits):
     story = []
     if q1 in ONBOARDING_Q1_STORIES:
@@ -85,10 +86,16 @@ def build_user_backstory(q1, q2, q3_traits):
             story.append(ONBOARDING_Q3_TRAITS[trait])
     return " " + " ".join(story)
 
-# Example usage:
-# fake_story = build_user_backstory(
-#     "Addiction",
-#     "Stay busy",
-#     ["Makes me feel safe", "Says what I need to hear"]
-# )
+# ========== Seeder Function ==========
+def generate_and_store_bio(user_id, q1, q2, q3_traits):
+    bio_text = build_user_backstory(q1, q2, q3_traits)
+
+    existing_bio = UserBio.query.filter_by(user_id=user_id).first()
+    if existing_bio:
+        existing_bio.bio_text = bio_text
+    else:
+        new_bio = UserBio(user_id=user_id, bio_text=bio_text)
+        db.session.add(new_bio)
+
+    db.session.commit()
 

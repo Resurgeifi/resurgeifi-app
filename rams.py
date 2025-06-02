@@ -26,15 +26,17 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         thread = [{"speaker": "User", "text": user_input}]
 
     system_message = build_prompt(
-        hero=tag,
-        user_input=user_input,
-        context={
-            "thread": thread,
-            "formatted_thread": formatted_thread,
-            "emotional_profile": emotional_profile,
-            "nickname": nickname,
-        }
-    )
+    hero=tag,
+    user_input=user_input,
+    context={
+        "thread": thread,
+        "formatted_thread": formatted_thread,
+        "emotional_profile": emotional_profile,
+        "nickname": nickname,
+        "user_id": session.get("user_id")  # ✅ Add this line
+    }
+)
+
 
     messages = [{"role": "system", "content": system_message}]
     for entry in thread[-6:]:
@@ -144,7 +146,7 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
     db = SessionLocal()
     user = db.query(User).filter_by(id=user_id).first() if user_id else None
 
-    from models import QueryHistory
+    from models import QueryHistory, UserBio
     history = []
     if user_id:
         thread = (
@@ -155,7 +157,6 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
             .all()
         )
         history = list(reversed(thread))
-    db.close()
 
     full_thread = []
     for entry in history:
@@ -172,36 +173,46 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
     if quest_reflection:
         formatted_thread = f'Grace: "The user has just completed a quest. They wrote: \'{quest_reflection}\'"\n\n' + formatted_thread
 
+    # 🧠 Pull nickname & bio
+    nickname = user.nickname if user and user.nickname else "Friend"
+    bio_text = None
     if user:
+        bio = db.query(UserBio).filter_by(user_id=user.id).first()
+        bio_text = bio.bio_text if bio else None
+
+    # ⛑️ Fallback if no bio
+    if not bio_text and user:
         reason = user.theme_choice or "an unknown reason"
-        coping = user.consent or "an unspecified coping style"
-        traits = user.display_name or "unknown trust preferences"
-        nickname = user.nickname or "Friend"
-    else:
-        reason = coping = traits = nickname = "Unknown"
-
-    if not formatted_thread.strip() and user:
-        journal_summary = pull_recent_journal_summary(user.id)
-        if journal_summary:
-            formatted_thread = f'{nickname}: "{journal_summary}"\n'
-
-    emotional_profile = f"""
+        coping = user.default_coping or "an unspecified coping style"
+        traits = ", ".join(user.hero_traits or []) if user.hero_traits else "unknown trust preferences"
+        bio_text = f"""
 The user’s emotional profile includes:
 
 - They came to us due to: {reason}.
 - When overwhelmed, they typically: {coping}.
 - In someone they trust, they look for: {traits}.
+""".strip()
+
+    # 📖 If no chat thread, fall back to journal
+    if not formatted_thread.strip() and user:
+        journal_summary = pull_recent_journal_summary(user.id)
+        if journal_summary:
+            formatted_thread = f'{nickname}: "{journal_summary}"\n'
+
+    db.close()
+
+    emotional_profile = f"""
+{bio_text}
 
 Let this shape your tone. Do not reference this directly.
-"""
+""".strip()
 
     return {
         "formatted_thread": formatted_thread.strip(),
-        "emotional_profile": emotional_profile.strip(),
+        "emotional_profile": emotional_profile,
         "nickname": nickname,
         "thread": full_thread
     }
-
 
 def get_prompt(hero_name, style="default"):
     name = hero_name.lower().strip()
@@ -230,58 +241,58 @@ def normalize_thread(thread):
     return normalized
 
 
-def build_prompt(hero, user_input, context, onboarding=None):
-    raw_thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
-    thread = normalize_thread(raw_thread)
+def build_prompt(hero, user_input, context):
+    from models import User, UserBio, JournalEntry
+    from sqlalchemy.orm import scoped_session
+    from db import SessionLocal
 
-    is_playful = detect_playful_or_dry(thread)
-    is_relapse = detect_relapse_fantasy(thread)
-    repeated = detect_repetitive_phrases(thread)
+    db = SessionLocal()
+    user_bio_text = ""
+    tone_summary = ""
+    journal_snippets = []
     nickname = context.get("nickname", "Friend")
+    formatted_thread = context.get("formatted_thread", "")
 
-    loop_note = ""
-    if repeated:
-        looped = ", ".join(repeated.keys())
-        loop_note = f"🧠 These metaphors have come up a lot: {looped}. Gently steer away without naming them."
+    try:
+        user_id = context.get("user_id")
+        if user_id:
+            user = db.query(User).filter_by(id=user_id).first()
+            if user:
+                nickname = user.nickname or nickname
+                # Get bio
+                bio = db.query(UserBio).filter_by(user_id=user.id).first()
+                if bio:
+                    user_bio_text = bio.bio_text
+                # Get tone summary (if we ever want to expand)
+                tone_summary = user.tone_summary or ""
+                # Get last 2-3 journal entries
+                journals = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).limit(3).all()
+                journal_snippets = [j.entry_text[:300] for j in journals if j.entry_text]
+    except Exception as e:
+        print("🔥 build_prompt DB error:", str(e))
+    finally:
+        db.close()
 
-    relapse_note = ""
-    if is_relapse:
-        relapse_note = """
-⚠️ The user may be romanticizing relapse. Do not explore details. Stay with the emotional need. No shame.
+    # Build prompt
+    base_prompt = f"""
+You are {hero.capitalize()}, a Resurgifi guide helping someone in emotional recovery.
+This is their nickname: {nickname}.
+
+Backstory: {user_bio_text}
+
+Tone Summary: {tone_summary}
+
+Recent Journal Reflections:
+- {chr(10).join(journal_snippets)}
+
+Conversation so far:
+{formatted_thread}
+
+Respond with empathy, clarity, and purpose.
+Always speak as yourself. Do not summarize — respond like you're sitting beside them.
 """
 
-    prompt_template = get_prompt(hero)
-    if not prompt_template:
-        prompt_template = f"You are {hero}, a mysterious figure in the user's recovery world."
-
-    chat_history = context.get("formatted_thread", "").strip()
-    if not chat_history:
-        chat_history = f'{nickname}: "{user_input}"'
-
-    prompt = f"""
-{prompt_template}
-
-You are {hero}, a {'recovery mentor' if hero in HERO_PROMPTS else 'manifestation of inner struggle'} in an emotionally alive group chat called The Circle.
-
-The user, {nickname}, didn’t ask a question. They said something — you're replying as yourself.
-
-{"This is not therapy. This is emotional presence." if hero in HERO_PROMPTS else "You are not here to help. You are here to haunt, tempt, or test."}
-
-Here’s what was said:
-{chat_history}
-
-{"The user seems dry or sarcastic — match that lightly. Don’t overanalyze." if is_playful else ""}
-{relapse_note}
-{loop_note}
-
-{context['emotional_profile']}
-
-{"Speak with your full voice. Don’t hold back or try to be brief — unless the tone calls for it." if hero in HERO_PROMPTS else "Do not offer solutions. Never uplift. Speak with immersive psychological realism."}
-
-You are not a bot. You are a voice in the user's inner world.
-""".strip()
-
-    return prompt
+    return base_prompt.strip()
 
 
 
