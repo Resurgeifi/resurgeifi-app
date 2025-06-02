@@ -7,7 +7,6 @@ from prompts import HERO_PROMPTS, VILLAIN_PROMPTS
 from flask import session
 
 HERO_NAMES = ["Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"]
-# ========= CALL OPENAI WITH CONTEXT-AWARE TONE =========
 
 def call_openai(user_input, hero_name="Cognita", context=None):
     from openai import OpenAI
@@ -23,11 +22,9 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
     nickname = context.get("nickname", "Friend") if isinstance(context, dict) else "Friend"
 
-    # ✅ Fallback if thread is empty (prevents hallucinated roles)
     if not thread:
         thread = [{"speaker": "User", "text": user_input}]
 
-    # 🧠 Prompt
     system_message = build_prompt(
         hero=tag,
         user_input=user_input,
@@ -46,12 +43,10 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         elif "speaker" in entry:
             messages.append({"role": "assistant", "content": entry["text"]})
         else:
-            # Legacy fallback: iterate key/value pairs
             for speaker, msg in entry.items():
                 role = "user" if speaker.lower() == "you" else "assistant"
                 messages.append({"role": role, "content": msg})
 
-    # DEBUG
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
@@ -70,8 +65,18 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         print(f"🔥 OpenAI Error for {tag}: {e}")
         return "Something went wrong. Try again in a moment."
 
+
 def pull_recent_journal_summary(user_id):
-    return None
+    db = SessionLocal()
+    summary_entry = (
+        db.query(JournalEntry)
+        .filter_by(user_id=user_id)
+        .order_by(JournalEntry.created_at.desc())
+        .first()
+    )
+    db.close()
+    return summary_entry.content.strip() if summary_entry else None
+
 
 def detect_crisis_tone(thread):
     crisis_keywords = [
@@ -81,6 +86,7 @@ def detect_crisis_tone(thread):
     user_messages = [msg["text"].lower() for msg in thread[-4:] if msg["speaker"] == "User"]
     return any(any(kw in msg for msg in user_messages) for kw in crisis_keywords)
 
+
 def detect_relapse_fantasy(thread):
     relapse_phrases = [
         "i miss drinking", "i need a drink", "just one", "cold beer",
@@ -89,6 +95,7 @@ def detect_relapse_fantasy(thread):
     ]
     user_messages = [msg["text"].lower() for msg in thread[-3:] if msg["speaker"] == "User"]
     return any(any(p in msg for msg in user_messages) for p in relapse_phrases)
+
 
 def detect_playful_or_dry(thread):
     if not thread:
@@ -103,10 +110,12 @@ def detect_playful_or_dry(thread):
     ]
     return len(text) <= 12 or any(trigger in text for trigger in dry_triggers)
 
+
 def detect_repetitive_phrases(thread):
     words = ["sock", "laundry", "fold", "cold beer", "pill", "monster", "ghost", "fog", "reset"]
     all_text = " ".join(msg["text"].lower() for msg in thread[-6:])
     return {w: all_text.count(w) for w in words if all_text.count(w) > 1}
+
 
 def select_heroes(tone, thread):
     is_crisis = detect_crisis_tone(thread)
@@ -130,11 +139,11 @@ def select_heroes(tone, thread):
     print(f"[RAMS] Tone: {tone} | Crisis: {is_crisis} | Relapse: {is_relapse} | Mentioned: {mentioned}")
     return forced + normal
 
+
 def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
     db = SessionLocal()
     user = db.query(User).filter_by(id=user_id).first() if user_id else None
 
-    # ⏳ Pull last 50 messages from QueryHistory, most recent first
     from models import QueryHistory
     history = []
     if user_id:
@@ -145,7 +154,7 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
             .limit(50)
             .all()
         )
-        history = list(reversed(thread))  # Chronological order
+        history = list(reversed(thread))
     db.close()
 
     full_thread = []
@@ -158,7 +167,6 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
     for msg in full_thread:
         formatted_thread += f"{msg['speaker']} ({msg['time']}): \"{msg['text']}\"\n"
 
-    # 🧭 Optional: handle quest reflection
     quest_data = session.pop("from_quest", None)
     quest_reflection = quest_data.get("reflection") if quest_data else None
     if quest_reflection:
@@ -171,6 +179,11 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
         nickname = user.nickname or "Friend"
     else:
         reason = coping = traits = nickname = "Unknown"
+
+    if not formatted_thread.strip() and user:
+        journal_summary = pull_recent_journal_summary(user.id)
+        if journal_summary:
+            formatted_thread = f'{nickname}: "{journal_summary}"\n'
 
     emotional_profile = f"""
 The user’s emotional profile includes:
@@ -189,28 +202,25 @@ Let this shape your tone. Do not reference this directly.
         "thread": full_thread
     }
 
+
 def get_prompt(hero_name, style="default"):
     name = hero_name.lower().strip()
     hero_prompt = HERO_PROMPTS.get(name, {})
-    
+
     if isinstance(hero_prompt, dict):
         return hero_prompt.get(style) or hero_prompt.get("default")
-    elif isinstance(hero_prompt, str):  # support legacy single-string format
+    elif isinstance(hero_prompt, str):
         return hero_prompt
     else:
         return VILLAIN_PROMPTS.get(name) or f"You are {hero_name}, a mysterious figure in the user's recovery world."
 
+
 def normalize_thread(thread):
-    """
-    Converts a thread of dict pairs like {"You": "...", "grace": "..."} into
-    [{'speaker': 'User', 'text': '...'}, {'speaker': 'Grace', 'text': '...'}]
-    Only applies if original formatting is incorrect.
-    """
     normalized = []
     for item in thread:
         if isinstance(item, dict):
             if "speaker" in item and "text" in item:
-                normalized.append(item)  # Already formatted correctly
+                normalized.append(item)
             else:
                 for speaker, text in item.items():
                     normalized.append({
@@ -219,9 +229,10 @@ def normalize_thread(thread):
                     })
     return normalized
 
+
 def build_prompt(hero, user_input, context, onboarding=None):
     raw_thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
-    thread = normalize_thread(raw_thread)  # ✅ PATCHED HERE
+    thread = normalize_thread(raw_thread)
 
     is_playful = detect_playful_or_dry(thread)
     is_relapse = detect_relapse_fantasy(thread)
@@ -239,11 +250,13 @@ def build_prompt(hero, user_input, context, onboarding=None):
 ⚠️ The user may be romanticizing relapse. Do not explore details. Stay with the emotional need. No shame.
 """
 
-    # 🔄 Prompt selection
     prompt_template = get_prompt(hero)
-
     if not prompt_template:
         prompt_template = f"You are {hero}, a mysterious figure in the user's recovery world."
+
+    chat_history = context.get("formatted_thread", "").strip()
+    if not chat_history:
+        chat_history = f'{nickname}: "{user_input}"'
 
     prompt = f"""
 {prompt_template}
@@ -255,7 +268,7 @@ The user, {nickname}, didn’t ask a question. They said something — you're re
 {"This is not therapy. This is emotional presence." if hero in HERO_PROMPTS else "You are not here to help. You are here to haunt, tempt, or test."}
 
 Here’s what was said:
-{context['formatted_thread']}
+{chat_history}
 
 {"The user seems dry or sarcastic — match that lightly. Don’t overanalyze." if is_playful else ""}
 {relapse_note}
@@ -269,6 +282,7 @@ You are not a bot. You are a voice in the user's inner world.
 """.strip()
 
     return prompt
+
 
 
 

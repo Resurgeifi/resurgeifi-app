@@ -78,6 +78,13 @@ class WishingWellMessage(db.Model):
 
     user = db.relationship("User", backref="wishing_well_messages")
 
+class UserBio(db.Model):
+    __tablename__ = "user_bio"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
+    bio_text = db.Column(db.Text)
+
+    user = db.relationship("User", backref="bio")
 
 class JournalEntry(db.Model):
     __tablename__ = "journal_entries"
