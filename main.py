@@ -64,7 +64,7 @@ from useronboarding import generate_and_store_bio
 from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from rams import HERO_NAMES, build_context, select_heroes, build_prompt, call_openai
+from rams import get_hero_for_quest, HERO_NAMES, build_context, select_heroes, build_prompt, call_openai
 from markupsafe import Markup
 import qrcode
 import io
