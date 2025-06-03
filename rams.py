@@ -14,6 +14,11 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def call_openai(user_input, hero_name="Cognita", context=None):
+    from openai import OpenAI
+    import os
+
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
     tag = hero_name.strip().lower()
     is_villain = tag in INNER_CODEX.get("villains", {})
 
@@ -27,7 +32,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     if not thread:
         thread = [{"speaker": "User", "text": user_input}]
 
-    # Build the system prompt using your existing build_prompt function
+    # Build the system prompt using build_prompt
     system_message = build_prompt(
         hero=tag,
         user_input=user_input,
@@ -36,7 +41,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             "formatted_thread": formatted_thread,
             "emotional_profile": emotional_profile,
             "nickname": nickname,
-            "user_id": None  # or session.get("user_id") if imported and available here
+            "user_id": None  # replace with session.get("user_id") if available here
         }
     )
 
@@ -51,13 +56,13 @@ You are {hero_name}. Maintain emotional boundaries. {'Offer tension, not solutio
 """.strip()
     }
 
-    # Start the message list for the API call
+    # Prepare messages for OpenAI chat completion
     messages = [
         hero_identity_message,
         {"role": "system", "content": system_message}
     ]
 
-    # Add recent conversation history (limit 30 entries)
+    # Append recent conversation history (limit 30)
     for entry in thread[-30:]:
         if isinstance(entry, dict) and "speaker" in entry:
             role = "user" if entry["speaker"].lower() == "user" else "assistant"
@@ -67,19 +72,19 @@ You are {hero_name}. Maintain emotional boundaries. {'Offer tension, not solutio
                 role = "user" if speaker.lower() == "you" else "assistant"
                 messages.append({"role": role, "content": msg})
 
-    # Append current user input to messages
+    # Append current user input
     messages.append({"role": "user", "content": user_input})
 
-    # Debug printout
+    # Minimal debug logging — only key info to avoid duplication
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
-    print("🧵 Messages:", messages[-3:])
+    print("🧵 Messages (last 3):", messages[-3:])
     print("--- END DEBUG ---\n")
 
-    # Make the API call
+    # Call OpenAI Chat Completion API
     try:
-        response = openai.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=messages,
             temperature=0.85,
@@ -293,10 +298,18 @@ def build_prompt(hero, user_input, context):
                 nickname = user.nickname or nickname
                 # Get bio
                 bio = db.query(UserBio).filter_by(user_id=user.id).first()
-                if bio:
+                if bio and bio.bio_text.strip():
                     user_bio_text = bio.bio_text
+                    print("📝 User bio found and used.")
+                else:
+                    print("📝 No user bio found; using default placeholder.")
                 # Get tone summary
-                tone_summary = getattr(user, "tone_summary", "").strip() or "unclear, but likely vulnerable or searching"
+                tone_summary = getattr(user, "tone_summary", "").strip()
+                if tone_summary:
+                    print(f"🎭 Tone summary found: {tone_summary}")
+                else:
+                    tone_summary = "unclear, but likely vulnerable or searching"
+                    print("🎭 No tone summary found; using default.")
                 # Get last 2–3 journal entries
                 journals = (
                     db.query(JournalEntry)
@@ -306,19 +319,39 @@ def build_prompt(hero, user_input, context):
                     .all()
                 )
                 journal_snippets = [j.content[:300] for j in journals if j.content]
+                if journal_snippets:
+                    print(f"📓 {len(journal_snippets)} recent journal entries found and included.")
+                else:
+                    print("📓 No recent journal entries found.")
+            else:
+                print("❌ User not found in DB.")
     except Exception as e:
         print("🔥 build_prompt DB error:", str(e))
     finally:
         db.close()
 
     # 🧠 Pull hero or villain personality prompt
-    hero_data = INNER_CODEX.get("heroes", {}).get(hero.capitalize(), {})
-    if not hero_data:
-        hero_data = INNER_CODEX.get("villains", {}).get(hero.capitalize(), {})
+    hero_data = INNER_CODEX.get("heroes", {}).get(hero.capitalize())
+    is_villain = False
 
-    hero_prompt = hero_data.get("prompt")
-    if not hero_prompt:
+    if not hero_data:
+        hero_data = INNER_CODEX.get("villains", {}).get(hero.capitalize())
+        if hero_data:
+            is_villain = True
+
+    hero_prompt = None
+    if hero_data:
+        # Try to get prompt from either 'prompts' dict or 'prompt' key
+        if isinstance(hero_data.get("prompts"), dict):
+            hero_prompt = hero_data["prompts"].get("default")
+        elif "prompt" in hero_data:
+            hero_prompt = hero_data["prompt"]
+
+    if hero_prompt:
+        print(f"🤖 Using {'villain' if is_villain else 'hero'} prompt for '{hero.capitalize()}'.")
+    else:
         hero_prompt = f"You are {hero.capitalize()}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
+        print(f"⚠️ No specific prompt found for '{hero.capitalize()}'; using default prompt.")
 
     region_context = INNER_CODEX.get("world", {}).get("description", "")
     memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
@@ -361,7 +394,7 @@ They are human. You are not them. You are not the user. You are yourself.
 """
 
     # 🧠 Custom closing rules based on hero vs villain
-    if hero.lower() in INNER_CODEX.get("villains", {}):
+    if is_villain:
         base_prompt += """
 🕳️ 🕳️ Villain Guidance:
 Speak in metaphors, inner conflict, or emotionally charged images. You may provoke, unsettle, or reflect the user’s darker thoughts — but never offer guidance.
@@ -379,4 +412,5 @@ Limit to 4–5 lines. No warmth. No solutions."""
 Speak with warmth, boundaries, and clarity. You are not their therapist — you are their inner support. 4–5 lines max.
 """
 
+    print("✅ build_prompt generated successfully.")
     return base_prompt.strip()
