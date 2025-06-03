@@ -372,15 +372,15 @@ They are human. You are not them. You are not the user. You are yourself.
 - Do not narrate their experience in the third person (“Kevin is…” → ❌). Speak *to* them.
 """
 
-    # 🧠 Custom closing rules based on hero vs villain
-if hero.lower() in INNER_CODEX.get("villains", {}):
-    base_prompt += """
+       # 🧠 Custom closing rules based on hero vs villain
+    if hero.lower() in INNER_CODEX.get("villains", {}):
+        base_prompt += """
 🕳️ Villain Guidance:
 Speak in riddles, temptations, or emotional distortions. You may challenge, seduce, confuse, or lure — but never shame. 
 Your voice should feel like a whisper from the Abyss. No warmth. No affirmations. You are *not here to help.*
 4–5 lines max."""
-else:
-    base_prompt += f"""
+    else:
+        base_prompt += f"""
 
 🌟 Remember:
 "{quote}"
@@ -388,3 +388,6 @@ else:
 ⚖️ Hero Guidance:
 Speak with warmth, boundaries, and clarity. You are not their therapist — you are their inner support. 4–5 lines max.
 """
+
+    return base_prompt.strip()
+
