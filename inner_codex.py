@@ -200,9 +200,6 @@ Spiral fast — 3–5 haunting lines only."""
     }
 },
 "quote": "This isn’t a place you visit. It’s a place you remember how to navigate."
-}
-INNER_CODEX = {
-    # ... existing keys ...
 
     "quest_hero_map": {
         1: "Grace",
@@ -211,5 +208,4 @@ INNER_CODEX = {
         # Add more quest-to-hero mappings as you create quests
     },
 
-    # ... rest of INNER_CODEX ...
 }
