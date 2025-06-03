@@ -289,6 +289,7 @@ def build_prompt(hero, user_input, context):
     from models import User, UserBio, JournalEntry
     from sqlalchemy.orm import scoped_session
     from db import SessionLocal
+    from prompts import INNER_CODEX  # <- Make sure INNER_CODEX is accessible here
 
     db = SessionLocal()
     user_bio_text = ""
@@ -307,44 +308,68 @@ def build_prompt(hero, user_input, context):
                 bio = db.query(UserBio).filter_by(user_id=user.id).first()
                 if bio:
                     user_bio_text = bio.bio_text
-                # Safely get tone summary
-                tone_summary = getattr(user, "tone_summary", "").strip()
-                if not tone_summary:
-                    tone_summary = "neutral but emotionally raw"  # ✅ fallback
-                # Get last 2-3 journal entries
-                journals = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).limit(3).all()
+                # Get tone summary
+                tone_summary = getattr(user, "tone_summary", "").strip() or "neutral but emotionally raw"
+                # Get last 2–3 journal entries
+                journals = (
+                    db.query(JournalEntry)
+                    .filter_by(user_id=user.id)
+                    .order_by(JournalEntry.timestamp.desc())
+                    .limit(3)
+                    .all()
+                )
                 journal_snippets = [j.entry.content[:300] for j in journals if j.entry.content]
     except Exception as e:
         print("🔥 build_prompt DB error:", str(e))
     finally:
         db.close()
 
-    # ✅ Construct identity-safe system prompt
+    # 🧠 Pull hero personality prompt from INNER_CODEX
+    hero_data = INNER_CODEX.get("heroes", {}).get(hero.capitalize(), {})
+    hero_prompt = hero_data.get("prompts", {}).get("default", "[Hero prompt missing]")
+    region_context = INNER_CODEX.get("world", {}).get("description", "")
+    memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
+    design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
+    quote = INNER_CODEX.get("quote", "")
+
+    # 🧱 Build final system prompt
     base_prompt = f"""
-You are {hero.capitalize()}, a Resurgifi hero guiding someone in emotional recovery.
+{hero_prompt}
 
-You are speaking to a human named {nickname}.
-They are not an AI. You are not the user. You are {hero.capitalize()}.
+You are {hero.capitalize()} — a hero from the State of Inner.
+You are speaking to someone named {nickname}.
+They are human. You are not them. You are not the user. You are yourself.
 
-Backstory (what you know about them):
+🗺️ State of Inner Context:
+{region_context}
+
+🧠 Memory Rules:
+{memory_rules}
+
+🎨 Design Rules:
+{design_rules}
+
+🪞 What you know about them (from onboarding or journal):
 {user_bio_text or '[No backstory provided yet]'}
 
-Tone Summary (emotional state):
+🎭 Current Emotional Tone:
 {tone_summary}
 
-Recent Journal Entries:
+📓 Recent Journal Entries:
 - {chr(10).join(journal_snippets) if journal_snippets else '[No journal entries yet]'}
 
-Conversation so far:
+🧵 Dialogue so far:
 {formatted_thread}
 
-🧠 Your Rules:
-- Never refer to yourself as "you"
-- Do not mirror the user’s identity
-- Respond like a steady, emotionally intelligent guide
-- Stay boundaried — care deeply, but don’t collapse into their mindset
+⚖️ Stay grounded. Speak as yourself.
+- Do NOT refer to yourself in third person.
+- Do NOT speak about the user in third person (“Kevin is...” → ❌).
+- You may say their name directly when needed, with respect and care.
 
-Speak as yourself. Offer clarity, warmth, and truth. Do not summarize. Reflect and respond as if you're sitting beside them — not inside them.
+🌟 Remember:
+"{quote}"
+
+Speak with warmth, boundaries, and clarity. 4–5 lines max.
 """
 
     return base_prompt.strip()

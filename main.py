@@ -341,6 +341,92 @@ def profile():
 
     finally:
         db.close()
+@app.route("/circle/chat/<resurgitag>", methods=["POST"])
+@login_required
+def circle_chat(resurgitag):
+    db = SessionLocal()
+    user_id = session.get("user_id")
+    user_input = request.json.get("message")
+
+    if not user_input:
+        return jsonify({"error": "Message missing"}), 400
+
+    from models import HeroProfile
+    from prompts import VILLAIN_PROMPTS
+
+    tag = resurgitag.strip().lower()
+
+    # 🦸 Check Hero DB
+    hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
+    if hero_profile:
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        thread_query = db.query(QueryHistory).filter_by(
+            user_id=user_id,
+            contact_tag=tag
+        ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
+
+        context = [
+            {"question": entry.question, "response": entry.response}
+            for entry in thread_query
+        ]
+
+        print("\n--- OpenAI CALL DEBUG ---")
+        print("🧠 Hero Tag:", tag)
+        print("🗣️ User Input:", user_input)
+        print("🧵 Context Thread:")
+        for i, msg in enumerate(context):
+            print(f"  {i+1}. You: {msg['question']}")
+            print(f"     {tag}: {msg['response']}")
+        print("-------------------------\n")
+
+        response = call_openai(user_input=user_input, hero_name=tag, context=context)
+
+        chat = QueryHistory(
+            user_id=user_id,
+            contact_tag=tag,
+            agent_name=session.get("hero_name"),
+            question=user_input,
+            response=response
+        )
+
+        db.add(chat)
+        db.commit()
+
+        return jsonify({"response": response})
+
+    # 🧟‍♂️ Check Villain fallback
+    villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
+    if tag in villain_map:
+        villain_name = villain_map[tag]
+
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        thread_query = db.query(QueryHistory).filter_by(
+            user_id=user_id,
+            contact_tag=tag
+        ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
+
+        context = [
+            {"question": entry.question, "response": entry.response}
+            for entry in thread_query
+        ]
+
+        print(f"⚠️ OpenAI Villain Call – Name: {villain_name}, Input: {user_input}")
+        response = call_openai(user_input=user_input, hero_name=villain_name, context=context)
+
+        chat = QueryHistory(
+            user_id=user_id,
+            contact_tag=tag,
+            agent_name=villain_name,
+            question=user_input,
+            response=response
+        )
+
+        db.add(chat)
+        db.commit()
+
+        return jsonify({"response": response})
+
+    return jsonify({"error": "No matching hero or villain found."}), 404
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
 def show_hero_chat(resurgitag):
@@ -361,6 +447,14 @@ def show_hero_chat(resurgitag):
             contact = hero
             contact_name = hero.display_name or resurgitag
         else:
+            # 🧟‍♂️ Check Villain fallback
+            from prompts import VILLAIN_PROMPTS
+            villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
+            if resurgitag in villain_map:
+                contact_name = villain_map[resurgitag]
+                messages = [{"speaker": contact_name, "text": f"{contact_name} waits in the shadows…"}]
+                return render_template("chat.html", resurgitag=resurgitag, messages=messages)
+
             flash("Hero not found.")
             return redirect(url_for("circle"))
 
@@ -377,68 +471,6 @@ def show_hero_chat(resurgitag):
         messages.append({"speaker": contact_name, "text": entry.response})
 
     return render_template("chat.html", resurgitag=resurgitag, messages=messages)
-
-@app.route("/circle/chat/<resurgitag>", methods=["POST"])
-@login_required
-def circle_chat(resurgitag):
-    db = SessionLocal()
-    user_id = session.get("user_id")
-    user_input = request.json.get("message")
-
-    if not user_input:
-        return jsonify({"error": "Message missing"}), 400
-
-    from models import HeroProfile
-    tag = resurgitag.strip().lower()
-
-    # 🦸 Check Hero DB
-    hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
-    if hero_profile:
-        week_ago = datetime.utcnow() - timedelta(days=7)
-        thread_query = db.query(QueryHistory).filter_by(
-            user_id=user_id,
-            contact_tag=tag
-        ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
-
-        context = [
-            {"question": entry.question, "response": entry.response}
-            for entry in thread_query
-        ]
-
-        # 🪩 DEBUG: print full OpenAI call payload
-        print("\n--- OpenAI CALL DEBUG ---")
-        print("🧠 Hero Tag:", tag)
-        print("🗣️ User Input:", user_input)
-        print("🧵 Context Thread:")
-        for i, msg in enumerate(context):
-            print(f"  {i+1}. You: {msg['question']}")
-            print(f"     {tag}: {msg['response']}")
-        print("-------------------------\n")
-
-        response = call_openai(user_input=user_input, hero_name=tag, context=context)
-
-        chat = QueryHistory(
-        user_id=user_id,
-        contact_tag=tag,
-        agent_name=session.get("hero_name"),
-        question=user_input,
-        response=response
-)
-
-        db.add(chat)
-        db.commit()
-
-        return jsonify({"response": response})
-
-    # 🧟‍♂️ Check Villain fallback
-    villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
-    if tag in villain_map:
-        villain_name = villain_map[tag]
-        print(f"⚠️ OpenAI Villain Call – Name: {villain_name}, Input: {user_input}")
-        response = call_openai(user_input=user_input, hero_name=villain_name)
-        return jsonify({"response": response})
-
-    return jsonify({"error": "No matching hero or villain found."}), 404
 
 @app.route("/summarize-journal", methods=["GET"])
 @login_required
