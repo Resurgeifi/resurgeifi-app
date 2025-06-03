@@ -359,9 +359,8 @@ They are human. You are not them. You are not the user. You are yourself.
 
 🎝️ Current Emotional Tone:
 {tone_summary}
-
 📓 Recent Journal Entries:
-- {chr(10).join(journal_snippets) if journal_snippets else '[No journal entries yet]'}
+{chr(10).join(f"- [{j.timestamp.strftime('%b %d, %Y')}] {j.entry[:300]}" for j in journals) if journals else "- [No journal entries yet]"}
 
 🧵 Dialogue so far:
 {formatted_thread}
