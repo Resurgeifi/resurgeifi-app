@@ -296,6 +296,7 @@ def build_prompt(hero, user_input, context):
     journal_snippets = []
     nickname = context.get("nickname", "Friend")
     formatted_thread = context.get("formatted_thread", "")
+    journals = []
 
     try:
         user_id = context.get("user_id")
@@ -317,7 +318,7 @@ def build_prompt(hero, user_input, context):
                     .limit(3)
                     .all()
                 )
-                journal_snippets = [j.entry.content[:300] for j in journals if j.entry.content]
+                journal_snippets = [j.content[:300] for j in journals if j.content]
     except Exception as e:
         print("🔥 build_prompt DB error:", str(e))
     finally:
@@ -359,8 +360,9 @@ They are human. You are not them. You are not the user. You are yourself.
 
 🎝️ Current Emotional Tone:
 {tone_summary}
+
 📓 Recent Journal Entries:
-{chr(10).join(f"- [{j.timestamp.strftime('%b %d, %Y')}] {j.entry[:300]}" for j in journals) if journals else "- [No journal entries yet]"}
+{chr(10).join(f"- [{j.timestamp.strftime('%b %d, %Y')}] {j.content[:300]}" for j in journals) if journal_snippets else "- [No journal entries yet]"}
 
 🧵 Dialogue so far:
 {formatted_thread}
@@ -390,4 +392,4 @@ Limit to 4–5 lines. No warmth. No solutions."""
 Speak with warmth, boundaries, and clarity. You are not their therapist — you are their inner support. 4–5 lines max.
 """
 
-
+    return base_prompt.strip()
