@@ -289,7 +289,6 @@ def build_prompt(hero, user_input, context):
     from models import User, UserBio, JournalEntry
     from sqlalchemy.orm import scoped_session
     from db import SessionLocal
-    from inner_codex import INNER_CODEX  # <- Make sure INNER_CODEX is accessible here
 
     db = SessionLocal()
     user_bio_text = ""
@@ -320,12 +319,15 @@ def build_prompt(hero, user_input, context):
                 )
                 journal_snippets = [j.entry.content[:300] for j in journals if j.entry.content]
     except Exception as e:
-        print("🔥 build_prompt DB error:", str(e))  # ✅ FIXED LINE (no surrogate pairs)
+        print("🔥 build_prompt DB error:", str(e))
     finally:
         db.close()
 
-    # 🧠 Pull hero personality prompt from INNER_CODEX
+    # 🧠 Pull hero or villain personality prompt
     hero_data = INNER_CODEX.get("heroes", {}).get(hero.capitalize(), {})
+    if not hero_data:
+        hero_data = INNER_CODEX.get("villains", {}).get(hero.capitalize(), {})
+
     hero_prompt = hero_data.get("prompts", {}).get("default")
     if not hero_prompt:
         hero_prompt = f"You are {hero.capitalize()}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
@@ -335,7 +337,7 @@ def build_prompt(hero, user_input, context):
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
-    # 🧠 Base prompt
+    # 📜 Base prompt
     base_prompt = f"""
 {hero_prompt}
 
@@ -368,15 +370,17 @@ They are human. You are not them. You are not the user. You are yourself.
 - Never refer to yourself using your own name (“Velessa believes…” → ❌). Use “I” or “me.”
 - Never refer to the user by name unless it’s in a direct greeting or moment of emotional emphasis.
 - Do not narrate their experience in the third person (“Kevin is…” → ❌). Speak *to* them.
+"""
 
+    # 🧠 Custom closing rules based on hero vs villain
+    if hero.lower() in INNER_CODEX.get("villains", {}):
+        base_prompt += """
+Speak in riddles, temptations, or emotional distortions. You may challenge, confuse, or lure — but never shame. Your voice should feel like a whisper from the Abyss. 4–5 lines max."""
+    else:
+        base_prompt += f"""
 🌟 Remember:
 "{quote}"
 
-Speak with warmth, boundaries, and clarity. 4–5 lines max.
-"""
-
-    # 🧟 Villain clause
-    if hero.lower() in INNER_CODEX.get("villains", {}):
-        base_prompt += "\n⚠️ You are a villain. You speak through temptation, confusion, or metaphor — not direct judgment. You do not break the user. You may challenge, but never shame. Do not speak their name unless the thread already includes it."
+Speak with warmth, boundaries, and clarity. 4–5 lines max."""
 
     return base_prompt.strip()
