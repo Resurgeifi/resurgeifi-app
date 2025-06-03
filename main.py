@@ -442,7 +442,7 @@ def show_hero_chat(resurgitag):
         if tag in villain_map:
             contact_name = villain_map[tag]
             messages = [{"speaker": contact_name, "text": f"{contact_name} waits in the shadows…"}]
-            return render_template("chat.html", resurgitag=tag, messages=messages)
+            return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=False)
 
         flash("Hero not found.")
         return redirect(url_for("circle"))
@@ -459,7 +459,22 @@ def show_hero_chat(resurgitag):
         messages.append({"speaker": "You", "text": entry.question})
         messages.append({"speaker": contact_name, "text": entry.response})
 
-    return render_template("chat.html", resurgitag=tag, messages=messages)
+    # 🟢 Check if there's quest reflection in session to flash
+    quest_reflection = session.pop("from_quest", None)
+    quest_flash = False
+    if quest_reflection:
+        # Insert user reflection as first message
+        messages.insert(0, {"speaker": "You", "text": quest_reflection.get("reflection", "")})
+        quest_flash = True
+
+    db.close()
+    return render_template(
+        "chat.html",
+        resurgitag=tag,
+        messages=messages,
+        display_name=contact_name,
+        quest_flash=quest_flash
+    )
 @app.route("/codex")
 def inner_codex():
     return render_template("codex.html")
@@ -1463,84 +1478,81 @@ def onboarding():
 @app.route("/quest", methods=["GET", "POST"])
 @login_required
 def quest():
-    from models import User, UserQuestEntry, db
-    from datetime import datetime, timedelta
-    import openai
-
     db_session = SessionLocal()
     try:
         user_id = session.get("user_id")
         user = db_session.query(User).get(user_id)
         now = datetime.utcnow()
+        quest_id = 1  # ⬅️ Make dynamic later
 
         if request.method == "POST":
             reflection = request.form.get("reflection", "").strip()
-            summary_text = ""
+            if not reflection:
+                flash("Please enter a reflection to submit.", "warning")
+                return redirect(url_for("quest"))
 
-            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            todays_quests = db_session.query(UserQuestEntry).filter_by(user_id=user_id).filter(UserQuestEntry.timestamp >= today_start).all()
+            # Enforce 4-hour cooldown, max 3 quests
+            four_hours_ago = now - timedelta(hours=4)
+            recent_quests = db_session.query(UserQuestEntry)\
+                .filter_by(user_id=user_id)\
+                .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
 
-            if len(todays_quests) >= 3:
-                flash("You’ve already completed the maximum of 3 quests today.", "info")
+            if len(recent_quests) >= 3:
+                flash("You’ve already completed 3 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
-            if todays_quests:
-                last_time = max(q.timestamp for q in todays_quests)
-                if (now - last_time) < timedelta(hours=4):
-                    flash("You can only complete one quest every 4 hours. Try again later.", "warning")
-                    return redirect(url_for("circle"))
-
-            if reflection:
-                try:
-                    response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": "Summarize this quest reflection in one short, emotional sentence. Do not sound robotic."
-                            },
-                            {
-                                "role": "user",
-                                "content": reflection
-                            }
-                        ],
-                        temperature=0.7
-                    )
-                    summary_text = response.choices[0].message.content.strip()
-                except Exception as e:
-                    print("⚠️ GPT summarization failed:", e)
-                    summary_text = ""
-
-                new_entry = UserQuestEntry(
-                    user_id=user_id,
-                    quest_id=1,
-                    completed=True,
-                    timestamp=now,
-                    summary_text=summary_text
+            # Summarize with GPT-4o
+            summary_text = ""
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "Summarize this quest reflection in one short, emotional sentence. Do not sound robotic."},
+                        {"role": "user", "content": reflection}
+                    ],
+                    temperature=0.7
                 )
-                db_session.add(new_entry)
+                summary_text = response.choices[0].message.content.strip()
+            except Exception as e:
+                print("⚠️ GPT summarization failed:", e)
+                summary_text = ""
 
-                if len(todays_quests) < 3:
-                    user.points = (user.points or 0) + 5
-                    session["points_just_added"] = 5
+            # Save quest entry
+            new_entry = UserQuestEntry(
+                user_id=user_id,
+                quest_id=quest_id,
+                completed=True,
+                timestamp=now,
+                summary_text=summary_text or reflection
+            )
+            db_session.add(new_entry)
 
-                db_session.commit()
+            # Award points
+            user.points = (user.points or 0) + 5
+            session["points_just_added"] = 5
 
-                session["from_quest"] = {
-                    "quest_id": 1,
-                    "reflection": summary_text or reflection
-                }
+            db_session.commit()
 
-            return redirect(url_for("circle"))
+            # Hero assignment via INNER_CODEX
+            hero_tag = get_hero_for_quest(quest_id)
+            session["from_quest"] = {
+                "quest_id": quest_id,
+                "reflection": summary_text or reflection
+            }
 
+            return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
+
+        # GET: show quest form
         return render_template("quest.html")
 
-    except SQLAlchemyError:
+    except Exception as e:
         db_session.rollback()
         flash("Quest processing failed. Please try again.", "error")
+        print(f"❌ Quest route error: {e}")
         return redirect(url_for("circle"))
     finally:
         db_session.close()
+
 @app.route("/change-tag", methods=["GET", "POST"])
 @login_required
 def change_resurgitag():

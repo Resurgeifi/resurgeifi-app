@@ -4,16 +4,16 @@
 {% block content %}
 <!-- 🌌 Cinematic Flash Background -->
 <div id="questFlash" class="quest-flash">
-  <div class="quest-quote">“You’ve opened your eyes inside the State of Inner… Let’s begin gently.”</div>
+  <div class="quest-quote">“Welcome to the first Quest in the Beta version of Resurgifi. You are about to enter your State of Inner.”</div>
 </div>
 
 <!-- 🧠 Quest Prompt -->
 <div class="quest-card">
   <h2 class="quest-title">Today’s Quest</h2>
-  <p class="quest-prompt">What emotion greets you as you awaken in this world?</p>
-  <form method="POST" action="/quest">
+  <p class="quest-prompt">When you open your eyes inside your State of Inner, what emotion greets you? Share what you’re feeling right now. Try and be specific about your feelings and why youre here.</p>
+<form method="POST" action="/quest">
     <textarea name="reflection" required placeholder="Type your answer here..." class="quest-textarea"></textarea>
-    <button type="submit" class="global-button">Submit Quest</button>
+    <button type="submit" class="global-button">Submit Result</button>
   </form>
 </div>
 

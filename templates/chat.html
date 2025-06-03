@@ -1,11 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Chat with {{ resurgitag }}{% endblock %}
+{% block title %}Chat with {{ display_name }}{% endblock %}
 
 {% block content %}
 <div class="chat-header">
-  <h2 class="chat-hero-name">@{{ resurgitag }}</h2>
+  <h2 class="chat-hero-name">{{ display_name }}</h2>
   <p class="mantra">"They’re listening. Say what’s real."</p>
 </div>
+
+<!-- Quest flash message -->
+{% if session.get('quest_flash') %}
+  <div id="questFlashMessage" class="quest-flash-message">
+    {{ session.get('quest_flash') }}
+  </div>
+{% endif %}
 
 <div id="chat-box" class="circle-chat-box">
   {% for msg in messages %}
@@ -21,6 +28,24 @@
 <div style="text-align: center; margin-bottom: 5rem;">
   <button class="global-button gray-button" id="reflectBtn">🪞 Summarize Journal</button>
 </div>
+
+<style>
+.quest-flash-message {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2ecc71;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 10000;
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -32,6 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const reflectBtn = document.getElementById("reflectBtn");
 
   chatBox.scrollTop = chatBox.scrollHeight;
+
+  // Fade out quest flash message after 5 seconds
+  const questFlash = document.getElementById("questFlashMessage");
+  if (questFlash) {
+    setTimeout(() => {
+      questFlash.style.opacity = "0";
+      setTimeout(() => questFlash.remove(), 1000);
+    }, 5000);
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -58,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const typingDiv = document.createElement("div");
       typingDiv.className = "circle-message typing";
-      typingDiv.innerHTML = `<em>${resurgitag} is typing...</em>`;
+      typingDiv.innerHTML = `<em>{{ display_name }} is typing...</em>`;
       chatBox.appendChild(typingDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -68,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const replyDiv = document.createElement("div");
       replyDiv.className = "circle-message";
-      replyDiv.innerHTML = `<strong>${resurgitag}:</strong> ${reply}`;
+      replyDiv.innerHTML = `<strong>{{ display_name }}:</strong> ${reply}`;
       chatBox.appendChild(replyDiv);
       chatBox.scrollTop = chatBox.scrollHeight;
     } catch (err) {
@@ -88,3 +122,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 {% endblock %}
+
