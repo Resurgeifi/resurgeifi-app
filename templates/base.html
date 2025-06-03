@@ -4,28 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Resurgifi{% endblock %}</title>
-  <meta name="robots" content="noindex, nofollow">
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
   <style>
-    /* 🎯 Wishing Well Icon */
-   #well-icon-link {
-    position: fixed;
-  bottom: 90px;
-  left: 20px;
-  z-index: 999;
-}
+    /* 🎯 Wishing Well */
+    #well-icon-link {
+      position: fixed;
+      bottom: 90px;
+      left: 20px;
+      z-index: 999;
+    }
 
-#well-icon {
-  width: 54px;
-  height: auto;
-  filter: drop-shadow(0 0 6px #ffc);
-  transition: transform 0.3s ease;
-}
+    #well-icon {
+      width: 54px;
+      filter: drop-shadow(0 0 6px #ffc);
+      transition: transform 0.3s ease;
+    }
 
-#well-icon:hover {
-  transform: scale(1.1);
-}
+    #well-icon:hover {
+      transform: scale(1.1);
+    }
 
     .profile-icon {
       width: 40px;
@@ -45,19 +44,50 @@
         margin-left: 1rem;
       }
 
-    .menu-icon {
-      font-size: 1.8rem;
-      color: #f6e7c1;
-      cursor: pointer;
-      z-index: 10001;
-      position: relative;
-      background: none;       /* 👈 clears white bg */
-      border: none;
-      display: inline-block;
-      padding: 0;
-      margin: 0;
+      /* 🔀 Burger to X animation */
+      .menu-icon {
+        display: inline-block;
+        width: 30px;
+        height: 24px;
+        position: relative;
+        cursor: pointer;
+        z-index: 10001;
       }
 
+      .menu-icon span {
+        background-color: #f6e7c1;
+        position: absolute;
+        width: 100%;
+        height: 4px;
+        left: 0;
+        transition: all 0.3s ease;
+      }
+
+      .menu-icon span:nth-child(1) {
+        top: 0;
+      }
+
+      .menu-icon span:nth-child(2) {
+        top: 10px;
+      }
+
+      .menu-icon span:nth-child(3) {
+        top: 20px;
+      }
+
+      #menu-toggle:checked + #sidebar-backdrop + label.menu-icon span:nth-child(1) {
+        transform: rotate(45deg);
+        top: 10px;
+      }
+
+      #menu-toggle:checked + #sidebar-backdrop + label.menu-icon span:nth-child(2) {
+        opacity: 0;
+      }
+
+      #menu-toggle:checked + #sidebar-backdrop + label.menu-icon span:nth-child(3) {
+        transform: rotate(-45deg);
+        top: 10px;
+      }
 
       .side-nav {
         position: fixed;
@@ -72,7 +102,7 @@
         transition: left 0.3s ease-in-out;
       }
 
-      #menu-toggle:checked + .menu-icon + .side-nav {
+      #menu-toggle:checked + #sidebar-backdrop + .menu-icon + .side-nav {
         left: 0;
       }
 
@@ -80,14 +110,14 @@
         display: none;
       }
 
-      #menu-toggle:checked ~ #sidebar-backdrop {
+      #menu-toggle:checked + #sidebar-backdrop {
         display: block;
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: rgba(0,0,0,0.5);
+        background-color: rgba(0, 0, 0, 0.5);
         z-index: 9999;
       }
 
@@ -116,14 +146,22 @@
     }
   </style>
 </head>
-<body>
 
+<body>
 {% if g.user and request.path not in ['/', '/landing'] %}
   <div id="top-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background-color: rgba(0,0,0,0.4); position: fixed; width: 100%; top: 0; z-index: 1000; backdrop-filter: blur(4px);">
-    <!-- 🍔 Hamburger Menu -->
+    
     <div id="hamburger-menu">
       <input type="checkbox" id="menu-toggle" />
-      <label for="menu-toggle" class="menu-icon">&#9776;</label>
+      <label id="sidebar-backdrop" for="menu-toggle"></label>
+
+      <!-- 🍔 Burger-to-X -->
+      <label for="menu-toggle" class="menu-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+      </label>
+
       <div class="side-nav">
         <ul>
           <li><a href="/profile"><img src="{{ url_for('static', filename='icons/profileicon.png') }}" /> Profile</a></li>
@@ -133,16 +171,15 @@
           <li><a href="/wishing_well">Wishing Well</a></li>
           <li><a href="/settings">Settings</a></li>
           <li><a href="/about">About This App</a></li>
-          <li><a href="/pro">For Professionals</a></li>
+          <li><a href="/inner-codex">For Professionals</a></li>
         </ul>
       </div>
-      <div id="sidebar-backdrop"></div>
     </div>
-    <!-- 🔔 Wishing Well Icon Trigger -->
-    <a href="/wishing_well" id="well-icon-link" title="Check the Well">
-    <img src="{{ url_for('static', filename='icons/wellmessage.png' if g.user and g.user.has_well_messages else 'icons/wellnone.png') }}" id="well-icon" />
-    </a>
 
+    <!-- 🔔 Wishing Well Icon -->
+    <a href="/wishing_well" id="well-icon-link" title="Check the Well">
+      <img src="{{ url_for('static', filename='icons/wellmessage.png' if g.user and g.user.has_well_messages else 'icons/wellnone.png') }}" id="well-icon" />
+    </a>
 
     <!-- 👤 Profile Icon -->
     <a href="/profile" id="profile-icon">
@@ -190,7 +227,6 @@
       </div>
     </a>
   </div>
-
   <div class="nav-center">
     <a href="/quest" class="plus-button journey-button" aria-label="Daily Quest">
       <div style="width: 70px; height: 70px; background-color: #0d6efd; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);">
@@ -198,7 +234,6 @@
       </div>
     </a>
   </div>
-
   <div class="nav-side nav-right">
     <a href="/form" class="nav-item" aria-label="Circle">
       <img src="{{ url_for('static', filename='icons/circle-logo.png') }}" alt="Circle Icon" class="nav-icon" />
@@ -287,6 +322,8 @@ function flashPoints() {
 
 </body>
 </html>
+
+
 
 
 
