@@ -1,47 +1,31 @@
-import random
+# rams.py
+
+import os
+import openai
 from datetime import datetime
-from collections import Counter
 from db import SessionLocal
-from models import User, JournalEntry, QueryHistory
-from flask import session
+from models import User, UserBio, JournalEntry
 from inner_codex import INNER_CODEX
 
-HERO_PROMPTS = {
-    name.lower(): {
-        "default": f"You are {name} — {hero.get('title', '')}. You represent {hero.get('represents', '')}. "
-                   f"{hero.get('worldview', '')} Respond with emotional realism, 4–5 lines max.",
-        "small_talk": f"You are {name}. When greeted, offer a warm and simple check-in like a real person would."
-    }
-    for name, hero in INNER_CODEX.get("heroes", {}).items()
-}
+# Set OpenAI API key from environment
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-VILLAIN_PROMPTS = {
-    name.lower(): f"You are {name} — embodiment of {desc}. Whisper their doubts. 3–5 lines. No encouragement."
-    for name, desc in INNER_CODEX.get("villains", {}).items()
-}
-
-HERO_NAMES = ["Grace", "Cognita", "Velessa", "Lucentis", "Sir Renity"]
 
 def call_openai(user_input, hero_name="Cognita", context=None):
-    from openai import OpenAI
-    import os
-
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
     tag = hero_name.strip().lower()
-    is_villain = tag in VILLAIN_PROMPTS
+    is_villain = tag in INNER_CODEX.get("villains", {})
 
-    # Pull thread & context
-    thread = context.get("thread", []) if isinstance(context, dict) else context if isinstance(context, list) else []
+    # Extract context elements safely
+    thread = context.get("thread", []) if isinstance(context, dict) else []
     formatted_thread = context.get("formatted_thread", "") if isinstance(context, dict) else ""
     emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
     nickname = context.get("nickname", "Friend") if isinstance(context, dict) else "Friend"
 
-    # If no thread, create one from user input
+    # If no existing thread, start with user input
     if not thread:
         thread = [{"speaker": "User", "text": user_input}]
 
-    # Build system prompt
+    # Build the system prompt using your existing build_prompt function
     system_message = build_prompt(
         hero=tag,
         user_input=user_input,
@@ -50,49 +34,50 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             "formatted_thread": formatted_thread,
             "emotional_profile": emotional_profile,
             "nickname": nickname,
-            "user_id": session.get("user_id")
+            "user_id": None  # or session.get("user_id") if imported and available here
         }
     )
 
+    # Villain-aware identity system message
     hero_identity_message = {
         "role": "system",
         "content": f"""
-You are {hero_name}, a supportive hero in a recovery app called Resurgifi. 
-You are speaking to the user '{nickname}', who is in early recovery. 
+You are {hero_name}, a {'villain' if is_villain else 'supportive hero'} in a recovery app called Resurgifi.
+You are speaking to the user '{nickname}', who is in early recovery.
 Do not speak as the user. Never refer to yourself as "You."
-You are {hero_name}. Maintain emotional boundaries. Offer support, not mimicry.
+You are {hero_name}. Maintain emotional boundaries. {'Offer tension, not solutions.' if is_villain else 'Offer support, not mimicry.'}
 """.strip()
     }
 
-    # Build conversation history
+    # Start the message list for the API call
     messages = [
         hero_identity_message,
         {"role": "system", "content": system_message}
     ]
 
+    # Add recent conversation history (limit 30 entries)
     for entry in thread[-30:]:
-        if "speaker" in entry and entry["speaker"].lower() == "user":
-            messages.append({"role": "user", "content": entry["text"]})
-        elif "speaker" in entry:
-            messages.append({"role": "assistant", "content": entry["text"]})
-        else:
+        if isinstance(entry, dict) and "speaker" in entry:
+            role = "user" if entry["speaker"].lower() == "user" else "assistant"
+            messages.append({"role": role, "content": entry["text"]})
+        elif isinstance(entry, dict):
             for speaker, msg in entry.items():
                 role = "user" if speaker.lower() == "you" else "assistant"
                 messages.append({"role": role, "content": msg})
 
-    # Final user input
+    # Append current user input to messages
     messages.append({"role": "user", "content": user_input})
 
-    # Debug
+    # Debug printout
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
     print("🧵 Messages:", messages[-3:])
     print("--- END DEBUG ---\n")
 
-    # Make the call
+    # Make the API call
     try:
-        response = client.chat.completions.create(
+        response = openai.chat.completions.create(
             model="gpt-4o",
             messages=messages,
             temperature=0.85,
