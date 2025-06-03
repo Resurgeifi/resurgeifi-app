@@ -1,11 +1,13 @@
-# rams.py
-
 import os
 import openai
 from datetime import datetime
 from db import SessionLocal
 from models import User, UserBio, JournalEntry
 from inner_codex import INNER_CODEX
+
+# Define HERO_NAMES once, for consistent use everywhere
+HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
+VILLAIN_NAMES = [name.lower() for name in INNER_CODEX.get("villains", {})]
 
 # Set OpenAI API key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
