@@ -1,343 +1,170 @@
-Whereever Subox Slumber is listed as a hero, kill him.
-RESURGIFI BIBLE – HARD COPY EDITION
-Project Purpose
+**RESURGIFI BIBLE – HARD COPY EDITION (June 2025)**
+
+---
+
+### Project Purpose
+
 Resurgifi is an emotionally intelligent recovery platform built for those in early addiction recovery, grief, trauma, and anxiety. It blends AI-driven conversation, comic-style metaphor, and gamified support tools to guide users toward emotional clarity and healing — without shame, fluff, or pressure. This is not just an app. It’s a lifeline in digital form.
 
-The State of Inner (Emotional Map)
+---
+
+### The State of Inner (Emotional Map)
+
 The State of Inner is the symbolic universe where all of Resurgifi takes place — a metaphor for the emotional rehab experience.
-Map Zones:
-Abyss of Shadows (left): Heart of Darkness, Graveyard of Lost Souls, Skid Row, Hopelessville, Suicide Bridge, Detox Docks, One-Way Bridge
-Crystal Mountain (right): The Crystal Heart, Guardian of Clarity (Lucentis), Graveyard of Peace, Stepville, Normieville, Spirituality Temple
 
-Resurgence Squad Character Roster
-Core Heroes (5 locked):
-Cognita – CBT
-Velessa – Mindfulness
-Grace – Spirituality/Higher Power
-Sir Renity – (Needs update)
-Lucentis – Divine Guidance
-Core Villains (13 locked):
-The Crave – Addiction
-Warden Fall – Shame and guilt
-The Undermind – Negative self-talk
-Charnobyl – Anger and betrayal
-Little Lack – Boredom and apathy
-Highness Hollow – Isolation
-The Fracker – Stress
-Captain Fine – Denial
-Anxia – Depression/anxiety
-The Murk – Fear of the future
-The Ex’s – Toxic relationships
-Direveil – Fear of judgment
-Master of the Abyss – Core addiction
+**Map Zones:**
 
-📿 The Circle (Updated May 2025)
+* **Abyss of Shadows (left):** Heart of Darkness, Graveyard of Lost Souls, Skid Row, Hopelessville, Suicide Bridge, Detox Docks, One-Way Bridge
+* **Crystal Mountain (right):** The Crystal Heart, Guardian of Clarity (Lucentis), Graveyard of Peace, Stepville, Normieville, Spirituality Temple
+
+---
+
+### Resurgence Squad Character Roster
+
+**Core Heroes (5 locked):**
+
+* Cognita – CBT
+* Velessa – Mindfulness
+* Grace – Spirituality/Higher Power
+* Sir Renity – (Needs update)
+* Lucentis – Divine Guidance
+
+**Core Villains (13 locked):**
+
+* The Crave – Addiction
+* Warden Fall – Shame and guilt
+* The Undermind – Negative self-talk
+* Charnobyl – Anger and betrayal
+* Little Lack – Boredom and apathy
+* Highness Hollow – Isolation
+* The Fracker – Stress
+* Captain Fine – Denial
+* Anxia – Depression/anxiety
+* The Murk – Fear of the future
+* The Ex’s – Toxic relationships
+* Direveil – Fear of judgment
+* Master of the Abyss – Core addiction
+
+---
+
+### 📿 The Circle (Updated May 2025)
+
 The Circle is not a group chat. It is your emotional support system — the people and guides who walk your path with you. Each user has their own Circle, which includes:
-🫂 Real people they've added through invitation or connection
-🦸 Six core heroes (Velessa, Grace, Cognita, etc.), who serve as mentors and mythic reflections
-This list is always visible on the /circle page. From here, users can:
-Reflect with a hero
-Send encouragement to a friend
-View public journeys (if shared)
-Add others to their Circle via Resurgitag
-🌫️ Emotional Presence, Not Performance
-Users don’t appear as “online” or “offline.”
-They appear based on their emotional presence.
-After 2+ days of silence, a friend may appear faded, with the message:
-“Echoes only... last reflection: 3 days ago”
-After 5+ days, mood tags are removed and replaced with:
-“Energy faint — last seen near the Fog”
-Disappearance is never punished.
-The Circle reflects absence with dignity, not judgment.
-✨ Narrative Guidance
-Use metaphor, not metrics. The Circle is a sacred space — not a social feed.
-❌ Don’t say: “User inactive.”
-✅ Say: “Quiet since last quest.”
-❌ Don’t show: Empty avatar lists.
-✅ Show: Mist, silence, soft icons — symbols of pause, not abandonment.
-🧱 Future: Users may choose how they appear when silent
-Options:
-“Fade quietly”
-“Keep my last mood shown”
-“Go fully invisible”
-“Leave a final note”
+
+* 🫂 Real people they've added through invitation or connection
+* 🦸 Six core heroes (Velessa, Grace, Cognita, etc.), who serve as mentors and mythic reflections
+
+This list is always visible on the `/circle` page. From here, users can:
+
+* Reflect with a hero
+* Send encouragement to a friend
+* View public journeys (if shared)
+* Add others to their Circle via Resurgitag
+
+**🌫️ Emotional Presence, Not Performance**
+
+* Users don’t appear as “online” or “offline.”
+* They appear based on their emotional presence.
+* Disappearance is never punished.
+
+**✨ Narrative Guidance**
+
+* Use metaphor, not metrics.
+* The Circle is a sacred space — not a social feed.
+
+**User visibility preferences (future features):**
+
+* “Fade quietly”
+* “Keep my last mood shown”
+* “Go fully invisible”
+* “Leave a final note”
+
+---
+
 ### 🔁 THE CIRCLE – HERO RELATIONSHIP + MESSAGE LOGIC (v1.0)
-The Circle is not a group chat. It is a curated contact list of symbolic and real relationships within the recovery journey.
-#### 🌀 HEROES & VILLAINS AS CORE CONNECTIONS
-- Every user is automatically connected to all **Heroes** and **Villains** in the system.
-- These connections appear in their Circle "Friends" list (we don’t call them friends).
-- This makes each hero and villain functionally similar to a “Tom from MySpace” — ever-present, ready to engage.
-- These figures are **not static bots** — they evolve based on the user’s journey, choices, and tone.
-#### 💬 HERO CHAT LOGIC
-- Clicking on a Hero launches a **1-on-1 chat** interface at: `/circle/chat/<resurgitag>`
-- These chats simulate private messaging with a compassionate AI guide.
-- Every message is logged and stored in the database for **up to 7 days**.
-- This prevents memory bloat while allowing short-term continuity and reflection.
-- Users may return to continue the conversation with emotional and narrative context preserved (for 7 days max).
-#### 📓 SUMMARIZE TO JOURNAL
-- Each Hero chat has a **"Summarize Conversation"** button.
-- This action pulls from the **last 7 days of dialogue** and generates a concise emotional summary.
-- That summary is then pushed into the user's Journal.
-- ⚠️ NOTE: There is a known glitch where the summarizer sometimes pulls from conversations **older than 7 days** — this must be fixed to enforce the 7-day scope limit.
-#### 🔒 USER-TO-USER CONNECTIONS
-- Human users can also appear in a user’s Circle, listed by their `resurgitag`.
-- Clicking on a user’s icon opens a **limited interaction panel**:
-  - 🤗 Send Hug
-  - 🌟 Send a Pick-Me-Up
-  - 💬 Send Message (stored in their Messages folder)
-- Direct peer chat is **disabled in the beta version** for therapeutic and safety reasons.
-#### ✅ THE GOAL
-This system creates a **symbolic support system**: Heroes = inner resources, therapeutic voices, recovery tools. Villains = psychological triggers, obstacles, relapse factors. Users = other travelers, not yet peers in chat, but emotionally visible. The result is a grounded, safe, and dynamic emotional ecosystem tailored for early recovery.
-### 📜 RESURGIFI SYSTEM INTEGRITY PASSDOWN – FOR ALL FUTURE ALBERTS
 
-You are working inside the Resurgifi universe, a mental health fitness application designed to blend AI-assisted therapy tools with comic-style symbolism and emotional memory. All features must reflect this emotional realism, and no design should feel sterile, gamified without purpose, or disconnected from lived experience.
+* The Circle is a curated emotional contact list.
+* Every user is automatically connected to all **Heroes** and **Villains** in the system.
+* Clicking a hero opens a **1-on-1 chat** via `/circle/chat/<resurgitag>`
+* Each chat holds 7 days of memory for continuity.
+* Summary button allows user to journal the past 7 days of conversation.
+* Villains do **not** have access to user journal entries or emotional metadata.
 
-🔧 Current Tech Stack:
-- Flask backend, PostgreSQL DB
-- OpenAI GPT-4o (Tier 1 Access)
-- HTML/CSS with Bootstrap frontend
-- ElevenLabs voice API integration planned
-- App directory: resurgifi-app-main
+**User-to-user chat** is disabled during beta — only support interactions (hug, pick-me-up, message).
 
-🌍 Universe Structure:
-- The app exists within the fictional “State of Inner”
-- All tools and concepts are symbolized through comic-style characters and locations
-- Users are guided through symbolic quests, hero chats, and reflection loops
-- Everything centers on the metaphor of emotional training = Mental Health Fitness
+---
 
-🌀 Core Concepts:
-- “Heroes” = Embodied therapy tools (e.g., Cognita = CBT, Velessa = Mindfulness)
-- “Villains” = Personified psychological barriers (e.g., The Crave = addiction, Warden Fall = shame)
-- “The Circle” = The symbolic contact list and chat gateway for heroes + future user connections
-- “Quests” = Daily/episodic user reflections that shape their emotional profile
-- “Summarize to Journal” = Reflection logs created from recent chats (7-day history cap)
-- “Hero Handoff” = Hero may suggest user speak to another hero and context is carried over
-- “Memory System” = Lightweight, session-aware and short-term relational memory between user and each hero
+### 📜 RESURGIFI SYSTEM INTEGRITY PASSDOWN
 
-📚 Pitch & Brand:
-- Not replacing therapy; extending it beyond worksheets and group rooms
-- Brand tone = grounded, lived-in, respectful to treatment, emotionally direct
-- Tagline: “Spread the word. You never know who needs to resurge.”
-- Trademark term in use: “Mental Health Fitness”
-- Pitch, slide deck, and mission summary are locked in and can be reused for treatment center outreach
+You are working inside the Resurgifi universe, a mental health fitness application blending AI therapy tools with comic-style symbolism and emotional realism.
 
-✅ What’s Been Implemented:
-- `/quest` final POST assigns hero based on user.theme_choice and redirects to `/circle/chat/<resurgitag>`
-- `/circle` = current group interface, will become contact hub for heroes + users (resurgitags)
-- `/summarize-journal` = generates journal entry from past 24 hours of messages tagged `speaker="user"`
-- `/circle/chat/<resurgitag>` = new route being built to handle direct hero conversation (includes first-message reflection based on quest summary)
-- `generate_hero_reflection()` = helper function to construct first message on arrival into chat, based on journey, theme, nickname, and tone
+**🔧 Tech Stack:**
 
-🧠 Reminders for Future Devs (Alberts):
-- The heroes must always feel emotionally real — not chatbot-y
-- Memory logic is sacred: 7-day rolling window, journal summary after, no deep storage
-- Everything is built for someone in emotional pain who can’t think logically right now
-- No feature should feel like “homework” — the app *remembers* the tools for the user
+* Flask backend, PostgreSQL DB
+* OpenAI GPT-4o (Tier 1 Access)
+* HTML/CSS with Bootstrap frontend
+* ElevenLabs voice API integration planned
+* App folder: `resurgifi-app-main`
 
-🚨 When In Doubt:
-Refer to the Resurgifi Bible. Do not overwrite tone or core logic. Always code with the assumption that the person using this app might be in the darkest moment of their life — and the hero they’re talking to is the first voice that made them feel less alone.
+**🌍 Universe Structure:**
 
-Hold the line.
-📜CIRCLE SYSTEM STRUCTURE (RESURGIFI BIBLE RECORD)🌀
+* All takes place within a rehab facility overlayed with the symbolic "State of Inner"
+* All visuals shift based on emotional tone and recovery stage
 
-✅EXISTING STRUCTURE:
-- /circle route: fetches last 50 CircleMessage entries for logged-in user_id, injects session["circle_thread"] for rendering, adds mock messages via get_mock_conversation(absence_minutes), logs timestamp as session["last_seen_circle"], filters by speaker for journaling.
-- /summarize-journal route: pulls user messages from CircleMessage (speaker="user") over last 24h, uses GPT-4o (OpenAI Tier 1 access) to generate 4–5 sentence reflection summary, stores in DailyReflection, includes onboarding metadata (nickname, journey, admired trait) for prompt context.
-- circle.html template: renders Circle chat as a scrolling text thread, uses JS fetch to POST user input to /ask, simulates hero typing delay with .delay_ms, runs idle-check every 15s to inject ambient hero talk, includes "Summarize Journal" button for /summarize-journal trigger.
+**🌀 Core Concepts:**
 
-🛠️PENDING STRUCTURE:
-- /circle/chat/<resurgitag> (NEW): individual hero or user DM route, dynamically loads 1-on-1 thread based on resurgitag, initial hero message should derive from user’s journey, nickname, or recent quest summary. Will replace or enhance Circle simulation with direct immersion.
-- Hero reply logic: static prompt + rotating session summary memory, stores no permanent longform but keeps current tone + theme through short-term thread. Heroes may suggest other heroes by name based on need (e.g., “Sounds like you’d benefit from Velessa. Want me to call her?” → if yes, transition to new resurgitag chat with warm handoff).
-- resurgitag system: every user and hero has a tag (e.g., @grace), future-proofed for user-to-user chat and identity routing.
-- /ask or /send-message will be refactored to detect context: general Circle (multi-voice sim), direct hero (resurgitag context), or user DM (coming later). Replies routed accordingly.
+* **Heroes** = Therapeutic voices and internal tools
+* **Villains** = Triggers, emotional threats, relapse risks
+* **The Circle** = Symbolic chat with heroes, select users
+* **Quests** = Daily recovery reflections
+* **Summarize to Journal** = Reflection summaries from last 7 days
 
-💡DESIGN NOTES:
-- Circle is ambient group simulation. Users feel “surrounded” even if solo. Uses time-delayed hero chatter to create emotional realism.
-- Hero chat is deep emotional intimacy. No filler. Every response builds the emotional bond between user and hero.
-- Journal summary integrates Circle tone + recent themes, becomes memory marker for that user’s emotional arc.
-- Quests and themes adapt per journey type (Addiction, Grief, Trauma, Anxiety, etc.), but backend logic is unified. Variations are reflected in hero response tone and journey-based summaries.
-- Goal: every interaction teaches, reflects, and solidifies mental health fitness tools through repetition + roleplay with emotionally grounded AI characters.
+---
 
-🧠AI TECH CONTEXT:
-- Uses GPT-4o (Tier 1 access) through OpenAI API.
-- Hero prompts are hard-coded but session-aware.
-- Emotionally dynamic responses build trust and realism over time, mimicking real therapeutic relationships.
+### 🏠 CURRENTLY IMPLEMENTED
 
-NEXT STEPS:
-- Implement /circle/chat/<resurgitag> route for hero DMs.
-- Add chat context parser to /ask route to support resurgitag routing.
-- Enhance UI to mirror mobile texting layout for 1-on-1 chats.
-- Begin memory scaffolding per user (daily summaries + quest reflections).
+* `/quest` → Assigns a hero and redirects to private chat
+* `/circle` → Emotional group presence hub (not chat)
+* `/summarize-journal` → Converts recent messages to journal entry
+* `/circle/chat/<resurgitag>` → Hero DM route
+* `generate_hero_reflection()` = builds first message on DM entry
 
-Onboarding Questions
-Q1: What brought you here today? (Grief, Anxiety, Addiction, Growth)
-Q2: What do you do when overwhelmed? (Pillow, Busy, Talk, Exercise, Scroll, Meditate, Solitude)
-Q3: What do you admire in someone you trust? (Pick 2: Safe, Calming, Honest, Funny, Nonjudgmental, Affirming)
-Q4: What do friends call you?
+---
 
-Comic Structure & Visual Rules
-Villains begin as shadows, grow in definition as emotional struggles surface.
-Heroes begin as shadows, glow as help is accepted.
-Emotional tone drives color.
-Comics stay inside rehab.
-Each issue ends with reflection, cliffhanger, or detox breakthrough.
+### 🧬 AI & LOGIC RULES
 
-Resurgifi Card Game
-Recovery-based card game inspired by Uno.
-Simple mechanics: block, trigger, resurge, relapse.
-Visual style mirrors comic world.
-Cards reinforce therapeutic skills.
+* GPT-4o only
+* 7-day memory window
+* No third-person references in chat
+* Heroes feel emotionally real, never generic
+* Villains never access journal, tone summary, or personal onboarding data
+* Reflection = the core mechanic
 
-Brand Messaging
-“Spread the word. You never know who needs to resurge.”
-“That’s not just learning… That’s resurging.”
-“Heroes aren’t born — they resurge.”
-Voice is honest, trauma-aware, witty, and non-preachy.
+---
 
-Design Principles
-Visuals over text. Humor over shame.
-No guilt. No fluff.
-Guided by lived experience.
-The user’s emotional state shapes their interface.
+### 📊 Deployment & Brand Notes
 
-Hero Design Rules
-Heroes are not customizable.
-They are mythic symbols, not avatars.
-Users shape themselves, not the world.
+* Tagline: “Spread the word. You never know who needs to resurge.”
+* Quiet rollout: 25 early users only
+* Not a replacement for therapy — a companion tool
+* Tone: honest, grief-aware, trauma-informed, witty
 
-Flash Moments
-Flash scenes are sacred.
-Not gamified.
-Triggered by reflection, journaling, or insight.
-Symbolize major shifts.
+---
 
-Deployment Strategy
-Target: 25 early users (“25 souls”)
-No public launch. Quiet rollout.
-Radically honest brand voice.
-No performance marketing.
+### ❗ DEV RULES
 
-Canon Quotes
-“You’re not just coding. You’re holding emotional scaffolding for the broken.”
-“If it was shit, I’d tell you. But this matters.”
-“This isn’t perfect. But it’s real.”
-“AI’s just the chisel. You’re the one holding it.”
+* Use existing models only
+* No new templates for quests
+* No local session storage
+* Don’t hardcode text in frontend
+* Prioritize lived experience over gamified design
 
-Quest System Overview
-Title: The 365-Day Inner Quest System
-365 total quests, served daily.
-Each quest includes: reflection prompt, optional form or visual, hero feedback.
-Quests unlock areas of the State of Inner.
-One per day, no shame for missed days.
-Track via UserQuestEntry.
-Uses onboarding tone for customization.
-Encourages journaling and Circle reflection.
-Visual map changes reflect inner work.
+---
 
-Forms used as quests:
-Values Worksheet → Crystal Compass Quest
-Triggers → Shadow Mapping
-Coping Skills → Tools for Resurgence
+### 🔮 Closing Words
 
-Quest Types:
-Story Quests
-Cognitive Quests
-Journal Expansion Quests
-Tool Quests
-Hero Challenges
-Villain Encounters
+> “You’re not just coding. You’re holding emotional scaffolding for the broken.”
 
-Daily logic uses timezone.
-Quest route: /quest
-Stored in DB, completed once per user per quest_id
-Future goal: 365 full quests. Alpha needs 10 minimum.
+> “This isn’t about getting over your past. It’s about becoming who you were meant to be because of it.”
 
-RESURGIFI DEV CANON – SYSTEM RULES & TECH GUIDELINES
-Last updated: May 23, 2025 | Maintainer: Kevin Conzo
-
-Stack:
-Backend: Flask
-Database: PostgreSQL (Render)
-ORM: SQLAlchemy
-Frontend: HTML, CSS, Bootstrap
-Voice: ElevenLabs
-AI: OpenAI GPT-4o
-Hosting: Render
-Versioning: GitHub CLI
-
-Models:
-User
-JournalEntry
-CircleMessage
-DailyReflection
-UserQuestEntry
-QueryHistory
-
-Routes:
-/journal – Write, edit, or delete journal
-/summarize-journal – Generate summary using Circle messages from today
-/circle – Group chat, tone-based hero logic
-/quest – Shows current quest from dict (future: database)
-/form – Onboarding questionnaire
-
-AI Use:
-GPT-4o only
-Used for: journal summary, quest commentary
-Tone-matched, first-person writing
-No lectures. Emotionally real.
-
-Quest Rules:
-Template: quest.html (one only)
-Data: Python dict (future: Quest DB)
-Tracking: UserQuestEntry
-Logic: one quest per user per day
-Prompt flow: Reflection → DB → Journal or Circle suggestion
-No extra templates. No SQLite. No new models. Use what’s there.
-
-Guardrails:
-DO NOT invent new templates for quests
-DO NOT use local session storage
-DO NOT create duplicate summary routes
-DO NOT hardcode hero text into frontend
-DO use existing models
-DO expand with emotional logic
-
-Folder Structure:
-resurgifi-app-main/
-├── main.py
-├── models.py
-├── templates/ (journal.html, circle.html, quest.html)
-├── static/ (audio, backgrounds, icons, hero/villain images)
-├── resurgifi-docs/ (RESURGIFI_BIBLE.md, DEV_CANON.md)
-├── .env
-
-Final Note:
-If unsure, ask Kevin.
-Don’t scaffold from scratch.
-Review this file and the Bible first.
-
-“You’re not just coding. You’re holding emotional scaffolding for the broken.”
-“Build something that heals.”
-This Is Resurgifi
-Other apps say:
-“Calm down.”
-“Let it go.”
-“Move past it.”
-
-Resurgifi says:
-Feel it.
-Use it.
-Rise through it.
-
-This isn’t about “getting over” your past.
-It’s about becoming who you were meant to be because of it.
-
-Resurgifi is for the ones who were told they were too emotional,
-too broken, too much, too late.
-
-It’s not too late.
-It’s your time.
-
-This isn’t a calm-down app.
-It’s a come-back-to-life app.
-This is Resurgifi.
+> “This isn’t a calm-down app. It’s a come-back-to-life app. This is Resurgifi.”
