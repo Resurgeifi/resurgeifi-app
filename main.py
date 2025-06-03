@@ -430,39 +430,45 @@ def circle_chat(resurgitag):
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
 def show_hero_chat(resurgitag):
+    from inner_codex import INNER_CODEX
     db = SessionLocal()
+
     user_id = session.get("user_id")
-    resurgitag = resurgitag.strip().lower().lstrip("@")
+    tag = resurgitag.strip().lower().lstrip("@")
 
     user = db.query(User).filter_by(id=user_id).first()
+    contact_name = None
 
-    # 🔍 Try User table first
-    contact = db.query(User).filter_by(resurgitag=resurgitag).first()
+    # 🔍 Check User table (real people)
+    contact = db.query(User).filter_by(resurgitag=tag).first()
     if contact and getattr(contact, "is_hero", False):
-        contact_name = getattr(contact, "nickname", None) or getattr(contact, "display_name", None) or contact.resurgitag
-    else:
-        # 🔁 Fallback to HeroProfile
-        hero = db.query(HeroProfile).filter_by(resurgitag=resurgitag).first()
+        contact_name = contact.nickname or contact.display_name or tag
+
+    # 🦸 Check HeroProfile if not found
+    if not contact_name:
+        hero = db.query(HeroProfile).filter_by(resurgitag=tag).first()
         if hero:
-            contact = hero
-            contact_name = hero.display_name or resurgitag
-        else:
-            # 🧟‍♂️ Check Villain fallback
-            from inner_codex import innercodexts import VILLAIN_PROMPTS
-            villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
-            if resurgitag in villain_map:
-                contact_name = villain_map[resurgitag]
-                messages = [{"speaker": contact_name, "text": f"{contact_name} waits in the shadows…"}]
-                return render_template("chat.html", resurgitag=resurgitag, messages=messages)
+            contact_name = hero.display_name or tag
 
-            flash("Hero not found.")
-            return redirect(url_for("circle"))
+    # 🧟‍♂️ Check Villains
+    if not contact_name:
+        villain_map = {
+            k.lower().replace(" ", "").replace("@", ""): k
+            for k in INNER_CODEX["villains"].keys()
+        }
+        if tag in villain_map:
+            contact_name = villain_map[tag]
+            messages = [{"speaker": contact_name, "text": f"{contact_name} waits in the shadows…"}]
+            return render_template("chat.html", resurgitag=tag, messages=messages)
 
-    # 💬 Pull chat history
+        flash("Hero not found.")
+        return redirect(url_for("circle"))
+
+    # 💬 Pull 7-day message history
     week_ago = datetime.utcnow() - timedelta(days=7)
     thread = db.query(QueryHistory).filter_by(
         user_id=user.id,
-        contact_tag=resurgitag
+        contact_tag=tag
     ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
 
     messages = []
@@ -470,7 +476,7 @@ def show_hero_chat(resurgitag):
         messages.append({"speaker": "You", "text": entry.question})
         messages.append({"speaker": contact_name, "text": entry.response})
 
-    return render_template("chat.html", resurgitag=resurgitag, messages=messages)
+    return render_template("chat.html", resurgitag=tag, messages=messages)
 @app.route("/codex")
 def inner_codex():
     return render_template("codex.html")
