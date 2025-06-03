@@ -331,27 +331,29 @@ def build_prompt(hero, user_input, context):
         db.close()
 
     # 🧠 Pull hero or villain personality prompt
-    hero_data = INNER_CODEX.get("heroes", {}).get(hero.capitalize())
-    is_villain = False
+key = hero.strip().title()  # Normalize hero name like "The Crave"
 
-    if not hero_data:
-        hero_data = INNER_CODEX.get("villains", {}).get(hero.capitalize())
-        if hero_data:
-            is_villain = True
+hero_data = INNER_CODEX.get("heroes", {}).get(key)
+is_villain = False
 
-    hero_prompt = None
+if not hero_data:
+    hero_data = INNER_CODEX.get("villains", {}).get(key)
     if hero_data:
-        # Try to get prompt from either 'prompts' dict or 'prompt' key
-        if isinstance(hero_data.get("prompts"), dict):
-            hero_prompt = hero_data["prompts"].get("default")
-        elif "prompt" in hero_data:
-            hero_prompt = hero_data["prompt"]
+        is_villain = True
 
-    if hero_prompt:
-        print(f"🤖 Using {'villain' if is_villain else 'hero'} prompt for '{hero.capitalize()}'.")
-    else:
-        hero_prompt = f"You are {hero.capitalize()}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
-        print(f"⚠️ No specific prompt found for '{hero.capitalize()}'; using default prompt.")
+hero_prompt = None
+if hero_data:
+    # Try to get prompt from either 'prompts' dict or 'prompt' key
+    if isinstance(hero_data.get("prompts"), dict):
+        hero_prompt = hero_data["prompts"].get("default")
+    elif "prompt" in hero_data:
+        hero_prompt = hero_data["prompt"]
+
+if hero_prompt:
+    print(f"🤖 Using {'villain' if is_villain else 'hero'} prompt for '{key}'.")
+else:
+    hero_prompt = f"You are {key}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
+    print(f"⚠️ No specific prompt found for '{key}'; using default prompt.")
 
     region_context = INNER_CODEX.get("world", {}).get("description", "")
     memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
