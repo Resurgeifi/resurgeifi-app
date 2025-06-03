@@ -471,6 +471,9 @@ def show_hero_chat(resurgitag):
         messages.append({"speaker": contact_name, "text": entry.response})
 
     return render_template("chat.html", resurgitag=resurgitag, messages=messages)
+@app.route("/inner-codex")
+def inner_codex():
+    return render_template("codex.html")
 
 @app.route("/summarize-journal", methods=["GET"])
 @login_required
