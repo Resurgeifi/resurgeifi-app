@@ -3,20 +3,39 @@
 
 {% block content %}
 <!-- 🌌 Cinematic Flash Background -->
-<div id="questFlash" class="quest-flash">
-  <div class="quest-quote">“Welcome to the first Quest in the Beta version of Resurgifi. You are about to enter your State of Inner.”</div>
+<div id="questFlash" class="quest-flash" onanimationend="removeQuestFlash()">
+  <div class="quest-quote">
+    “Welcome to the first Quest in the Beta version of Resurgifi. You are about to enter your State of Inner.”
+  </div>
 </div>
 
 <!-- 🧠 Quest Prompt -->
 <div class="quest-card">
   <h2 class="quest-title">Today’s Quest</h2>
-  <p class="quest-prompt">When you open your eyes inside your State of Inner, what emotion greets you? Share what you’re feeling right now. Try and be specific about your feelings and why youre here.</p>
-<form method="POST" action="/quest">
-    <textarea name="reflection" required placeholder="Type your answer here..." class="quest-textarea"></textarea>
-    <button type="submit" class="global-button">Submit Result</button>
+  <p class="quest-prompt">
+    When you open your eyes inside your State of Inner, what emotion greets you? Share what you’re feeling right now. Try and be specific about your feelings and why you're here.
+  </p>
+  <form method="POST" action="/quest">
+    <textarea id="reflectionInput" name="reflection" required placeholder="Type your answer here..." class="quest-textarea" oninput="checkInput()"></textarea>
+    <button id="submitBtn" type="submit" class="global-button" disabled>Submit Result</button>
   </form>
 </div>
 
+<!-- 🎯 Interaction Fix Script -->
+<script>
+  function removeQuestFlash() {
+    const flash = document.getElementById("questFlash");
+    if (flash) flash.remove();
+  }
+
+  function checkInput() {
+    const input = document.getElementById("reflectionInput");
+    const button = document.getElementById("submitBtn");
+    button.disabled = input.value.trim() === "";
+  }
+</script>
+
+<!-- 🎨 Styling -->
 <style>
 .quest-flash {
   position: fixed;
@@ -26,7 +45,7 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  animation: fadeOut 5s ease forwards;
+  animation: fadeOut 8s ease forwards;
 }
 .quest-quote {
   color: #f6e7c1;
@@ -39,8 +58,8 @@
 }
 @keyframes fadeOut {
   0% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; display: none; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
 }
 @keyframes fadeInText {
   0% { opacity: 0; transform: translateY(20px); }
@@ -78,5 +97,10 @@
   font-size: 1rem;
   margin-bottom: 1rem;
 }
+.global-button[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
 </style>
 {% endblock %}
+
