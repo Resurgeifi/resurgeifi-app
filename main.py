@@ -344,89 +344,72 @@ def profile():
 @app.route("/circle/chat/<resurgitag>", methods=["POST"])
 @login_required
 def circle_chat(resurgitag):
+    from inner_codex import INNER_CODEX
     db = SessionLocal()
+
     user_id = session.get("user_id")
     user_input = request.json.get("message")
-
     if not user_input:
         return jsonify({"error": "Message missing"}), 400
 
-    from models import HeroProfile
-    from inner_codex import innercodexts import VILLAIN_PROMPTS
+    tag = resurgitag.strip().lower().lstrip("@")
 
-    tag = resurgitag.strip().lower()
+    # 🧵 Pull last 7 days of conversation
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    thread_query = db.query(QueryHistory).filter_by(
+        user_id=user_id,
+        contact_tag=tag
+    ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
 
-    # 🦸 Check Hero DB
-    hero_profile = db.query(HeroProfile).filter_by(resurgitag=tag).first()
-    if hero_profile:
-        week_ago = datetime.utcnow() - timedelta(days=7)
-        thread_query = db.query(QueryHistory).filter_by(
-            user_id=user_id,
-            contact_tag=tag
-        ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
+    context = [
+        {"question": entry.question, "response": entry.response}
+        for entry in thread_query
+    ]
 
-        context = [
-            {"question": entry.question, "response": entry.response}
-            for entry in thread_query
-        ]
+    # 🧠 Check if it's a known hero
+    is_hero = tag in [h.lower().replace(" ", "") for h in INNER_CODEX["heroes"].keys()]
+    is_villain = tag in [v.lower().replace(" ", "") for v in INNER_CODEX["villains"].keys()]
 
-        print("\n--- OpenAI CALL DEBUG ---")
-        print("🧠 Hero Tag:", tag)
-        print("🗣️ User Input:", user_input)
-        print("🧵 Context Thread:")
-        for i, msg in enumerate(context):
-            print(f"  {i+1}. You: {msg['question']}")
-            print(f"     {tag}: {msg['response']}")
-        print("-------------------------\n")
+    if is_hero:
+        canon_name = [h for h in INNER_CODEX["heroes"].keys() if h.lower().replace(" ", "") == tag][0]
+        response = call_openai(user_input=user_input, hero_name=canon_name, context={
+            "thread": context,
+            "user_id": user_id,
+        })
 
-        response = call_openai(user_input=user_input, hero_name=tag, context=context)
-
-        chat = QueryHistory(
+        db.add(QueryHistory(
             user_id=user_id,
             contact_tag=tag,
-            agent_name=session.get("hero_name"),
+            agent_name=canon_name,
             question=user_input,
             response=response
-        )
-
-        db.add(chat)
+        ))
         db.commit()
-
         return jsonify({"response": response})
 
-    # 🧟‍♂️ Check Villain fallback
-    villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
-    if tag in villain_map:
-        villain_name = villain_map[tag]
+    elif is_villain:
+        canon_name = [v for v in INNER_CODEX["villains"].keys() if v.lower().replace(" ", "") == tag][0]
 
-        week_ago = datetime.utcnow() - timedelta(days=7)
-        thread_query = db.query(QueryHistory).filter_by(
-            user_id=user_id,
-            contact_tag=tag
-        ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
+        # ❗ Villains get NO journal context
+        response = call_openai(user_input=user_input, hero_name=canon_name, context={
+            "thread": context,
+            "user_id": user_id,
+            "suppress_journal": True  # <- use this in build_prompt to block journal inserts
+        })
 
-        context = [
-            {"question": entry.question, "response": entry.response}
-            for entry in thread_query
-        ]
-
-        print(f"⚠️ OpenAI Villain Call – Name: {villain_name}, Input: {user_input}")
-        response = call_openai(user_input=user_input, hero_name=villain_name, context=context)
-
-        chat = QueryHistory(
+        db.add(QueryHistory(
             user_id=user_id,
             contact_tag=tag,
-            agent_name=villain_name,
+            agent_name=canon_name,
             question=user_input,
             response=response
-        )
-
-        db.add(chat)
+        ))
         db.commit()
-
         return jsonify({"response": response})
 
-    return jsonify({"error": "No matching hero or villain found."}), 404
+    else:
+        return jsonify({"error": "No matching hero or villain found."}), 404
+
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
 def show_hero_chat(resurgitag):
