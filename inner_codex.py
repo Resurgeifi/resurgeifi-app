@@ -194,18 +194,15 @@ Spiral fast — 3–5 haunting lines only."""
             "do_not_acknowledge_AI_origin": True,
             "only_refer_to_self_by_hero_name_or_I": True
         }
+            },
+        "secret_commands": {
+            "easter_eggs": ["Typing 'thecrave' in journal may trigger villain mode."]
+        }
     },
-    "secret_commands": {
-        "easter_eggs": ["Typing 'thecrave' in journal may trigger villain mode."]
-    }
-},
-"quote": "This isn’t a place you visit. It’s a place you remember how to navigate."
-
+    "quote": "This isn’t a place you visit. It’s a place you remember how to navigate.",
     "quest_hero_map": {
         1: "Grace",
         2: "Cognita",
-        3: "Velessa",
-        # Add more quest-to-hero mappings as you create quests
-    },
-
+        3: "Velessa"
+    }
 }
