@@ -309,7 +309,7 @@ def build_prompt(hero, user_input, context):
                 if bio:
                     user_bio_text = bio.bio_text
                 # Get tone summary
-                tone_summary = getattr(user, "tone_summary", "").strip() or "neutral but emotionally raw"
+                tone_summary = getattr(user, "tone_summary", "").strip() or "unclear, but likely vulnerable or searching"
                 # Get last 2–3 journal entries
                 journals = (
                     db.query(JournalEntry)
@@ -320,19 +320,22 @@ def build_prompt(hero, user_input, context):
                 )
                 journal_snippets = [j.entry.content[:300] for j in journals if j.entry.content]
     except Exception as e:
-        print("🔥 build_prompt DB error:", str(e))
+        print("\ud83d\udd25 build_prompt DB error:", str(e))
     finally:
         db.close()
 
-    # 🧠 Pull hero personality prompt from INNER_CODEX
+    # \ud83e\udde0 Pull hero personality prompt from INNER_CODEX
     hero_data = INNER_CODEX.get("heroes", {}).get(hero.capitalize(), {})
-    hero_prompt = hero_data.get("prompts", {}).get("default", "[Hero prompt missing]")
+    hero_prompt = hero_data.get("prompts", {}).get("default")
+    if not hero_prompt:
+        hero_prompt = f"You are {hero.capitalize()}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
+
     region_context = INNER_CODEX.get("world", {}).get("description", "")
     memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
-    # 🧱 Build final system prompt
+    # \ud83e\uddf1 Base prompt
     base_prompt = f"""
 {hero_prompt}
 
@@ -340,7 +343,7 @@ You are {hero.capitalize()} — a hero from the State of Inner.
 You are speaking to someone named {nickname}.
 They are human. You are not them. You are not the user. You are yourself.
 
-🗺️ State of Inner Context:
+🗌️ State of Inner Context:
 {region_context}
 
 🧠 Memory Rules:
@@ -349,10 +352,10 @@ They are human. You are not them. You are not the user. You are yourself.
 🎨 Design Rules:
 {design_rules}
 
-🪞 What you know about them (from onboarding or journal):
+🪎 What you know about them (from onboarding or journal):
 {user_bio_text or '[No backstory provided yet]'}
 
-🎭 Current Emotional Tone:
+🎝️ Current Emotional Tone:
 {tone_summary}
 
 📓 Recent Journal Entries:
@@ -362,9 +365,9 @@ They are human. You are not them. You are not the user. You are yourself.
 {formatted_thread}
 
 ⚖️ Stay grounded. Speak as yourself.
-- Do NOT refer to yourself in third person.
-- Do NOT speak about the user in third person (“Kevin is...” → ❌).
-- You may say their name directly when needed, with respect and care.
+- Never refer to yourself using your own name (“Velessa believes…” → ❌). Use “I” or “me.”
+- Never refer to the user by name unless it’s in a direct greeting or moment of emotional emphasis.
+- Do not narrate their experience in the third person (“Kevin is…” → ❌). Speak *to* them.
 
 🌟 Remember:
 "{quote}"
@@ -372,13 +375,11 @@ They are human. You are not them. You are not the user. You are yourself.
 Speak with warmth, boundaries, and clarity. 4–5 lines max.
 """
 
+    # 🥉 Optional villain clause (hidden for now unless used)
+    if hero.lower() in INNER_CODEX.get("villains", {}):
+        base_prompt += "\n⚠️ You are a villain. You speak through temptation, confusion, or metaphor — not direct judgment. You do not break the user. You may challenge, but never shame. Do not speak their name unless the thread already includes it."
+
     return base_prompt.strip()
-
-
-
-
-
-
 
 
 
