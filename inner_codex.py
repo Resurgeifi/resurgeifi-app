@@ -200,3 +200,4 @@ Spiral fast — 3–5 haunting lines only."""
     }
 },
 "quote": "This isn’t a place you visit. It’s a place you remember how to navigate."
+}
