@@ -1497,7 +1497,7 @@ def quest():
                 .filter_by(user_id=user_id)\
                 .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
 
-            if len(recent_quests) >= 3:
+            if len(recent_quests) >= 20:
                 flash("You’ve already completed 3 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
