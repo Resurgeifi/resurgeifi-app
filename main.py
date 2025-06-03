@@ -459,35 +459,41 @@ def show_hero_chat(resurgitag):
         messages.append({"speaker": "You", "text": entry.question})
         messages.append({"speaker": contact_name, "text": entry.response})
 
+    # 🧙 Handle quest reflection if present
+    quest_reflection = session.pop("from_quest", None)
+    quest_flash = False
+    reflection_text = ""
+
     if quest_reflection:
-    reflection_text = quest_reflection.get("reflection", "")
-    messages.insert(0, {"speaker": "You", "text": reflection_text})
-    quest_flash = True  # This sets the flag for flashing the green message
+        reflection_text = quest_reflection.get("reflection", "")
+        messages.insert(0, {"speaker": "You", "text": reflection_text})
+        quest_flash = True
 
-    # 🧠 Trigger AI reflection response
-    canon_name = contact_name
-    context = {"thread": [], "user_id": user_id}
+        # 🧠 Trigger AI reflection response
+        canon_name = contact_name
+        context = {"thread": [], "user_id": user_id}
 
-    try:
-        ai_response = call_openai(
-            user_input=reflection_text,
-            hero_name=canon_name,
-            context=context
-        )
-        messages.insert(1, {"speaker": canon_name, "text": ai_response})
+        try:
+            ai_response = call_openai(
+                user_input=reflection_text,
+                hero_name=canon_name,
+                context=context
+            )
+            messages.insert(1, {"speaker": canon_name, "text": ai_response})
 
-        # ✅ Optionally save to DB
-        db.add(QueryHistory(
-            user_id=user_id,
-            contact_tag=tag,
-            agent_name=canon_name,
-            question=reflection_text,
-            response=ai_response
-        ))
-        db.commit()
-    except Exception as e:
-        print(f"⚠️ AI quest reflection failed: {e}")
+            # ✅ Save to DB
+            db.add(QueryHistory(
+                user_id=user_id,
+                contact_tag=tag,
+                agent_name=canon_name,
+                question=reflection_text,
+                response=ai_response
+            ))
+            db.commit()
+        except Exception as e:
+            print(f"⚠️ AI quest reflection failed: {e}")
 
+    return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=quest_flash)
 
 @app.route("/codex")
 def inner_codex():
