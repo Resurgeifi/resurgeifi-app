@@ -352,7 +352,7 @@ def circle_chat(resurgitag):
         return jsonify({"error": "Message missing"}), 400
 
     from models import HeroProfile
-    from prompts import VILLAIN_PROMPTS
+    from inner_codex import innercodexts import VILLAIN_PROMPTS
 
     tag = resurgitag.strip().lower()
 
@@ -448,7 +448,7 @@ def show_hero_chat(resurgitag):
             contact_name = hero.display_name or resurgitag
         else:
             # 🧟‍♂️ Check Villain fallback
-            from prompts import VILLAIN_PROMPTS
+            from inner_codex import innercodexts import VILLAIN_PROMPTS
             villain_map = {v.lower().replace(" ", ""): v for v in VILLAIN_PROMPTS.keys()}
             if resurgitag in villain_map:
                 contact_name = villain_map[resurgitag]
@@ -471,7 +471,7 @@ def show_hero_chat(resurgitag):
         messages.append({"speaker": contact_name, "text": entry.response})
 
     return render_template("chat.html", resurgitag=resurgitag, messages=messages)
-@app.route("/inner-codex")
+@app.route("/codex")
 def inner_codex():
     return render_template("codex.html")
 

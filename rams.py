@@ -289,7 +289,7 @@ def build_prompt(hero, user_input, context):
     from models import User, UserBio, JournalEntry
     from sqlalchemy.orm import scoped_session
     from db import SessionLocal
-    from prompts import INNER_CODEX  # <- Make sure INNER_CODEX is accessible here
+    from inner_codex import innercodexts import INNER_CODEX  # <- Make sure INNER_CODEX is accessible here
 
     db = SessionLocal()
     user_bio_text = ""
