@@ -289,7 +289,7 @@ def build_prompt(hero, user_input, context):
     from models import User, UserBio, JournalEntry
     from sqlalchemy.orm import scoped_session
     from db import SessionLocal
-    from inner_codex import INNER_CODEX# <- Make sure INNER_CODEX is accessible here
+    from inner_codex import INNER_CODEX  # <- Make sure INNER_CODEX is accessible here
 
     db = SessionLocal()
     user_bio_text = ""
@@ -320,11 +320,11 @@ def build_prompt(hero, user_input, context):
                 )
                 journal_snippets = [j.entry.content[:300] for j in journals if j.entry.content]
     except Exception as e:
-        print("\ud83d\udd25 build_prompt DB error:", str(e))
+        print("🔥 build_prompt DB error:", str(e))  # ✅ FIXED LINE (no surrogate pairs)
     finally:
         db.close()
 
-    # \ud83e\udde0 Pull hero personality prompt from INNER_CODEX
+    # 🧠 Pull hero personality prompt from INNER_CODEX
     hero_data = INNER_CODEX.get("heroes", {}).get(hero.capitalize(), {})
     hero_prompt = hero_data.get("prompts", {}).get("default")
     if not hero_prompt:
@@ -335,7 +335,7 @@ def build_prompt(hero, user_input, context):
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
-    # \ud83e\uddf1 Base prompt
+    # 🧠 Base prompt
     base_prompt = f"""
 {hero_prompt}
 
@@ -375,11 +375,8 @@ They are human. You are not them. You are not the user. You are yourself.
 Speak with warmth, boundaries, and clarity. 4–5 lines max.
 """
 
-    # 🥉 Optional villain clause (hidden for now unless used)
+    # 🧟 Villain clause
     if hero.lower() in INNER_CODEX.get("villains", {}):
         base_prompt += "\n⚠️ You are a villain. You speak through temptation, confusion, or metaphor — not direct judgment. You do not break the user. You may challenge, but never shame. Do not speak their name unless the thread already includes it."
 
     return base_prompt.strip()
-
-
-
