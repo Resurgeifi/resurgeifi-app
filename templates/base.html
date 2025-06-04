@@ -8,23 +8,33 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
   <style>
-    /* 🎯 Wishing Well */
     #well-icon-link {
-      position: fixed;
-      bottom: 90px;
-      left: 20px;
-      z-index: 999;
-    }
+  position: fixed;
+  z-index: 999;
+  bottom: 20px;
+  left: 20px;
+}
 
-    #well-icon {
-      width: 54px;
-      filter: drop-shadow(0 0 6px #ffc);
-      transition: transform 0.3s ease;
-    }
+#well-icon {
+  width: 60px;
+  height: 60px;
+  transition: transform 0.2s ease;
+}
 
-    #well-icon:hover {
-      transform: scale(1.1);
-    }
+#well-icon:hover {
+  transform: scale(1.1);
+}
+
+/* 📱 Mobile override */
+@media (max-width: 768px) {
+  #well-icon-link {
+    bottom: auto;
+    top: 20px;
+    left: auto;
+    right: 20px;
+  }
+}
+
 
     .profile-icon {
       width: 40px;
