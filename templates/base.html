@@ -10,20 +10,21 @@
   <style>
     #well-icon-link {
   position: fixed;
-  z-index: 999;
-  bottom: 20px;
-  left: 20px;
+  bottom: 90px; /* lifts it above bottom nav */
+  right: 18px;
+  z-index: 9999;
 }
 
 #well-icon {
-  width: 60px;
-  height: 60px;
+  width: 46px;
+  height: auto;
   transition: transform 0.2s ease;
 }
 
 #well-icon:hover {
   transform: scale(1.1);
 }
+
 
 /* 📱 Mobile override */
 @media (max-width: 768px) {
@@ -186,10 +187,13 @@
       </div>
     </div>
 
-    <!-- 🔔 Wishing Well Icon -->
-    <a href="/wishing_well" id="well-icon-link" title="Check the Well">
-      <img src="{{ url_for('static', filename='icons/wellmessage.png' if g.user and g.user.has_well_messages else 'icons/wellnone.png') }}" id="well-icon" />
-    </a>
+    {% if g.user and g.user.has_well_messages %}
+  <!-- 🔔 Wishing Well Icon -->
+  <a href="{{ url_for('wishing_well') }}" id="well-icon-link" title="Check the Well">
+    <img src="{{ url_for('static', filename='icons/wellmessage.png') }}" id="well-icon" alt="Wishing Well" />
+  </a>
+{% endif %}
+
 
     <!-- 👤 Profile Icon -->
     <a href="/profile" id="profile-icon">
