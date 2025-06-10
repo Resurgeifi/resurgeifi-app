@@ -101,6 +101,18 @@
   opacity: 0.5;
   pointer-events: none;
 }
+@keyframes hauntedInk {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-1px) scale(1.02);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
 </style>
 {% endblock %}
 
