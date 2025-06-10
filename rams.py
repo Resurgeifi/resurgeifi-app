@@ -5,7 +5,6 @@ from db import SessionLocal
 from models import User, UserBio, JournalEntry
 from inner_codex import INNER_CODEX
 from flask import g
-from flask_login import current_user
 
 # Define HERO_NAMES once, for consistent use everywhere
 HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
