@@ -9,33 +9,35 @@
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
   <style>
     #well-icon-link {
-  position: fixed;
-  bottom: 90px; /* lifts it above bottom nav */
-  right: 18px;
-  z-index: 9999;
-}
+      position: fixed;
+      bottom: 90px;
+      right: 18px;
+      z-index: 9999;
+    }
 
-#well-icon {
-  width: 46px;
-  height: auto;
-  transition: transform 0.2s ease;
-}
+    #well-icon {
+      width: 46px;
+      height: auto;
+      transition: transform 0.2s ease;
+    }
 
-#well-icon:hover {
-  transform: scale(1.1);
-}
+    #well-icon:hover {
+      transform: scale(1.1);
+    }
 
+    #well-icon.inactive {
+      filter: grayscale(100%) opacity(0.5);
+    }
 
-/* 📱 Mobile override */
-@media (max-width: 768px) {
-  #well-icon-link {
-    bottom: auto;
-    top: 20px;
-    left: auto;
-    right: 20px;
-  }
-}
-
+    /* 📱 Mobile override – stay bottom-right */
+    @media (max-width: 768px) {
+      #well-icon-link {
+        top: auto;
+        bottom: 20px;
+        left: auto;
+        right: 20px;
+      }
+    }
 
     .profile-icon {
       width: 40px;
@@ -55,7 +57,6 @@
         margin-left: 1rem;
       }
 
-      /* 🔀 Burger to X animation */
       .menu-icon {
         display: inline-block;
         width: 30px;
@@ -166,7 +167,6 @@
       <input type="checkbox" id="menu-toggle" />
       <label id="sidebar-backdrop" for="menu-toggle"></label>
 
-      <!-- 🍔 Burger-to-X -->
       <label for="menu-toggle" class="menu-icon">
         <span></span>
         <span></span>
@@ -187,15 +187,6 @@
       </div>
     </div>
 
-    {% if g.user and g.user.has_well_messages %}
-  <!-- 🔔 Wishing Well Icon -->
-  <a href="{{ url_for('wishing_well') }}" id="well-icon-link" title="Check the Well">
-    <img src="{{ url_for('static', filename='icons/wellmessage.png') }}" id="well-icon" alt="Wishing Well" />
-  </a>
-{% endif %}
-
-
-    <!-- 👤 Profile Icon -->
     <a href="/profile" id="profile-icon">
       <img src="{{ url_for('static', filename='icons/profileicon.png') }}" alt="Profile Icon" class="profile-icon" />
     </a>
@@ -257,6 +248,22 @@
     </a>
   </div>
 </nav>
+{% endif %}
+
+<!-- 🧿 Wishing Well Icon -->
+{% if g.user and request.path not in ['/', '/landing'] %}
+  <a href="{{ url_for('wishing_well') }}" id="well-icon-link" title="Check the Well">
+    <img
+      src="{% if g.user.has_well_messages %}
+               {{ url_for('static', filename='backgrounds/well_1.png') }}
+             {% else %}
+               {{ url_for('static', filename='backgrounds/well_0.png') }}
+             {% endif %}"
+      id="well-icon"
+      class="{% if not g.user.has_well_messages %}inactive{% endif %}"
+      alt="Wishing Well Icon"
+    />
+  </a>
 {% endif %}
 
 <!-- 🌟 Grace Flash -->
@@ -336,6 +343,7 @@ function flashPoints() {
 
 </body>
 </html>
+
 
 
 

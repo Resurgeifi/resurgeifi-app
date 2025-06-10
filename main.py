@@ -160,6 +160,11 @@ def load_logged_in_user():
         db_session = SessionLocal()
         try:
             g.user = db_session.query(User).filter_by(id=user_id).first()
+            if g.user:
+                # ✅ Check for Wishing Well messages
+                from models import WellMessage  # adjust path if needed
+                unread_count = db_session.query(WellMessage).filter_by(user_id=user_id, read=False).count()
+                g.user.has_well_messages = unread_count > 0
         finally:
             db_session.close()
 

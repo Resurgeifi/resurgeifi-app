@@ -1,8 +1,21 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 
 db = SQLAlchemy()
+
+class WellMessage(db.Model):
+    __tablename__ = "well_messages"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    message = Column(Text, nullable=False)
+    read = Column(Boolean, default=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<WellMessage from user {self.user_id}: {'read' if self.read else 'unread'}>"
 
 # ✅ Association table for friends
 friend_association = db.Table(

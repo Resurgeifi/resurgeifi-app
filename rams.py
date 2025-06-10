@@ -4,6 +4,8 @@ from datetime import datetime
 from db import SessionLocal
 from models import User, UserBio, JournalEntry
 from inner_codex import INNER_CODEX
+from flask import g
+from flask_login import current_user
 
 # Define HERO_NAMES once, for consistent use everywhere
 HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
@@ -124,6 +126,10 @@ def detect_relapse_fantasy(thread):
     ]
     user_messages = [msg["text"].lower() for msg in thread[-3:] if msg["speaker"] == "User"]
     return any(any(p in msg for msg in user_messages) for p in relapse_phrases)
+
+def check_for_well_messages(user_id):
+    from yourapp.models import WellMessage  # adjust import to your structure
+    return WellMessage.query.filter_by(user_id=user_id, read=False).count() > 0
 
 
 def detect_playful_or_dry(thread):
