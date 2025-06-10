@@ -9,25 +9,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
   <style>
     #well-icon-link {
-      position: fixed;
-      bottom: 90px;
-      right: 18px;
-      z-index: 9999;
-    }
+  position: fixed;
+  bottom: 90px;
+  right: 18px;
+  z-index: 9999;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
 
-    #well-icon {
-      width: 46px;
-      height: auto;
-      transition: transform 0.2s ease;
-    }
+#well-icon {
+  width: 100%;
+  height: auto;
+  transition: transform 0.2s ease;
+  pointer-events: none; /* Ensures only the link, not the image itself, handles the click */
+}
 
-    #well-icon:hover {
-      transform: scale(1.1);
-    }
-
-    #well-icon.inactive {
-      filter: grayscale(100%) opacity(0.5);
-    }
+#well-icon-link:hover #well-icon {
+  transform: scale(1.1);
+}
 
     /* 📱 Mobile override – stay bottom-right */
     @media (max-width: 768px) {
