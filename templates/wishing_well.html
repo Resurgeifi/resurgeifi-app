@@ -88,33 +88,32 @@
       height: auto;
       border-radius: 12px;
     ">
-    <div class="scroll-text" style="
-  position: relative;
-  top: 22%;
-  left: 12%;
-  width: 76%;
-  height: 55%;
-  font-family: 'Patrick Hand', sans-serif;
-  font-size: 1.25rem;
-  color: #3b2e1d;
-  line-height: 1.6;
-  text-align: left;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-">
-  <p id="scroll-message">[Message will appear here]</p>
-  <p id="scroll-signed" class="scroll-signed" style="
-    position: absolute;
-    bottom: 1.5rem;
-    right: 1.2rem;
-    font-size: 1.2rem;
-    font-family: 'Dancing Script', cursive;
-    font-weight: bold;
-    color: #000;
-    animation: hauntedInk 2.8s infinite ease-in-out;
-  ">— Grace</p>
-</div>
 
+    <div class="scroll-text" style="
+      position: absolute;
+      top: 16%;  /* ⬆ Pulled the text up */
+      left: 12%;
+      width: 76%;
+      height: 60%;
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.3rem;
+      color: #000;
+      line-height: 1.6;
+      text-align: left;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    ">
+      <p id="scroll-message">[Message will appear here]</p>
+      <p id="scroll-signed" style="
+        position: absolute;
+        bottom: 4%;
+        right: 6%;
+        font-size: 1.15rem;
+        font-family: 'Dancing Script', cursive;
+        font-weight: bold;
+        color: #000;
+      ">— Grace</p>
+    </div>
 
     <button onclick="closeScroll()" class="scroll-close" style="
       margin-top: 1rem;
