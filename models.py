@@ -9,7 +9,7 @@ class WellMessage(db.Model):
     __tablename__ = "well_messages"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     message = Column(Text, nullable=False)
     read = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
