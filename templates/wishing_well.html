@@ -89,30 +89,33 @@
       border-radius: 12px;
     ">
 
-    <div class="scroll-text" style="
-      position: absolute;
-      top: 16%;  /* ⬆ Pulled the text up */
-      left: 12%;
-      width: 76%;
-      height: 60%;
-      font-family: 'Dancing Script', cursive;
-      font-size: 1.3rem;
-      color: #000;
-      line-height: 1.6;
-      text-align: left;
-      overflow-y: auto;
-      padding-right: 0.5rem;
-    ">
-      <p id="scroll-message">[Message will appear here]</p>
-      <p id="scroll-signed" style="
-        position: absolute;
-        bottom: 4%;
-        right: 6%;
-        font-size: 1.15rem;
-        font-family: 'Dancing Script', cursive;
-        font-weight: bold;
-        color: #000;
-      ">— Grace</p>
+    <<div class="scroll-text" style="
+  position: absolute;
+  top: 22%;            /* 🔽 Slightly lower to center better on mobile */
+  left: 10%;
+  width: 80%;
+  height: 56%;
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.3rem;
+  color: #000;
+  line-height: 1.6;
+  text-align: left;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+">
+  <p id="scroll-message">[Message will appear here]</p>
+
+  <p id="scroll-signed" style="
+    position: absolute;
+    bottom: 6%;        /* 🔼 Moves signature up a bit */
+    right: 6%;
+    font-size: 1.15rem;
+    font-family: 'Dancing Script', cursive;
+    font-weight: bold;
+    color: #000;
+  ">— Grace</p>
+</div>
+
     </div>
 
     <button onclick="closeScroll()" class="scroll-close" style="
