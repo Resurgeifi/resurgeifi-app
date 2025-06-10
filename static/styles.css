@@ -511,3 +511,21 @@ html, body {
 body::-webkit-scrollbar {
   display: none;                   /* Chrome, Safari */
 }
+.scroll-text {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.25rem;
+  color: #3b2e1d !important;
+  line-height: 1.6;
+  text-align: left;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+.scroll-signed {
+  position: absolute;
+  bottom: -2rem;
+  right: 0;
+  font-size: 1.1rem;
+  font-family: 'Dancing Script', cursive;
+  font-weight: bold;
+  color: #000;
+}
