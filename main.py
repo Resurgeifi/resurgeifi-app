@@ -177,6 +177,43 @@ def admin_required(f):
             return redirect(url_for("index"))
         return f(*args, **kwargs)
     return decorated_function
+@app.route("/admin/send-message", methods=["GET", "POST"])
+@admin_required
+def admin_send_message():
+    db = SessionLocal()
+    if request.method == "POST":
+        user_id = request.form.get("user_id")
+        tag = request.form.get("resurgitag")
+        content = request.form.get("content")
+        sender = request.form.get("sender") or "System"
+        msg_type = request.form.get("type") or "system"
+
+        # 🔎 Resolve user
+        user = None
+        if user_id:
+            user = db.query(User).filter_by(id=user_id).first()
+        elif tag:
+            user = db.query(User).filter_by(resurgitag=tag).first()
+
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("admin_send_message"))
+
+        # 💌 Create message
+        new_msg = WishingWellMessage(
+            user_id=user.id,
+            sender=sender,
+            message_type=msg_type,
+            content=content,
+            is_public=False,
+            is_read=False
+        )
+        db.add(new_msg)
+        db.commit()
+        flash("Message sent to user!", "success")
+        return redirect(url_for("admin_send_message"))
+
+    return render_template("admin_send_message.html")
 
 # ✅ Login required decorator
 def login_required(f):

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📬 Admin Message Sender</h2>
+<form method="POST">
+  <label>User ID:</label>
+  <input type="text" name="user_id" placeholder="or use Resurgitag below"><br>
+
+  <label>Resurgitag:</label>
+  <input type="text" name="resurgitag" placeholder="@InnerOG"><br>
+
+  <label>Sender:</label>
+  <input type="text" name="sender" value="System"><br>
+
+  <label>Message Type:</label>
+  <input type="text" name="type" value="system"><br>
+
+  <label>Message:</label><br>
+  <textarea name="content" rows="5" cols="40" required></textarea><br><br>
+
+  <button type="submit">Send Message</button>
+</form>
+{% endblock %}
