@@ -512,23 +512,55 @@ body::-webkit-scrollbar {
   display: none;                   /* Chrome, Safari */
 }
 .scroll-text {
+  position: absolute;
+  top: 26%;             /* Adjust vertical placement */
+  left: 10%;
+  width: 80%;
+  height: 55%;
   font-family: 'Dancing Script', cursive;
-  font-size: 1.8rem;
+  font-size: 2.8rem;
   color: #000;
-  line-height: 2.2;
+  line-height: 1.6;
   text-align: left;
   overflow-y: auto;
   padding-right: 0.5rem;
 }
+
+#scroll-message {
+  color: #1e1e1e;
+  animation: inkFlicker 3.6s ease-in-out infinite;
+}
+
+/* ✒️ Signature style */
 .scroll-signed {
   position: absolute;
-  bottom: -2rem;
-  right: 0;
-  font-size: 1.1rem;
+  bottom: 1rem;         /* Adjust upward into view */
+  right: 1rem;
+  font-size: 3.1rem;
   font-family: 'Dancing Script', cursive;
   font-weight: bold;
-  color: #000;
+  color: #1e1e1e;
+  opacity: 0;
+  animation: signIn 1.4s ease-out 0.8s forwards;
+  transform-origin: left;
 }
+.close-scroll-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  color: #3b2e1d;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+.close-scroll-btn:hover {
+  transform: scale(1.2);
+}
+
+/* 🖋️ Ink flicker effect */
 @keyframes inkFlicker {
   0%, 100% {
     opacity: 1;
@@ -544,5 +576,21 @@ body::-webkit-scrollbar {
     opacity: 0.95;
     transform: scale(0.99) rotate(0.4deg);
     filter: blur(0.2px);
+  }
+}
+
+/* 🖌️ Signature animation */
+@keyframes signIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.9) rotate(-3deg);
+  }
+  60% {
+    opacity: 0.7;
+    transform: translateX(5px) scale(1.03) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
   }
 }
