@@ -1282,8 +1282,12 @@ def wishing_well():
 
     try:
         if request.method == "POST":
-            message = request.form.get("wish_message")
+            message = request.form.get("wish_message", "").strip()
             is_public = request.form.get("is_public") == "on"
+
+            if not message:
+                flash("Your wish cannot be empty.", "warning")
+                return redirect(url_for("wishing_well"))
 
             new_wish = WishingWellMessage(
                 user_id=user_id,
@@ -1297,16 +1301,20 @@ def wishing_well():
             flash("🌠 Your wish has been cast into the Well.", "success")
             return redirect(url_for("wishing_well"))
 
-        # ✅ Get last 5 unread scroll messages for this user
+        # ✅ Get last 5 unread *non-wish* messages
         unread_scrolls = (
             db.query(WishingWellMessage)
-            .filter_by(user_id=user_id, message_type="scroll", is_read=False)
+            .filter(
+                WishingWellMessage.user_id == user_id,
+                WishingWellMessage.is_read == False,
+                WishingWellMessage.message_type != "wish"
+            )
             .order_by(WishingWellMessage.timestamp.asc())
             .limit(5)
             .all()
         )
 
-        # Convert to simplified JSON for template
+        # 🎁 Package scrolls for display
         scroll_payload = [
             {
                 "content": scroll.content,
@@ -1315,7 +1323,7 @@ def wishing_well():
             for scroll in unread_scrolls
         ]
 
-        # Optional: get public wishes for bottom of the page
+        # 🌍 Optional: get recent public user wishes
         recent_wishes = (
             db.query(WishingWellMessage)
             .filter_by(message_type="wish", is_public=True)
@@ -1338,6 +1346,7 @@ def wishing_well():
 
     finally:
         db.close()
+
 @app.route('/wishing_well_archive')
 @login_required
 def wishing_well_archive():
