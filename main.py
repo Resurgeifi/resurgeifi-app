@@ -1301,6 +1301,25 @@ def wishing_well():
 
     finally:
         db.close()
+@app.route('/wishing_well_archive')
+@login_required
+def wishing_well_archive():
+    from db import SessionLocal
+    db_session = SessionLocal()
+    user_id = session.get("user_id")
+
+    messages = db_session.query(WishingWellMessage)\
+        .filter_by(user_id=user_id)\
+        .order_by(WishingWellMessage.timestamp.desc())\
+        .all()
+
+    # Mark messages as read
+    for msg in messages:
+        if not msg.is_read:
+            msg.is_read = True
+    db_session.commit()
+
+    return render_template("wishing_well_archive.html", messages=messages)
 
 @app.context_processor
 def inject_global_well_status():

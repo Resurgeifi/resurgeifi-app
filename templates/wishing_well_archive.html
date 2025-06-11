@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto; padding: 1rem; background: #f9f7f1; border-radius: 12px;">
+  <h2 style="text-align: center;">🧾 Messages from the Well</h2>
+
+  {% if messages %}
+    <ul style="list-style: none; padding: 0;">
+      {% for msg in messages %}
+        <li style="background: #fff; margin: 1rem 0; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="font-size: 1.1rem; white-space: pre-wrap;">{{ msg.content }}</p>
+          <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+            — {{ msg.sender }} on {{ msg.timestamp.strftime('%b %d, %Y %I:%M %p') }}
+          </p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p style="text-align: center;">No messages yet. When a hero speaks, it echoes here.</p>
+  {% endif %}
+</div>
+{% endblock %}

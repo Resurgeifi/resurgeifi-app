@@ -513,7 +513,7 @@ body::-webkit-scrollbar {
 }
 .scroll-text {
   position: absolute;
-  top: 26%;             /* Adjust vertical placement */
+  top: 22%;             /* ⬆️ Move text block up */
   left: 10%;
   width: 80%;
   height: 55%;
@@ -528,22 +528,22 @@ body::-webkit-scrollbar {
 
 #scroll-message {
   color: #1e1e1e;
-  animation: inkFlicker 3.6s ease-in-out infinite;
+  animation: none; /* 🧼 Remove the flicker animation */
 }
 
 /* ✒️ Signature style */
 .scroll-signed {
   position: absolute;
-  bottom: 1rem;         /* Adjust upward into view */
-  right: 1rem;
-  font-size: 2.1rem;
+  bottom: 2rem;         /* ⬇️ Move signature a bit lower */
+  right: 1.2rem;
+  font-size: 2.6rem;
   font-family: 'Dancing Script', cursive;
   font-weight: bold;
   color: #1e1e1e;
-  opacity: 0;
-  animation: signIn 1.4s ease-out 0.8s forwards;
-  transform-origin: left;
+  opacity: 1;           /* Show immediately */
+  animation: none;      /* Remove weird animation */
 }
+
 .close-scroll-btn {
   position: absolute;
   top: 10px;
@@ -560,37 +560,3 @@ body::-webkit-scrollbar {
   transform: scale(1.2);
 }
 
-/* 🖋️ Ink flicker effect */
-@keyframes inkFlicker {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-    filter: blur(0);
-  }
-  45% {
-    opacity: 0.9;
-    transform: scale(1.01) rotate(-0.3deg);
-    filter: blur(0.3px);
-  }
-  60% {
-    opacity: 0.95;
-    transform: scale(0.99) rotate(0.4deg);
-    filter: blur(0.2px);
-  }
-}
-
-/* 🖌️ Signature animation */
-@keyframes signIn {
-  0% {
-    opacity: 0;
-    transform: translateX(-20px) scale(0.9) rotate(-3deg);
-  }
-  60% {
-    opacity: 0.7;
-    transform: translateX(5px) scale(1.03) rotate(1deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) scale(1) rotate(0deg);
-  }
-}

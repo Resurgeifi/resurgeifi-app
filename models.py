@@ -1,6 +1,5 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 
 db = SQLAlchemy()
@@ -9,13 +8,16 @@ class WellMessage(db.Model):
     __tablename__ = "well_messages"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Receiver
+    sender = Column(Text, nullable=False, default="System")            # Hero, system, or user
     message = Column(Text, nullable=False)
+    message_type = Column(Text, nullable=False, default="system")      # 'system', 'hero', 'user'
     read = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)
 
     def __repr__(self):
-        return f"<WellMessage from user {self.user_id}: {'read' if self.read else 'unread'}>"
+        return f"<WellMessage from {self.sender} to user {self.user_id}: {'read' if self.read else 'unread'}>"
 
 # ✅ Association table for friends
 friend_association = db.Table(
