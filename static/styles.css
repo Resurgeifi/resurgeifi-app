@@ -512,10 +512,10 @@ body::-webkit-scrollbar {
   display: none;                   /* Chrome, Safari */
 }
 .scroll-text {
-  font-family: 'Patrick Hand', cursive;
-  font-size: 1.25rem;
-  color: #300;
-  line-height: 1.6;
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.8rem;
+  color: #000;
+  line-height: 2.2;
   text-align: left;
   overflow-y: auto;
   padding-right: 0.5rem;
@@ -528,4 +528,21 @@ body::-webkit-scrollbar {
   font-family: 'Dancing Script', cursive;
   font-weight: bold;
   color: #000;
+}
+@keyframes inkFlicker {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+  45% {
+    opacity: 0.9;
+    transform: scale(1.01) rotate(-0.3deg);
+    filter: blur(0.3px);
+  }
+  60% {
+    opacity: 0.95;
+    transform: scale(0.99) rotate(0.4deg);
+    filter: blur(0.2px);
+  }
 }
