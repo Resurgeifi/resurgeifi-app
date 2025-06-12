@@ -167,6 +167,18 @@ def load_logged_in_user():
                 g.user.has_well_messages = unread_count > 0
         finally:
             db_session.close()
+@app.route("/admin/users/<int:user_id>")
+@admin_required
+def view_user(user_id):
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter_by(id=user_id).first()
+        if not user:
+            flash("User not found.", "warning")
+            return redirect(url_for("admin_users"))
+        return render_template("admin_view_user.html", user=user)
+    finally:
+        db.close()
 
 # ✅ Admin access check
 def admin_required(f):

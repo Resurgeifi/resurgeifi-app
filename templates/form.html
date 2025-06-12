@@ -7,13 +7,23 @@
      alt="Circle Title"
      class="circle-title-img" />
 
-<!-- 🔱 Hero Connections -->
-<h2 class="section-title" style="text-align: center; margin-top: 3rem; color: #f6e7c1;">
-  🔱 Hero Connections
+<!-- 🛡️ Hero Allies -->
+<h2 class="section-title" style="
+    text-align: center;
+    margin-top: 3.5rem;
+    margin-bottom: 2rem;
+    color: #f6e7c1;
+    font-size: 2rem;
+    border-bottom: 2px solid #f6e7c1;
+    display: inline-block;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    padding-bottom: 0.5rem;
+">
+  🛡️ Hero Allies
 </h2>
 
 <!-- 🧠 Hero Arc Lineup (circle layout preserved) -->
-<div class="hero-arc-lineup">
+<div class="hero-arc-lineup" style="margin-bottom: 4rem;">
   {% for hero in ["Cognita", "Velessa", "SirRenity", "Grace", "Lucentis"] %}
     <div class="hero">
       <img src="{{ url_for('static', filename='images/heroes/' + hero + '_Transparent.png') }}"
@@ -46,9 +56,19 @@
   </div>
 </div>
 
-<!-- 👥 User Connections -->
-<h2 class="section-title" style="text-align: center; margin-top: 4rem; color: #f6e7c1;">
-  👥 Your Connections
+<!-- 👥 Fellow Travelers -->
+<h2 class="section-title" style="
+    text-align: center;
+    margin-top: 5rem;
+    margin-bottom: 2rem;
+    color: #f6e7c1;
+    font-size: 2rem;
+    border-bottom: 2px solid #f6e7c1;
+    display: inline-block;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    padding-bottom: 0.5rem;
+">
+  👥 Fellow Travelers
 </h2>
 
 <div class="circle-message" style="text-align: center; font-style: italic; color: #a8a8a8; margin-bottom: 5rem;">
@@ -100,5 +120,6 @@
   });
 </script>
 {% endblock %}
+
 
 
