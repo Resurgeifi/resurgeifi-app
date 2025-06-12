@@ -268,3 +268,16 @@ def login_required(f):
             return redirect(url_for("auth.login"))
         return f(*args, **kwargs)
     return decorated_function
+
+
+# ✅ User-to-User Connections
+class UserConnection(db.Model):
+    __tablename__ = 'user_connections'
+    id = db.Column(db.Integer, primary_key=True)
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    follower = db.relationship('User', foreign_keys=[follower_id], backref='following_assocs')
+    followed = db.relationship('User', foreign_keys=[followed_id], backref='followers_assocs')
+

@@ -68,12 +68,52 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     padding-bottom: 0.5rem;
 ">
+  <!-- 👥 Fellow Travelers -->
+<h2 class="section-title" style="
+    text-align: center;
+    margin-top: 5rem;
+    margin-bottom: 2rem;
+    color: #f6e7c1;
+    font-size: 2rem;
+    border-bottom: 2px solid #f6e7c1;
+    display: inline-block;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    padding-bottom: 0.5rem;
+">
   👥 Fellow Travelers
 </h2>
 
-<div class="circle-message" style="text-align: center; font-style: italic; color: #a8a8a8; margin-bottom: 5rem;">
-  You haven’t connected with any other travelers yet...
-</div>
+{% if connected_users %}
+  <div class="connected-users" style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; margin-bottom: 4rem;">
+    {% for user in connected_users %}
+      <div class="user-card" style="background-color: #292945; padding: 1rem 2rem; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); text-align: left;">
+        <h3 style="color: #ffeecb; margin-bottom: 0.25rem;">
+          {{ user.display_name or "Anonymous" }}
+          <span style="font-size: 0.9rem; color: #bbb;">@{{ user.resurgitag.lstrip('@') }}</span>
+        </h3>
+        <p style="margin: 0; color: #ddd;"><strong>Nickname:</strong> {{ user.nickname or "Traveler" }}</p>
+        {% if user.theme_choice %}
+          <p style="margin: 0; color: #ddd;"><strong>Journey:</strong> {{ user.theme_choice }}</p>
+        {% endif %}
+        {% if user.last_active %}
+          <p style="margin: 0; color: #999;"><em>Last active {{ (current_time - user.last_active).seconds // 60 }} min ago</em></p>
+        {% endif %}
+        <div style="margin-top: 0.75rem;">
+          <a href="{{ url_for('view_user_profile', user_id=user.id) }}"
+             class="global-button"
+             style="padding: 0.5rem 1.2rem; font-size: 1rem; background-color: #f4a259; color: black; border-radius: 6px;">
+            🌟 View Profile
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="circle-message" style="text-align: center; font-style: italic; color: #a8a8a8; margin-bottom: 5rem;">
+    You haven’t connected with any other travelers yet...
+  </div>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
