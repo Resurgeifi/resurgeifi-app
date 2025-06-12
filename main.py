@@ -51,6 +51,7 @@ import requests  # ✅ For ElevenLabs streaming
 from models import (
     db,
     User,
+    UserConnection,
     JournalEntry,
     QueryHistory,
     HeroProfile,
