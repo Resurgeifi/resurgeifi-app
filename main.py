@@ -1346,6 +1346,54 @@ def wishing_well():
 
     finally:
         db.close()
+@app.route("/api/mark_scroll_read", methods=["POST"])
+@login_required
+def mark_scroll_read():
+    db = SessionLocal()
+    try:
+        data = request.get_json()
+        scroll_id = data.get("scroll_id")
+
+        scroll = db.query(WishingWellMessage).filter_by(id=scroll_id, user_id=session["user_id"]).first()
+        if scroll:
+            scroll.is_read = True
+            db.commit()
+            return jsonify({"status": "success"})
+        return jsonify({"status": "not found"}), 404
+    except Exception as e:
+        db.rollback()
+        print("❌ Error marking scroll as read:", e)
+        return jsonify({"status": "error"}), 500
+    finally:
+        db.close()
+@app.route("/api/mark_scroll_read", methods=["POST"])
+@login_required
+def mark_scroll_read():
+    from flask import jsonify
+    db = SessionLocal()
+
+    try:
+        data = request.get_json()
+        scroll_id = data.get("scroll_id")
+
+        if not scroll_id:
+            return jsonify({"error": "Missing scroll_id"}), 400
+
+        scroll = db.query(WishingWellMessage).filter_by(id=scroll_id, user_id=session["user_id"]).first()
+        if not scroll:
+            return jsonify({"error": "Scroll not found"}), 404
+
+        scroll.is_read = True
+        db.commit()
+        return jsonify({"success": True}), 200
+
+    except Exception as e:
+        db.rollback()
+        print("🧨 Scroll Read Error:", e)
+        return jsonify({"error": "Server error"}), 500
+
+    finally:
+        db.close()
 
 @app.route('/wishing_well_archive')
 @login_required
