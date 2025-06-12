@@ -167,6 +167,15 @@ def load_logged_in_user():
                 g.user.has_well_messages = unread_count > 0
         finally:
             db_session.close()
+# ✅ Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please log in to access Resurgifi.")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # ✅ Admin access check
 def admin_required(f):
@@ -296,16 +305,6 @@ def admin_user_profile(user_id):
     messages = db.query(CircleMessage).filter_by(sender=user.resurgitag).order_by(CircleMessage.timestamp.desc()).limit(20).all()
 
     return render_template("admin_user_profile.html", user=user, journals=journals, messages=messages)
-
-# ✅ Login required decorator
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Please log in to access Resurgifi.")
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 @app.route('/landing')
 def landing_alias():
