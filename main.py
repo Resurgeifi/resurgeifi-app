@@ -238,18 +238,21 @@ def connect_user(user_id):
 
         # Check for existing connection
         existing = db.query(UserConnection).filter_by(
-            from_user_id=current_user_id, to_user_id=user_id
+            follower_id=current_user_id, followed_id=user_id
         ).first()
 
         if existing:
             flash("You already follow this user.", "info")
         else:
-            new_conn = UserConnection(from_user_id=current_user_id, to_user_id=user_id)
+            new_conn = UserConnection(
+                follower_id=current_user_id,
+                followed_id=user_id
+            )
             db.add(new_conn)
             db.commit()
             flash("🎉 Connection created successfully!", "success")
 
-        # Safe redirect — choose one or both based on route context
+        # Safe redirect
         user = db.query(User).filter_by(id=user_id).first()
         if user and user.resurgitag:
             return redirect(url_for('view_public_profile', resurgitag=user.resurgitag))
