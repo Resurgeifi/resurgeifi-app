@@ -99,7 +99,7 @@
           <p style="margin: 0; color: #999;"><em>Last active {{ (current_time - user.last_active).seconds // 60 }} min ago</em></p>
         {% endif %}
         <div style="margin-top: 0.75rem;">
-          <a href="{{ url_for('view_user_profile', user_id=user.id) }}"
+          <a href="{{ url_for('view_public_profile', resurgitag=user.resurgitag.lstrip('@')) }}"
              class="global-button"
              style="padding: 0.5rem 1.2rem; font-size: 1rem; background-color: #f4a259; color: black; border-radius: 6px;">
             🌟 View Profile
