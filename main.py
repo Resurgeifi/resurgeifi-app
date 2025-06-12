@@ -813,7 +813,18 @@ def menu():
 @app.route('/form')
 @login_required
 def form():
-    return render_template('form.html')
+    db = SessionLocal()
+    try:
+        user_id = session.get("user_id")
+
+        # Pull users this user is following
+        connections = db.query(User).join(UserConnection, User.id == UserConnection.followed_id)\
+            .filter(UserConnection.follower_id == user_id)\
+            .order_by(User.nickname.asc()).all()
+
+        return render_template('form.html', connected_users=connections, current_time=datetime.utcnow())
+    finally:
+        db.close()
 
 
 @app.route("/settings", methods=["GET", "POST"])
