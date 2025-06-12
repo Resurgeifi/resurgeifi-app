@@ -139,6 +139,19 @@
       icon.style.display = "none";
       openedCount++;
 
+      // ✅ Mark scroll as read in backend
+      fetch("/api/mark_scroll_read", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ scroll_id: scroll.id })
+      }).then(res => {
+        if (!res.ok) {
+          console.warn("❌ Scroll marking failed.");
+        }
+      }).catch(err => console.error("❌ API error:", err));
+
       if (openedCount >= scrolls.length) {
         document.getElementById("well-mouth").style.opacity = 0.4;
       }
@@ -180,4 +193,5 @@
   // Force close modal on page load
   document.getElementById("scroll-modal").style.display = "none";
 </script>
+
 {% endblock %}

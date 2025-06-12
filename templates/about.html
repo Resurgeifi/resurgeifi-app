@@ -4,42 +4,86 @@
 
 {% block content %}
 <div class="about-container">
-  <div class="about-image">
+  <div class="about-image" style="max-height: 240px; overflow: hidden;">
     <img 
       src="{{ url_for('static', filename='resurgenc-hero-bg.png') }}" 
       alt="Resurgifi Hero Art"
+      style="width: 100%; height: auto; object-fit: cover;"
     >
   </div>
 
   <div class="about-card">
-    <h1>💫 About Resurgifi</h1>
-    <p class="mantra">This isn't just an app. It's a comeback story.</p>
+    <h1>🌌 Welcome to the State of Inner</h1>
+    <p class="mantra">This isn’t just an app. It’s your emotional world — reflected, mapped, and finally understood.</p>
 
-    <p><strong>Resurgifi</strong> is a self-guided recovery and mental health app built by Kevin Conzo and Eileen Lynch, born from real-life experience, grief, trauma, and healing. It’s designed to help users reconnect with clarity, calm, and personal transformation.</p>
+    <p><strong>Resurgifi</strong> was created because most recovery tools don’t feel like recovery. They feel like data collection. This feels like a world.</p>
 
-    <p>Unlike generic wellness tools, Resurgifi speaks from the inside out — weaving narrative, journaling, visual guidance, and AI-supported reflection into a daily practice of inner resurgence.</p>
+    <p>The idea came from two people rebuilding from very different trenches: <strong>Kevin Conzo</strong, living through addiction and relapse recovery, and <strong>Eileen Lynch</strong>, navigating complex trauma and years of depressive cycles. Together, they designed something that speaks to people who don’t always feel spoken to — especially in early recovery.</p>
 
-    <p><strong>Core tools include:</strong></p>
+    <p>Resurgifi is powered by Tier-1 AI technology, memory-driven logic, and a symbolic emotional map called the <strong>State of Inner</strong>. As you reflect, journal, complete quests, and connect with heroes, your internal landscape shifts with you. It’s responsive. Visual. And deeply personal.</p>
+
+    <p>Each tool is built to meet you in the moment — whether that’s a craving, a grief wave, or the weight of just existing. Heroes reflect back insight. Villains tempt or twist. And you? You write your way through it.</p>
+
+    <p><strong>What’s inside:</strong></p>
     <ul>
-      <li>🌀 The Inner Circle — ask your Personal Circle of Resurgifi AIs anything</li>
-      <li>📓 Journaling — write, reflect, and build your streak with real reward motivations (Merch!)</li>
-      <li>🔥 Burnthrough — vent emotional weight through visual feeling prompts when words are lost</li>
-      <li>🎯 Personalized journey onboarding to shape your RESURGENCE!</li>
+      <li>📓 <strong>Quests & Reflections</strong> — Daily journal prompts rooted in lived experience, not fluff</li>
+      <li>🦸 <strong>Hero Conversations</strong> — Emotional guides like Grace and Cognita help you think, feel, and stay present</li>
+      <li>🧠 <strong>Auto-Journal</strong> — Summarize your last 7 days of growth with a single tap</li>
+      <li>💌 <strong>Wishing Well</strong> — Send and receive scrolls of encouragement across your Circle</li>
+      <li>🤝 <strong>User-to-User Messages</strong> — Quiet check-ins between people walking similar paths</li>
     </ul>
 
-    <p>This is Kevin’s opus — a legacy for healing, created not from theory, but from living it.</p>
-    <p><em>“Stop the spiral, Resurgifi your life!”</em></p>
+    <p>This app isn’t about streaks or streak-breaking. It’s about momentum — however slow, however painful. And when you’re ready to rise? You’ll have something here waiting for you.</p>
 
-    <a href="{{ url_for('menu') }}"><button>⬅ Back to Menu</button></a>
+    <p><em>“You’re not broken. You’re resurging.”</em></p>
+
+    <p class="mantra" style="font-weight: bold; font-size: 1.2rem;">You don’t have to be better. You just have to <strong>Resurgifi your life</strong>.</p>
   </div>
 </div>
+
+<!-- 🤝 Collab & Contact Form -->
+<div class="main-content" style="max-width: 620px; margin: 3rem auto; text-align: center;">
+  <h2>📬 Reach Out</h2>
+  <p class="mantra">Whether you're a professional, creative, or just someone who resonates — we want to hear from you.</p>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-message flash-success" style="margin-top: 2rem;">
+        {{ messages[0] }}
+      </div>
+    {% else %}
+      <form method="POST" action="/feedback" enctype="multipart/form-data" style="margin-top: 2rem;">
+        <textarea name="message" rows="6"
+          placeholder="Send us your thoughts, ideas, or interest in collaborating."
+          style="width: 100%; padding: 1rem; font-size: 1rem; border-radius: 10px; border: 2px solid #1e2d2b; background: #fef9e7; color: #1f3e36;"></textarea><br><br>
+
+        <label for="screenshot" style="display: block; margin-bottom: 0.5rem;">📸 Upload Screenshot (optional):</label>
+        <input type="file" name="screenshot" accept="image/*" style="margin-bottom: 1.5rem;"><br>
+
+        <button type="submit" class="global-button">Send Message</button>
+      </form>
+    {% endif %}
+  {% endwith %}
+</div>
+
+<!-- ❓ Q & A Section -->
+<div class="main-content" style="max-width: 720px; margin: 4rem auto;">
+  <h2>❓ Frequently Asked</h2>
+
+  <h4>Is this therapy?</h4>
+  <p>No. Resurgifi is a recovery *companion*, not a licensed provider. It blends reflection, metaphor, and AI-driven dialogue — but it’s not a replacement for professional treatment. Think of it as your support system between sessions, or when you’ve got no one to text.</p>
+
+  <h4>Do I talk to real people?</h4>
+  <p>Your Circle can include real users, but Resurgifi’s core experience is built around emotionally intelligent hero figures. They're consistent, grounded, and get to know your tone — but they're AI-powered, not live humans.</p>
+
+  <h4>What’s the point of the map?</h4>
+  <p>The State of Inner isn’t a game map — it’s a symbolic reflection of your inner world. Where you are emotionally (like The Bridge Between or The Abyss) shows up visually in your recovery journey. It helps users with trauma, ADHD, and emotional overwhelm see their experience, not just think about it.</p>
+
+  <h4>Is this free?</h4>
+  <p>During the beta, yes. Eventually, we’ll offer both a free tier and a paid tier, with zero pressure. Our goal is access — not exploitation.</p>
+
+  <h4>What happens to my journal?</h4>
+  <p>Your journal is private to you. No one sees it, no one sells it, and no villain ever reads it. It’s yours — always.</p>
+</div>
 {% endblock %}
-
-
-
-
-
-
-
-
 

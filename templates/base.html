@@ -260,17 +260,13 @@
 {% if g.user and request.path not in ['/', '/landing'] %}
   <a href="{{ url_for('wishing_well') }}" id="well-icon-link" title="Check the Well">
     <img
-      src="{% if g.user.has_well_messages %}
-               {{ url_for('static', filename='backgrounds/well_1.png') }}
-             {% else %}
-               {{ url_for('static', filename='backgrounds/well_0.png') }}
-             {% endif %}"
+      src="{{ url_for('static', filename='icons/wellmessage.png') if g.user.has_well_messages else url_for('static', filename='icons/wellnone.png') }}"
       id="well-icon"
-      class="{% if not g.user.has_well_messages %}inactive{% endif %}"
       alt="Wishing Well Icon"
     />
   </a>
 {% endif %}
+
 
 <!-- 🌟 Grace Flash -->
 <div id="graceFlash" class="hero-flash">
