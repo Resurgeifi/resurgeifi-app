@@ -34,12 +34,24 @@
   <!-- 🚶 CTA to Follow -->
 <div style="margin-top: 2.5rem;">
   <h3 style="color: #f6e7c1; margin-bottom: 1rem;">🚶 Follow This Journey</h3>
-  <a href="{{ url_for('register', next=url_for('profile')) }}"
-     class="btn global-button"
-     style="padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: #f4a259; color: black; border-radius: 8px;">
-    🔐 Follow & Connect
-  </a>
+
+  {% if g.user %}
+    <form action="{{ url_for('connect_user', user_id=friend.id) }}" method="post">
+      <button type="submit"
+              class="btn global-button"
+              style="padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: #f4a259; color: black; border-radius: 8px;">
+        🔐 Follow & Connect
+      </button>
+    </form>
+  {% else %}
+    <a href="{{ url_for('register', next=url_for('connect_user', user_id=friend.id)) }}"
+       class="btn global-button"
+       style="padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: #f4a259; color: black; border-radius: 8px;">
+      🔐 Follow & Connect
+    </a>
+  {% endif %}
 </div>
+
 
 
 </div>

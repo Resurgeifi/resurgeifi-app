@@ -247,6 +247,36 @@ def connect_user(user_id):
         flash("You’re already connected.", "info")
 
     return redirect(url_for("view_user_profile", user_id=user_id))
+@app.route("/connect/<int:user_id>", methods=["POST"])
+@login_required
+def connect_user(user_id):
+    db = SessionLocal()
+    try:
+        current_user_id = session.get("user_id")
+        # Prevent self-follow
+        if current_user_id == user_id:
+            flash("You can't follow yourself.", "warning")
+            return redirect(url_for('view_public_profile', resurgitag="yourtag"))
+
+        # Check for existing connection
+        existing = db.query(UserConnection).filter_by(
+            from_user_id=current_user_id, to_user_id=user_id
+        ).first()
+        if existing:
+            flash("You already follow this user.", "info")
+        else:
+            new_conn = UserConnection(from_user_id=current_user_id, to_user_id=user_id)
+            db.add(new_conn)
+            db.commit()
+            flash("🎉 Connection created successfully!", "success")
+
+        # Redirect back to public profile
+        user = db.query(User).filter_by(id=user_id).first()
+        return redirect(url_for('view_public_profile', resurgitag=user.resurgitag))
+
+    finally:
+        db.close()
+
 
 @app.route("/admin/users/<int:user_id>")
 @admin_required
