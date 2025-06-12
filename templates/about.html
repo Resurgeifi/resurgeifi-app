@@ -2,73 +2,85 @@
 {% block title %}About Resurgifi{% endblock %}
 {% block content %}
 
-<div class="content-box">
-  <h1>🌌 Welcome to the State of Inner</h1>
-  <p class="mantra">This isn’t just an app. It’s your emotional world — reflected, mapped, and finally understood.</p>
+<div class="container py-4 fs-5">  <!-- Sets larger base font -->
+  <div class="content-box">
+    <h1 class="text-center mb-4 fs-2">🌌 Welcome to the State of Inner</h1>
+    <p class="text-center mb-4 fs-4 fst-italic">This isn’t just an app. It’s your emotional world — reflected, mapped, and finally understood.</p>
 
-  <hr>
+    <hr>
 
-  <p><strong>Resurgifi</strong> was born from lived experience. Not theory. Not textbook psychology. Just two people — <strong>Kevin Conzo</strong> (addiction, relapse, survival) and <strong>Eileen Lynch</strong> (depression, trauma, healing) — deciding to build the kind of tool they wish had existed when everything fell apart.</p>
+    <p><strong>Resurgifi</strong> was born from lived experience — not theory, not textbooks. Just two people: <strong>Kevin Conzo</strong> (addiction, relapse, survival) and <strong>Eileen Lynch</strong> (depression, trauma, healing), building the kind of tool they wish had existed when everything fell apart.</p>
 
-  <p>They called it <em>Resurgifi</em>, a made-up word that felt like what it was meant to do: help you rise again. Not by forcing productivity or perfection — but by giving people in recovery something real. Something cinematic. Something that actually makes you want to come back tomorrow.</p>
+    <p>The name <em>Resurgifi</em> was made up to feel like what it does — help you rise again. Not with pressure or perfection, but with something real. Something cinematic. Something that actually makes you want to come back tomorrow.</p>
 
-  <hr>
+    <hr>
 
-  <p>Inside Resurgifi lives the <strong>State of Inner</strong> — a fully mapped-out emotional landscape based on rehab rooms, mental states, and the battle between light and dark. You’ll meet <em>heroes</em> like Grace, Lucentis, and Velessa… and encounter <em>villains</em> like The Crave, The Undermind, and Warden Fall. Each one represents a psychological force in your journey.</p>
+    <h4 class="fs-3">🗺️ The World Inside</h4>
+    <p>Inside Resurgifi lives the <strong>State of Inner</strong> — a fully mapped-out emotional landscape inspired by rehab rooms, mental states, and the battle between light and dark. You’ll meet <em>heroes</em> like Grace, Lucentis, and Velessa… and confront <em>villains</em> like The Crave, The Undermind, and Warden Fall. Each one is a psychological force in your story.</p>
 
-  <p>But these aren’t just characters. They grow with you. Talk with you. Mirror your story. As you journal, reflect, and progress, the app adapts using cutting-edge AI powered by OpenAI Tier 1 access. And because recovery isn’t linear, Resurgifi tracks your emotional tone — not your perfection streaks.</p>
+    <p>They’re not just characters. They grow with you. Talk with you. Reflect your journey. The app adapts using cutting-edge AI powered by OpenAI Tier 1 access. And because recovery isn’t linear, Resurgifi tracks your emotional tone — not your streaks.</p>
 
-  <ul>
-    <li>🌀 <strong>Inner Circle</strong> — 5 AI-powered voices respond to you like group therapy, but with character</li>
-    <li>📓 <strong>Quests & Reflections</strong> — meaningful journaling designed for relapse-prone days</li>
-    <li>🧠 <strong>Auto-Summaries</strong> — get digestible insights about your week, tone, and triggers</li>
-    <li>💌 <strong>Wishing Well</strong> — send and receive words of encouragement from your future self</li>
-    <li>⚔️ <strong>Hero Chats</strong> — direct emotional support from the hero who fits your fight</li>
-  </ul>
+    <ul class="list-group my-4 fs-5">
+      <li class="list-group-item">🌀 <strong>Inner Circle</strong> — 5 AI-powered voices that feel like real group therapy</li>
+      <li class="list-group-item">📓 <strong>Quests & Reflections</strong> — meaningful journaling designed for relapse-prone days</li>
+      <li class="list-group-item">🧠 <strong>Auto-Summaries</strong> — digestible insights about your tone, triggers, and emotional patterns</li>
+      <li class="list-group-item">💌 <strong>Wishing Well</strong> — send and receive encouragement from your future self</li>
+      <li class="list-group-item">⚔️ <strong>Hero Chats</strong> — get support from the hero that fits your fight</li>
+    </ul>
 
-  <hr>
+    <hr>
 
-  <p>This isn’t about fixing you. It’s about showing you how strong you already are — even when you can’t see it. You’re not weak for being here. You’re wise.</p>
+    <p>This isn’t about fixing you. It’s about showing you how strong you already are — even when you can’t see it.</p>
 
-  <p class="mantra"><strong>Resurgifi your life.</strong></p>
+    <p class="text-center fs-3"><strong>Resurgifi your life.</strong></p>
 
-  <a href="{{ url_for('menu') }}"><button>⬅ Back to Menu</button></a>
-</div>
+    <div class="text-center mt-4">
+      <a href="{{ url_for('menu') }}" class="btn btn-outline-dark fs-5">⬅ Back to Menu</a>
+    </div>
+  </div>
 
-<!-- 🔗 Contact Form -->
-<div class="content-box">
-  <h2>📬 Get in Touch</h2>
-  <form method="POST" action="{{ url_for('contact') }}">
-    <label for="name">Your Name:</label>
-    <input type="text" name="name" required />
+  <!-- 🔗 Contact Form -->
+  <div class="content-box mt-5">
+    <h2 class="mb-3 fs-3">📬 Get in Touch</h2>
+    <form method="POST" action="{{ url_for('contact') }}">
+      <div class="mb-3">
+        <label for="name" class="form-label fs-5">Your Name:</label>
+        <input type="text" name="name" class="form-control form-control-lg" required />
+      </div>
 
-    <label for="email">Email Address:</label>
-    <input type="email" name="email" required />
+      <div class="mb-3">
+        <label for="email" class="form-label fs-5">Email Address:</label>
+        <input type="email" name="email" class="form-control form-control-lg" required />
+      </div>
 
-    <label for="message">Your Message:</label>
-    <textarea name="message" rows="5" required></textarea>
+      <div class="mb-3">
+        <label for="message" class="form-label fs-5">Your Message:</label>
+        <textarea name="message" rows="5" class="form-control form-control-lg" required></textarea>
+      </div>
 
-    <button type="submit">Send Message</button>
-  </form>
-</div>
+      <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
+    </form>
+  </div>
 
-<!-- 💬 Optional: Future Q&A Section -->
-<div class="content-box">
-  <h2>🤔 Common Questions</h2>
-  <details>
-    <summary>Is this a replacement for therapy or treatment?</summary>
-    <p>No. Resurgifi is a tool — not a clinician. It pairs beautifully with real-world treatment, but doesn’t replace it.</p>
-  </details>
+  <!-- 💬 Q&A Section -->
+  <div class="content-box mt-5">
+    <h2 class="mb-3 fs-3">🤔 Common Questions</h2>
 
-  <details>
-    <summary>Who is this app for?</summary>
-    <p>Anyone in recovery from addiction, trauma, grief, anxiety, or depression. Whether you're in rehab or 5 years out, there's something here for you.</p>
-  </details>
+    <details class="mb-3">
+      <summary class="fs-5"><strong>Is this a replacement for therapy or treatment?</strong></summary>
+      <p class="mt-2">No. Resurgifi is a tool — not a clinician. It pairs beautifully with real-world treatment, but doesn’t replace it.</p>
+    </details>
 
-  <details>
-    <summary>Is my data safe?</summary>
-    <p>Yes. No reflections or journal entries are ever shared. We don’t sell user data, and we’re building with emotional safety first.</p>
-  </details>
+    <details class="mb-3">
+      <summary class="fs-5"><strong>Who is this app for?</strong></summary>
+      <p class="mt-2">Anyone in recovery from addiction, trauma, grief, anxiety, or depression. Whether you're in rehab or 5 years out, there's something here for you.</p>
+    </details>
+
+    <details>
+      <summary class="fs-5"><strong>Is my data safe?</strong></summary>
+      <p class="mt-2">Yes. No reflections or journal entries are ever shared. We don’t sell user data, and we’re building with emotional safety first.</p>
+    </details>
+  </div>
 </div>
 
 {% endblock %}

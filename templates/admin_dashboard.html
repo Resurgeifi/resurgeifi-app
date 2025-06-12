@@ -24,51 +24,55 @@
       </div>
 
       <!-- Quick Actions -->
-<div class="card mb-4 shadow-sm">
-  <div class="card-header">⚡ Quick Actions</div>
-  <div class="card-body">
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header">⚡ Quick Actions</div>
+        <div class="card-body">
 
-    <!-- 🎯 Dev Shortcut: Seed Wishing Well Scrolls -->
-    <a href="/dev/seed_scrolls" class="btn btn-primary w-100 mb-3">
-      🌀 Seed Wishing Well Scrolls (Dev Only)
-    </a>
+          <!-- 🌀 Dev Shortcut: Seed Wishing Well Scrolls -->
+          <a href="/dev/seed_scrolls" class="btn btn-primary w-100 mb-3">
+            🌀 Seed Wishing Well Scrolls (Dev Only)
+          </a>
 
-    <!-- 💌 Send Scroll -->
-    <a href="/admin/send-message" class="btn btn-secondary w-100 mb-3">
-      💌 Send Scroll to User
-    </a>
+          <!-- 💌 Send Scroll -->
+          <a href="/admin/send-message" class="btn btn-secondary w-100 mb-3">
+            💌 Send Scroll to User
+          </a>
 
-    <!-- 🎯 Grant Points -->
-    <form method="POST" action="/admin/grant_points" class="mb-3">
-      <div class="row g-2 align-items-center">
-        <div class="col-12 col-sm">
-          <input type="text" name="resurgitag" class="form-control" placeholder="@resurgitag" required>
-        </div>
-        <div class="col-6 col-sm-3">
-          <input type="number" name="points" class="form-control" placeholder="Points" required>
-        </div>
-        <div class="col-6 col-sm-auto">
-          <button type="submit" class="btn btn-success w-100">Grant Points</button>
+          <!-- 🎯 Grant Points -->
+          <form method="POST" action="/admin/grant_points" class="mb-3">
+            <div class="row g-2 align-items-center">
+              <div class="col-12 col-sm">
+                <input type="text" name="resurgitag" class="form-control" placeholder="@resurgitag" required>
+              </div>
+              <div class="col-6 col-sm-3">
+                <input type="number" name="points" class="form-control" placeholder="Points" required>
+              </div>
+              <div class="col-6 col-sm-auto">
+                <button type="submit" class="btn btn-success w-100">Grant Points</button>
+              </div>
+            </div>
+          </form>
+
+          <!-- 🗑️ Delete Ghosts -->
+          <form method="POST" action="/admin/delete_ghosts">
+            <button type="submit" class="btn btn-outline-danger w-100">🗑️ Delete Ghost Users</button>
+          </form>
+
+          <!-- 👑 Grant Admin -->
+          <form method="POST" action="/admin/grant_admin" class="mt-3">
+            <div class="input-group">
+              <input type="text" name="resurgitag" class="form-control" placeholder="@resurgitag to promote" required>
+              <button type="submit" class="btn btn-outline-warning">Grant Admin</button>
+            </div>
+          </form>
+
+          <!-- 👁️ View All Registered Users -->
+          <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary w-100 mt-3">
+            👁️ View All Registered Users
+          </a>
+
         </div>
       </div>
-    </form>
-
-    <!-- 🗑️ Delete Ghosts -->
-    <form method="POST" action="/admin/delete_ghosts">
-      <button type="submit" class="btn btn-outline-danger w-100">🗑️ Delete Ghost Users</button>
-    </form>
-
-    <!-- 👑 Grant Admin -->
-    <form method="POST" action="/admin/grant_admin" class="mt-3">
-      <div class="input-group">
-        <input type="text" name="resurgitag" class="form-control" placeholder="@resurgitag to promote" required>
-        <button type="submit" class="btn btn-outline-warning">Grant Admin</button>
-      </div>
-    </form>
-
-  </div>
-</div>
-
 
       <!-- Recent Activity -->
       <div class="card mb-4 shadow-sm">
@@ -93,5 +97,3 @@
   </div>
 </div>
 {% endblock %}
-
-

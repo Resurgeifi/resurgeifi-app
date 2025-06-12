@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}User Profile | Resurgifi Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="text-center mb-4">🧾 User Profile: {{ user.resurgitag or "Unknown" }}</h2>
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-dark text-white">👤 Basic Info</div>
+    <div class="card-body">
+      <p><strong>ID:</strong> {{ user.id }}</p>
+      <p><strong>Display Name:</strong> {{ user.display_name or "—" }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Nickname:</strong> {{ user.nickname or "—" }}</p>
+      <p><strong>Registered:</strong> {{ user.created_at.strftime('%Y-%m-%d %I:%M %p') if user.created_at else "—" }}</p>
+      <p><strong>Resurgitag:</strong> {{ user.resurgitag or "—" }}</p>
+      <p><strong>Admin:</strong> {{ "✅" if user.is_admin else "❌" }}</p>
+    </div>
+  </div>
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-info text-white">📓 Latest Journal Entries</div>
+    <div class="card-body">
+      {% if journals %}
+        <ul>
+          {% for entry in journals %}
+            <li class="mb-2">
+              <strong>{{ entry.timestamp.strftime('%Y-%m-%d %I:%M %p') }}:</strong><br>
+              {{ entry.content[:200] }}{% if entry.content|length > 200 %}...{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No journal entries found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-success text-white">💬 Circle Messages</div>
+    <div class="card-body">
+      {% if messages %}
+        <ul>
+          {% for msg in messages %}
+            <li class="mb-2">
+              <strong>{{ msg.timestamp.strftime('%Y-%m-%d %I:%M %p') }}:</strong><br>
+              {{ msg.text[:200] }}{% if msg.text|length > 200 %}...{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No messages found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <a href="{{ url_for('admin_users') }}" class="btn btn-secondary mt-3">⬅ Back to All Users</a>
+</div>
+{% endblock %}

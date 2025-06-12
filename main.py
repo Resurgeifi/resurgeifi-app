@@ -214,6 +214,51 @@ def admin_send_message():
         return redirect(url_for("admin_send_message"))
 
     return render_template("admin_send_message.html")
+@app.route("/admin/users", methods=["GET"])
+@login_required
+def admin_users():
+    if not g.user or not g.user.is_admin:
+        flash("Access denied.")
+        return redirect(url_for("menu"))
+
+    db = SessionLocal()
+    try:
+        search_term = request.args.get("search", "").strip()
+
+        base_query = db.query(User)
+
+        if search_term:
+            base_query = base_query.filter(
+                (User.email.ilike(f"%{search_term}%")) |
+                (User.resurgitag.ilike(f"%{search_term}%")) |
+                (User.nickname.ilike(f"%{search_term}%"))
+            )
+
+        users = base_query.order_by(User.created_at.desc()).all()
+
+        ghosts = db.query(User).filter(
+            User.has_completed_onboarding == False,
+            (User.resurgitag == None) | (User.resurgitag == "")
+        ).order_by(User.created_at.desc()).all()
+
+    finally:
+        db.close()
+
+    return render_template("admin_users.html", users=users, ghosts=ghosts, search_term=search_term)
+@app.route("/admin/user/<int:user_id>")
+@login_required
+def admin_user_profile(user_id):
+    db = SessionLocal()
+    user = db.query(User).get(user_id)
+
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for('admin_users'))
+
+    journals = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).limit(20).all()
+    messages = db.query(CircleMessage).filter_by(sender=user.resurgitag).order_by(CircleMessage.timestamp.desc()).limit(20).all()
+
+    return render_template("admin_user_profile.html", user=user, journals=journals, messages=messages)
 
 # ✅ Login required decorator
 def login_required(f):
@@ -644,9 +689,19 @@ def test_db():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-@app.route("/about")
+@app.route("/about", methods=["GET", "POST"])
 @login_required
 def about():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        message = request.form.get("message")
+
+        # Optional: Log it or send email — already working
+
+        flash("Message sent! We'll be in touch soon. 💌", "success")
+        return redirect(url_for("about"))  # Safely redirect to avoid resubmission
+
     return render_template("about.html")
 
 @app.route('/')

@@ -4,18 +4,19 @@
   <source src="{{ url_for('static', filename='audio/scrollsplash.mp3') }}" type="audio/mpeg">
 </audio>
 
-<!-- 🌌 Wishing Well Scene -->
 <div id="well-background" style="
   position: relative;
   width: 100%;
   max-width: 600px;
   aspect-ratio: 1 / 1;
   margin: 2rem auto;
-  background-image: url('/static/backgrounds/well_0.png');
+  padding-bottom: 120px; /* 👈 Add this */
+  background-image: url('/static/icons/wellnone.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 ">
+
 
   <!-- 📜 Scroll Icons (up to 5, based on unread_scrolls) -->
   {% for i in range(unread_scrolls|length) %}
