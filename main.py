@@ -4,7 +4,8 @@ import random
 import re
 from datetime import datetime, timedelta
 from uuid import uuid4
-from auth import login_required
+from flask_login import login_required
+
 
 # 🌐 Timezone Handling
 import pytz
