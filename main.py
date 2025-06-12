@@ -4,8 +4,7 @@ import random
 import re
 from datetime import datetime, timedelta
 from uuid import uuid4
-from flask_login import login_required
-
+from auth import admin_required
 
 # 🌐 Timezone Handling
 import pytz
@@ -217,7 +216,7 @@ def admin_send_message():
 
     return render_template("admin_send_message.html")
 @app.route("/admin/users", methods=["GET"])
-@login_required
+@admin_required
 def admin_users():
     if not g.user or not g.user.is_admin:
         flash("Access denied.")
@@ -248,7 +247,7 @@ def admin_users():
 
     return render_template("admin_users.html", users=users, ghosts=ghosts, search_term=search_term)
 @app.route("/admin/user/<int:user_id>")
-@login_required
+@admin_required
 def admin_user_profile(user_id):
     db = SessionLocal()
     user = db.query(User).get(user_id)
