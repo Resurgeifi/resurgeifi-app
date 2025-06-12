@@ -4,7 +4,6 @@ import random
 import re
 from datetime import datetime, timedelta
 from uuid import uuid4
-from auth import admin_required
 
 # 🌐 Timezone Handling
 import pytz
