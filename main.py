@@ -223,45 +223,23 @@ def admin_send_message():
         return redirect(url_for("admin_send_message"))
 
     return render_template("admin_send_message.html")
-@app.route("/connect/<int:user_id>", methods=["GET"])
-@login_required
-def connect_user(user_id):
-    db = SessionLocal()
-    current_user_id = session.get("user_id")
-    
-    # prevent self-follow
-    if current_user_id == user_id:
-        flash("You can't follow yourself.", "warning")
-        return redirect(url_for("circle"))
-
-    existing = db.query(UserConnection).filter_by(
-        follower_id=current_user_id, followed_id=user_id
-    ).first()
-
-    if not existing:
-        connection = UserConnection(follower_id=current_user_id, followed_id=user_id)
-        db.add(connection)
-        db.commit()
-        flash("You’ve connected with this user.", "success")
-    else:
-        flash("You’re already connected.", "info")
-
-    return redirect(url_for("view_user_profile", user_id=user_id))
-@app.route("/connect/<int:user_id>", methods=["POST"])
+@app.route("/connect/<int:user_id>", methods=["GET", "POST"])
 @login_required
 def connect_user(user_id):
     db = SessionLocal()
     try:
         current_user_id = session.get("user_id")
+
         # Prevent self-follow
         if current_user_id == user_id:
             flash("You can't follow yourself.", "warning")
-            return redirect(url_for('view_public_profile', resurgitag="yourtag"))
+            return redirect(url_for("circle"))
 
         # Check for existing connection
         existing = db.query(UserConnection).filter_by(
             from_user_id=current_user_id, to_user_id=user_id
         ).first()
+
         if existing:
             flash("You already follow this user.", "info")
         else:
@@ -270,13 +248,15 @@ def connect_user(user_id):
             db.commit()
             flash("🎉 Connection created successfully!", "success")
 
-        # Redirect back to public profile
+        # Safe redirect — choose one or both based on route context
         user = db.query(User).filter_by(id=user_id).first()
-        return redirect(url_for('view_public_profile', resurgitag=user.resurgitag))
+        if user and user.resurgitag:
+            return redirect(url_for('view_public_profile', resurgitag=user.resurgitag))
+        else:
+            return redirect(url_for('circle'))
 
     finally:
         db.close()
-
 
 @app.route("/admin/users/<int:user_id>")
 @admin_required
