@@ -225,8 +225,7 @@
   {% block content %}{% endblock %}
 </div>
 
-{% if request.path not in ['/', '/landing'] %}
-<!-- 🔙 Bottom Nav -->
+{% if request.endpoint not in ['landing', 'index'] %}<!-- 🔙 Bottom Nav -->
 <nav class="bottom-nav">
   <div class="nav-side nav-left">
     <a href="/journal" class="nav-item" aria-label="Journal">
