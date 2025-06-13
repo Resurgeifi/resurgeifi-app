@@ -3,6 +3,8 @@ import os
 import random
 import re
 from datetime import datetime, timedelta
+from datetime import time
+
 from uuid import uuid4
 from utils.quest_loader import load_quest
 
