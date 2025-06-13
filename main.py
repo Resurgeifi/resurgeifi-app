@@ -677,14 +677,14 @@ def summarize_journal():
         ).order_by(QueryHistory.timestamp).all()
 
         for msg in all_today:
-            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={msg.user_input[:50]}...")
+            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={msg.content[:50]}...")
 
         flash("Talk to at least one hero today before summarizing.", "warning")
         db.close()
         return redirect(url_for("journal"))
 
     # ✅ Format chat for GPT (fixed to use .user_input)
-    formatted = "\n".join([f'User: "{msg.user_input}"' for msg in messages])
+    formatted = "\n".join([f'User: "{msg.content}"' for msg in messages])
 
     nickname = user.nickname or "Friend"
     theme = user.theme_choice or "self-discovery"
