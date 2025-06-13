@@ -668,7 +668,6 @@ def summarize_journal():
     ).order_by(QueryHistory.timestamp).all()
 
     if not messages:
-        # 🧾 Fallback log to debug what's missing
         print("🚫 No qualifying hero messages found today. Dumping all messages between bounds:")
         all_today = db.query(QueryHistory).filter(
             QueryHistory.user_id == user_id,
@@ -676,7 +675,7 @@ def summarize_journal():
         ).order_by(QueryHistory.timestamp).all()
 
         for msg in all_today:
-            preview = (msg.user_input or "")[:50]
+            preview = (msg.question or "")[:50]
             print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={preview}...")
 
         flash("Talk to at least one hero today before summarizing.", "warning")
@@ -684,7 +683,7 @@ def summarize_journal():
         return redirect(url_for("journal"))
 
     # ✅ Format chat for GPT
-    formatted = "\n".join([f'User: \"{msg.user_input or ""}\"' for msg in messages])
+    formatted = "\n".join([f'User: "{msg.question}"' for msg in messages])
 
     nickname = user.nickname or "Friend"
     theme = user.theme_choice or "self-discovery"
@@ -717,7 +716,6 @@ Be emotionally honest but brief. Avoid advice or therapy-speak.
         )
         journal_text = response.choices[0].message.content.strip()
 
-        # 📝 Save summary
         reflection = DailyReflection(
             user_id=user_id,
             date=datetime.utcnow(),
