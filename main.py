@@ -677,14 +677,14 @@ def summarize_journal():
         ).order_by(QueryHistory.timestamp).all()
 
         for msg in all_today:
-            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, text={msg.text[:50]}...")
+            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={msg.user_input[:50]}...")
 
         flash("Talk to at least one hero today before summarizing.", "warning")
         db.close()
         return redirect(url_for("journal"))
 
-    # ✅ Format chat for GPT
-    formatted = "\n".join([f'User: "{msg.text}"' for msg in messages])
+    # ✅ Format chat for GPT (fixed to use .user_input)
+    formatted = "\n".join([f'User: "{msg.user_input}"' for msg in messages])
 
     nickname = user.nickname or "Friend"
     theme = user.theme_choice or "self-discovery"
@@ -734,24 +734,6 @@ Be emotionally honest but brief. Avoid advice or therapy-speak.
 
     db.close()
     return redirect(url_for("journal", auto_summarize="true", summary_text=journal_text))
-
-@app.route("/test-db")
-def test_db():
-    try:
-        db = SessionLocal()
-        entries = db.query(JournalEntry).order_by(JournalEntry.timestamp.desc()).limit(5).all()
-        result = [
-            {
-                "id": entry.id,
-                "content": entry.content,
-                "timestamp": entry.timestamp.strftime("%Y-%m-%d %H:%M")
-            }
-            for entry in entries
-        ]
-        db.close()
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": str(e)})
 
 @app.route("/about", methods=["GET", "POST"])
 @login_required
