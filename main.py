@@ -4,6 +4,7 @@ import random
 import re
 from datetime import datetime, timedelta
 from uuid import uuid4
+from utils.quest_loader import load_quest
 
 # 🌐 Timezone Handling
 import pytz
@@ -1709,23 +1710,25 @@ def submit_onboarding():
 @login_required
 def onboarding():
     return render_template("onboarding.html")
-@app.route("/quest", methods=["GET", "POST"])
+
+@app.route("/quest/<int:quest_id>", methods=["GET", "POST"])
 @login_required
-def quest():
+def run_quest(quest_id):
     db_session = SessionLocal()
     try:
         user_id = session.get("user_id")
         user = db_session.query(User).get(user_id)
         now = datetime.utcnow()
-        quest_id = 1  # ⬅️ Make dynamic later
+
+        # 🔁 Load quest YAML
+        quest_data = load_quest(quest_id)
 
         if request.method == "POST":
             reflection = request.form.get("reflection", "").strip()
             if not reflection:
                 flash("Please enter a reflection to submit.", "warning")
-                return redirect(url_for("quest"))
+                return redirect(url_for("run_quest", quest_id=quest_id))
 
-            # Enforce 4-hour cooldown, max 3 quests
             four_hours_ago = now - timedelta(hours=4)
             recent_quests = db_session.query(UserQuestEntry)\
                 .filter_by(user_id=user_id)\
@@ -1735,7 +1738,7 @@ def quest():
                 flash("You’ve already completed 3 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
-            # Summarize with GPT-4o
+            # ✨ GPT Summary
             summary_text = ""
             try:
                 response = client.chat.completions.create(
@@ -1751,7 +1754,6 @@ def quest():
                 print("⚠️ GPT summarization failed:", e)
                 summary_text = ""
 
-            # Save quest entry
             new_entry = UserQuestEntry(
                 user_id=user_id,
                 quest_id=quest_id,
@@ -1760,15 +1762,11 @@ def quest():
                 summary_text=summary_text or reflection
             )
             db_session.add(new_entry)
-
-            # Award points
             user.points = (user.points or 0) + 5
             session["points_just_added"] = 5
-
             db_session.commit()
 
-            # Hero assignment via INNER_CODEX
-            hero_tag = get_hero_for_quest(quest_id)
+            hero_tag = quest_data["hero"]
             session["from_quest"] = {
                 "quest_id": quest_id,
                 "reflection": summary_text or reflection
@@ -1776,8 +1774,7 @@ def quest():
 
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
 
-        # GET: show quest form
-        return render_template("quest.html")
+        return render_template("quest_engine.html", quest_data=quest_data)
 
     except Exception as e:
         db_session.rollback()
@@ -1786,11 +1783,7 @@ def quest():
         return redirect(url_for("circle"))
     finally:
         db_session.close()
-@app.route("/quest", methods=["GET", "POST"])
-@login_required
-def legacy_quest_redirect():
-    return redirect(url_for("run_quest", quest_id=1))
-
+    
 @app.route("/change-tag", methods=["GET", "POST"])
 @login_required
 def change_resurgitag():
