@@ -652,13 +652,13 @@ def summarize_journal():
     user = db.query(User).filter_by(id=user_id).first()
     start_of_day, end_of_day = get_user_local_bounds(user)
 
-    # 🕒 Debug time zone and date range
+    # 🕒 Time zone debug
     print("🕒 [DEBUG] Time Zone Summary Check")
     print("User time zone:", user.timezone)
     print("Start of day UTC:", start_of_day)
     print("End of day UTC:", end_of_day)
 
-    # Get messages from ALL hero conversations today
+    # 🎯 Query valid hero-tagged messages
     messages = db.query(QueryHistory).filter(
         and_(
             QueryHistory.user_id == user_id,
@@ -668,16 +668,22 @@ def summarize_journal():
         )
     ).order_by(QueryHistory.timestamp).all()
 
-    # 📋 Print out matched messages
-    for msg in messages:
-        print(f"[{msg.timestamp}] {msg.hero_name} - {msg.text[:50]}...")
-
     if not messages:
+        # 🧾 Fallback log to debug what's missing
+        print("🚫 No qualifying hero messages found today. Dumping all messages between bounds:")
+        all_today = db.query(QueryHistory).filter(
+            QueryHistory.user_id == user_id,
+            QueryHistory.timestamp.between(start_of_day, end_of_day)
+        ).order_by(QueryHistory.timestamp).all()
+
+        for msg in all_today:
+            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, text={msg.text[:50]}...")
+
         flash("Talk to at least one hero today before summarizing.", "warning")
         db.close()
         return redirect(url_for("journal"))
 
-    # Format input for GPT
+    # ✅ Format chat for GPT
     formatted = "\n".join([f'User: "{msg.text}"' for msg in messages])
 
     nickname = user.nickname or "Friend"
@@ -711,7 +717,7 @@ Be emotionally honest but brief. Avoid advice or therapy-speak.
         )
         journal_text = response.choices[0].message.content.strip()
 
-        # Store summary
+        # 📝 Save summary
         reflection = DailyReflection(
             user_id=user_id,
             date=datetime.utcnow(),
