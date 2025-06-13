@@ -15,7 +15,7 @@
   <p class="quest-prompt">
     When you open your eyes inside your State of Inner, what emotion greets you? Share what you’re feeling right now. Try and be specific about your feelings and why you're here.
   </p>
-  <form method="POST" action="{{ url_for('run_quest', quest_id=1) }}">
+  <form method="POST" action="{{ url_for('quest', quest_id=1) }}">
     <textarea id="reflectionInput" name="reflection" required placeholder="Type your answer here..." class="quest-textarea" oninput="checkInput()"></textarea>
     <button id="submitBtn" type="submit" class="global-button" disabled>Submit Result</button>
   </form>
@@ -45,7 +45,7 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  animation: fadeOut 5s ease forwards;
+  animation: fadeOut 8s ease forwards;
 }
 .quest-quote {
   color: #f6e7c1;
@@ -58,7 +58,7 @@
 }
 @keyframes fadeOut {
   0% { opacity: 1; }
-  85% { opacity: 1; }
+  95% { opacity: 1; }
   100% { opacity: 0; }
 }
 @keyframes fadeInText {
@@ -103,5 +103,6 @@
 }
 </style>
 {% endblock %}
+
 
 

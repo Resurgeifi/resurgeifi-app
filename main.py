@@ -641,38 +641,39 @@ def inner_codex():
 @login_required
 def summarize_journal():
     from openai import OpenAI
-    from datetime import datetime, timedelta
-    from models import User, DailyReflection, CircleMessage
+    from datetime import datetime, time
+    from models import User, DailyReflection, QueryHistory
     from db import SessionLocal
     from sqlalchemy import and_
+    import os
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     user_id = session.get("user_id")
 
-    if not user_id:
-        flash("User not logged in.", "error")
-        return redirect(url_for("journal"))
+    now = datetime.utcnow()
+    start_of_day = datetime.combine(now.date(), time(0, 1))
+    end_of_day = datetime.combine(now.date(), time(23, 59))
 
     db = SessionLocal()
 
-    # ⏳ Last 24 hours of Circle messages from the user
-    since = datetime.utcnow() - timedelta(hours=24)
-    messages = db.query(CircleMessage).filter(
+    # Get messages from ALL hero conversations today
+    messages = db.query(QueryHistory).filter(
         and_(
-            CircleMessage.sender_id == user_id,
-            CircleMessage.speaker.ilike("user"),
-            CircleMessage.timestamp >= since
+            QueryHistory.user_id == user_id,
+            QueryHistory.sender_role == "user",
+            QueryHistory.hero_name.isnot(None),
+            QueryHistory.timestamp.between(start_of_day, end_of_day)
         )
-    ).order_by(CircleMessage.timestamp).all()
+    ).order_by(QueryHistory.timestamp).all()
 
     if not messages:
-        flash("Say something in the Circle before summarizing. Your journal should reflect your own voice.", "warning")
+        flash("Talk to at least one hero today before summarizing.", "warning")
         db.close()
         return redirect(url_for("journal"))
 
+    # Format input for GPT
     formatted = "\n".join([f'User: "{msg.text}"' for msg in messages])
 
-    # 🧠 Pull onboarding context
     user = db.query(User).filter_by(id=user_id).first()
     nickname = user.nickname or "Friend"
     theme = user.theme_choice or "self-discovery"
@@ -685,7 +686,7 @@ The user goes by the nickname: {nickname}
 Their theme for joining Resurgifi is: {theme}
 They admire people who are: {display_name}
 
-Here’s what they said in today’s Circle:
+Here’s what they said in today’s chats with Resurgifi heroes:
 ---
 {formatted}
 ---
@@ -705,6 +706,7 @@ Be emotionally honest but brief. Avoid advice or therapy-speak.
         )
         journal_text = response.choices[0].message.content.strip()
 
+        # Store summary if needed
         reflection = DailyReflection(
             user_id=user_id,
             date=datetime.utcnow(),
@@ -712,7 +714,7 @@ Be emotionally honest but brief. Avoid advice or therapy-speak.
         )
         db.add(reflection)
         db.commit()
-        flash("Journal summary saved successfully.", "success")
+        flash("Journal summary generated successfully.", "success")
 
     except Exception as e:
         print("🔥 Journal summarization error:", str(e))
@@ -720,6 +722,8 @@ Be emotionally honest but brief. Avoid advice or therapy-speak.
         db.rollback()
 
     db.close()
+
+    # Redirect with pre-filled summary
     return redirect(url_for("journal", auto_summarize="true", summary_text=journal_text))
 
 @app.route("/test-db")
@@ -1193,61 +1197,96 @@ def admin_logs():
 
 from rams import build_context, select_heroes, build_prompt
 
-@app.route("/journal", methods=["GET", "POST"])
+@app.route("/summarize-journal", methods=["GET"])
 @login_required
-def journal():
+def summarize_journal():
+    from openai import OpenAI
+    from datetime import datetime, timedelta
+    from models import User, QueryHistory, JournalEntry
+    from db import SessionLocal
+    from sqlalchemy import and_
+    import pytz
+
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    user_id = session.get("user_id")
+
+    if not user_id:
+        flash("User not logged in.", "error")
+        return redirect(url_for("journal"))
+
     db = SessionLocal()
-    try:
-        user = db.query(User).filter_by(id=session['user_id']).first()
-        if not user:
-            return redirect(url_for('register'))
 
-        user_timezone = user.timezone if user.timezone in all_timezones else "America/New_York"
-
-        if request.method == 'POST':
-            entry = request.form['entry']
-            new_entry = JournalEntry(user_id=user.id, content=entry)
-            db.add(new_entry)
-
-            today = datetime.utcnow().date()
-            entries_today = db.query(JournalEntry).filter(
-                JournalEntry.user_id == user.id,
-                JournalEntry.timestamp >= datetime.combine(today, datetime.min.time())
-            ).count()
-
-            if entries_today <= 3:
-                user.points = (user.points or 0) + 1
-                session["points_just_added"] = 1
-
-            db.commit()
-
-        raw_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()
-
-        localized_entries = []
-        for entry in raw_entries:
-            try:
-                local_time = localize_time(entry.timestamp, user_timezone)
-                localized_entries.append({
-                    "id": entry.id,
-                    "content": entry.content,
-                    "timestamp": local_time.strftime("%b %d, %I:%M %p")
-                })
-            except Exception:
-                localized_entries.append({
-                    "id": entry.id,
-                    "content": entry.content,
-                    "timestamp": "Unknown"
-                })
-
-        summary_text = request.args.get("summary_text", "")
-        return render_template('journal.html', entries=localized_entries, current_ring="The Spark", summary_text=summary_text)
-
-    except SQLAlchemyError as e:
-        db.rollback()
-        flash("Problem accessing journal. Try again soon.", "error")
-        return redirect(url_for("menu"))
-    finally:
+    user = db.query(User).filter_by(id=user_id).first()
+    if not user:
+        flash("User not found.", "error")
         db.close()
+        return redirect(url_for("journal"))
+
+    # Timezone handling
+    user_timezone = user.timezone if user.timezone in pytz.all_timezones else "America/New_York"
+    tz = pytz.timezone(user_timezone)
+    now = datetime.now(tz)
+
+    # Start of day: 12:01 AM → 11:59 PM
+    start_of_day = tz.localize(datetime(now.year, now.month, now.day, 0, 1)).astimezone(pytz.utc)
+    end_of_day = tz.localize(datetime(now.year, now.month, now.day, 23, 59)).astimezone(pytz.utc)
+
+    # Fetch all 1-on-1 chats with any hero
+    messages = db.query(QueryHistory).filter(
+        and_(
+            QueryHistory.user_id == user_id,
+            QueryHistory.role == "user",
+            QueryHistory.timestamp >= start_of_day,
+            QueryHistory.timestamp <= end_of_day
+        )
+    ).order_by(QueryHistory.timestamp.asc()).all()
+
+    if not messages:
+        flash("No messages found for today. Start a conversation first.", "warning")
+        db.close()
+        return redirect(url_for("journal"))
+
+    formatted = "\n".join([f'User: "{msg.text}"' for msg in messages])
+
+    nickname = user.nickname or "Friend"
+    theme = user.theme_choice or "self-discovery"
+    display_name = user.display_name or "compassionate people"
+
+    prompt = f"""
+You are Resurgifi, a recovery-focused journaling assistant.
+
+The user goes by the nickname: {nickname}
+Their theme for joining Resurgifi is: {theme}
+They admire people who are: {display_name}
+
+Here’s what they said in today’s 1-on-1 conversations:
+---
+{formatted}
+---
+
+Write a short, first-person journal entry that reflects their emotional state and current inner experience.
+Keep it to a single paragraph (about 4–5 sentences).
+Do not mention or reference any heroes by name — this is a personal reflection, not a game recap.
+Focus on their real emotions, not casual questions or playful comments.
+Be emotionally honest but brief. Avoid advice or therapy-speak.
+""".strip()
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.65
+        )
+        journal_text = response.choices[0].message.content.strip()
+        flash("Journal summary loaded. You can edit or save it now.", "success")
+    except Exception as e:
+        print("🔥 Journal summarization error:", str(e))
+        flash("Something went wrong while generating your summary.", "error")
+        journal_text = ""
+
+    db.close()
+    return redirect(url_for("journal", summary_text=journal_text))
+
 
 @app.route('/ask', methods=['POST'])
 @login_required
