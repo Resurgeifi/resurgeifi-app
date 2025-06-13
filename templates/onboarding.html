@@ -14,7 +14,7 @@
 const questions = [
   {
     title: "What brings you here today?",
-    name: "journey",  // 🔥 WAS 'q1', now captures theme_choice directly
+    name: "journey",
     options: [
       "Major loss or grieving",
       "Anxiety or fear",
@@ -61,6 +61,19 @@ const questions = [
     title: "When did your journey begin? (Sobriety, loss, or reset date)",
     name: "journey_start_date",
     isDate: true
+  },
+  {
+    title: "What’s your time zone?",
+    name: "timezone",
+    options: [
+      "Eastern (US)",
+      "Central (US)",
+      "Mountain (US)",
+      "Pacific (US)",
+      "Alaska",
+      "Hawaii",
+      "UTC"
+    ]
   }
 ];
 
@@ -162,6 +175,3 @@ renderQuestion();
 </style>
 
 {% endblock %}
-
-
-

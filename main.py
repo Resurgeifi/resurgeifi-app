@@ -7,6 +7,7 @@ from datetime import time
 
 from uuid import uuid4
 from utils.quest_loader import load_quest
+from utils.timezone_utils import get_user_local_bounds
 
 # 🌐 Timezone Handling
 import pytz
@@ -646,12 +647,16 @@ def inner_codex():
 def summarize_journal():
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     user_id = session.get("user_id")
-
-    now = datetime.utcnow()
-    start_of_day = datetime.combine(now.date(), time(0, 1))
-    end_of_day = datetime.combine(now.date(), time(23, 59))
-
     db = SessionLocal()
+
+    user = db.query(User).filter_by(id=user_id).first()
+    start_of_day, end_of_day = get_user_local_bounds(user)
+
+    # 🕒 Debug time zone and date range
+    print("🕒 [DEBUG] Time Zone Summary Check")
+    print("User time zone:", user.timezone)
+    print("Start of day UTC:", start_of_day)
+    print("End of day UTC:", end_of_day)
 
     # Get messages from ALL hero conversations today
     messages = db.query(QueryHistory).filter(
@@ -663,6 +668,10 @@ def summarize_journal():
         )
     ).order_by(QueryHistory.timestamp).all()
 
+    # 📋 Print out matched messages
+    for msg in messages:
+        print(f"[{msg.timestamp}] {msg.hero_name} - {msg.text[:50]}...")
+
     if not messages:
         flash("Talk to at least one hero today before summarizing.", "warning")
         db.close()
@@ -671,7 +680,6 @@ def summarize_journal():
     # Format input for GPT
     formatted = "\n".join([f'User: "{msg.text}"' for msg in messages])
 
-    user = db.query(User).filter_by(id=user_id).first()
     nickname = user.nickname or "Friend"
     theme = user.theme_choice or "self-discovery"
     display_name = user.display_name or "compassionate people"
@@ -871,11 +879,16 @@ def settings():
                 user.display_name = nickname
                 session['nickname'] = nickname
 
-            # 👁️ Visibility toggle
+            # 🕒 Time zone selection
+            tz = form.get("timezone")
+            if tz:
+                user.timezone = tz
+
+            # 👁️ Visibility toggle (still available in user.profile)
             user.show_journey_publicly = 'show_journey_publicly' in form
 
             db.commit()
-            flash("Your updated Nickname is successful.", "success")
+            flash("Settings updated successfully.", "success")
             return redirect(url_for('settings'))
 
         # 🧠 Pull saved values for GET
@@ -893,9 +906,9 @@ def settings():
             theme_choice=user.theme_choice,
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
-            timezone=user.timezone or "America/New_York",
+            timezone=user.timezone or "America/New_York",  # Defaults to EST if none set
             show_journey_publicly=user.show_journey_publicly,
-            datetime=datetime  # ✅ This line fixes the Jinja error
+            datetime=datetime
         )
 
     except SQLAlchemyError:
@@ -904,6 +917,7 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
+
 
 @app.route("/profile/update-visibility", methods=["POST"])
 @login_required
@@ -1609,12 +1623,6 @@ def contact_options():
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return response
 
-@app.route("/set-timezone", methods=["POST"])
-def set_timezone():
-    data = request.get_json()
-    offset = data.get("offset", 0)  # Offset in minutes (e.g. -300 for EST)
-    session["tz_offset_min"] = offset
-    return jsonify({"status": "ok", "offset": offset})
 @app.route("/life-ring")
 def life_ring():
     return render_template("life_ring.html")

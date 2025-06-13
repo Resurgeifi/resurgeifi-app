@@ -35,6 +35,18 @@
       <label for="nickname" style="font-size: 1.2rem; display: block; margin-top: 2rem;"><strong>📝 Your Nickname</strong></label>
       <input type="text" name="nickname" value="{{ nickname }}" placeholder="What do people call you?" style="margin-top: 0.5rem; padding: 0.6rem; width: 100%; font-size: 1rem; border-radius: 8px;">
 
+      <!-- 🕒 Time Zone -->
+      <label for="timezone" style="font-size: 1.2rem; display: block; margin-top: 2rem;"><strong>🕒 Your Time Zone</strong></label>
+      <select name="timezone" id="timezone" class="global-button" style="width: 100%; padding: 0.6rem; font-size: 1rem; border-radius: 8px;">
+        <option value="America/New_York" {% if timezone == "America/New_York" %}selected{% endif %}>Eastern (US)</option>
+        <option value="America/Chicago" {% if timezone == "America/Chicago" %}selected{% endif %}>Central (US)</option>
+        <option value="America/Denver" {% if timezone == "America/Denver" %}selected{% endif %}>Mountain (US)</option>
+        <option value="America/Los_Angeles" {% if timezone == "America/Los_Angeles" %}selected{% endif %}>Pacific (US)</option>
+        <option value="America/Anchorage" {% if timezone == "America/Anchorage" %}selected{% endif %}>Alaska</option>
+        <option value="Pacific/Honolulu" {% if timezone == "Pacific/Honolulu" %}selected{% endif %}>Hawaii</option>
+        <option value="UTC" {% if timezone == "UTC" %}selected{% endif %}>UTC</option>
+      </select>
+
       <!-- 🔐 Moved Visibility Settings Note -->
       <p style="margin-top: 2rem; font-size: 0.95rem; color: #bbb;">
         Want to manage who can see your journey or city/state?  
@@ -52,10 +64,10 @@
   </div>
 
   <form action="{{ url_for('logout') }}" method="get">
-  <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
-    <button type="submit" class="global-button" style="background-color: #c62828; color: #fff;">Log Out</button>
-  </div>
-</form>
+    <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
+      <button type="submit" class="global-button" style="background-color: #c62828; color: #fff;">Log Out</button>
+    </div>
+  </form>
 
 </div>
 {% endblock %}
