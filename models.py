@@ -122,6 +122,7 @@ class QueryHistory(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     agent_name = db.Column(db.String(100))
     contact_tag = db.Column(db.String(32), nullable=True)
+    sender_role = db.Column(db.String(50), nullable=True)  # 'user' or 'assistant'
 
     user = db.relationship("User", backref="query_history")
 
