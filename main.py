@@ -641,7 +641,6 @@ def show_hero_chat(resurgitag):
 @app.route("/codex")
 def inner_codex():
     return render_template("codex.html")
-
 @app.route("/summarize-journal", methods=["GET"])
 @login_required
 def summarize_journal():
@@ -677,13 +676,14 @@ def summarize_journal():
         ).order_by(QueryHistory.timestamp).all()
 
         for msg in all_today:
-            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={msg.text[:50]}...")
+            preview = (msg.content or "")[:50]
+            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={preview}...")
 
         flash("Talk to at least one hero today before summarizing.", "warning")
         db.close()
         return redirect(url_for("journal"))
 
-    # ✅ Format chat for GPT (fixed to use .user_input)
+    # ✅ Format chat for GPT
     formatted = "\n".join([f'User: "{msg.content}"' for msg in messages])
 
     nickname = user.nickname or "Friend"
