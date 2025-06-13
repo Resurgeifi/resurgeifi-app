@@ -123,7 +123,7 @@ class QueryHistory(db.Model):
     agent_name = db.Column(db.String(100))
     contact_tag = db.Column(db.String(32), nullable=True)
     sender_role = db.Column(db.String(50), nullable=True)  # 'user' or 'assistant'
-
+    hero_name = db.Column(db.String(50), nullable=True)
     user = db.relationship("User", backref="query_history")
 
 
