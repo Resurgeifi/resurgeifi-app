@@ -520,13 +520,28 @@ def circle_chat(resurgitag):
             "user_id": user_id,
         })
 
+        # 📝 Save USER message
         db.add(QueryHistory(
             user_id=user_id,
             contact_tag=tag,
             agent_name=canon_name,
             question=user_input,
-            response=response
+            response="",
+            sender_role="user",
+            hero_name=canon_name
         ))
+
+        # 💬 Save HERO response
+        db.add(QueryHistory(
+            user_id=user_id,
+            contact_tag=tag,
+            agent_name=canon_name,
+            question="",
+            response=response,
+            sender_role="assistant",
+            hero_name=canon_name
+        ))
+
         db.commit()
         return jsonify({"response": response})
 
@@ -537,7 +552,7 @@ def circle_chat(resurgitag):
         response = call_openai(user_input=user_input, hero_name=canon_name, context={
             "thread": context,
             "user_id": user_id,
-            "suppress_journal": True  # <- use this in build_prompt to block journal inserts
+            "suppress_journal": True
         })
 
         db.add(QueryHistory(
@@ -545,7 +560,9 @@ def circle_chat(resurgitag):
             contact_tag=tag,
             agent_name=canon_name,
             question=user_input,
-            response=response
+            response=response,
+            sender_role="user",  # optional: could leave null for villains
+            hero_name=canon_name
         ))
         db.commit()
         return jsonify({"response": response})
