@@ -677,7 +677,7 @@ def summarize_journal():
         ).order_by(QueryHistory.timestamp).all()
 
         for msg in all_today:
-            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={msg.content[:50]}...")
+            print(f"[{msg.timestamp}] role={msg.sender_role}, hero={msg.hero_name}, input={msg.text[:50]}...")
 
         flash("Talk to at least one hero today before summarizing.", "warning")
         db.close()
