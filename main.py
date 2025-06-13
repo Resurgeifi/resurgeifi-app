@@ -1786,6 +1786,10 @@ def quest():
         return redirect(url_for("circle"))
     finally:
         db_session.close()
+@app.route("/quest", methods=["GET", "POST"])
+@login_required
+def legacy_quest_redirect():
+    return redirect(url_for("run_quest", quest_id=1))
 
 @app.route("/change-tag", methods=["GET", "POST"])
 @login_required

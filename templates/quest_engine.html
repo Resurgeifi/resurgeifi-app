@@ -1,30 +1,27 @@
 {% extends "base.html" %}
-{% block title %}{{ quest_data.title }} | Resurgifi{% endblock %}
+{% block title %}Today's Quest | Resurgifi{% endblock %}
 
 {% block content %}
 <!-- 🌌 Cinematic Flash Background -->
-{% if quest_data.video_intro %}
-  <video autoplay muted playsinline class="quest-video-bg">
-    <source src="{{ url_for('static', filename=quest_data.video_intro) }}" type="video/mp4">
-  </video>
-{% else %}
 <div id="questFlash" class="quest-flash" onanimationend="removeQuestFlash()">
   <div class="quest-quote">
-    {{ quest_data.intro_text }}
+    “Welcome to the first Quest in the Beta version of Resurgifi. You are about to enter your State of Inner.”
   </div>
 </div>
-{% endif %}
 
 <!-- 🧠 Quest Prompt -->
 <div class="quest-card">
-  <h2 class="quest-title">{{ quest_data.title }}</h2>
-  <p class="quest-prompt">{{ quest_data.prompt }}</p>
-  <form method="POST">
-    <textarea name="reflection" required placeholder="Type your answer here..." class="quest-textarea" oninput="checkInput()"></textarea>
-    <button type="submit" class="global-button" disabled>Submit Result</button>
+  <h2 class="quest-title">Today’s Quest</h2>
+  <p class="quest-prompt">
+    When you open your eyes inside your State of Inner, what emotion greets you? Share what you’re feeling right now. Try and be specific about your feelings and why you're here.
+  </p>
+  <form method="POST" action="/quest">
+    <textarea id="reflectionInput" name="reflection" required placeholder="Type your answer here..." class="quest-textarea" oninput="checkInput()"></textarea>
+    <button id="submitBtn" type="submit" class="global-button" disabled>Submit Result</button>
   </form>
 </div>
 
+<!-- 🎯 Interaction Fix Script -->
 <script>
   function removeQuestFlash() {
     const flash = document.getElementById("questFlash");
@@ -32,12 +29,13 @@
   }
 
   function checkInput() {
-    const input = document.querySelector("textarea");
-    const button = document.querySelector("button");
+    const input = document.getElementById("reflectionInput");
+    const button = document.getElementById("submitBtn");
     button.disabled = input.value.trim() === "";
   }
 </script>
 
+<!-- 🎨 Styling -->
 <style>
 .quest-flash {
   position: fixed;
@@ -103,7 +101,18 @@
   opacity: 0.5;
   pointer-events: none;
 }
+@keyframes hauntedInk {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-1px) scale(1.02);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
 </style>
 {% endblock %}
-
 
