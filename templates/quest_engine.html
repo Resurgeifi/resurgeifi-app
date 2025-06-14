@@ -1,21 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Today's Quest | Resurgifi{% endblock %}
+{% block title %}{{ quest.title }} | Resurgifi{% endblock %}
 
 {% block content %}
 <!-- 🌌 Cinematic Flash Background -->
 <div id="questFlash" class="quest-flash" onanimationend="removeQuestFlash()">
   <div class="quest-quote">
-    “Welcome to the first Quest in the Beta version of Resurgifi. You are about to enter your State of Inner.”
+    {{ quest.intro_text }}
   </div>
 </div>
 
 <!-- 🧠 Quest Prompt -->
 <div class="quest-card">
-  <h2 class="quest-title">Today’s Quest</h2>
-  <p class="quest-prompt">
-    When you open your eyes inside your State of Inner, what emotion greets you? Share what you’re feeling right now. Try and be specific about your feelings and why you're here.
-  </p>
-  <form method="POST" action="{{ url_for('run_quest', quest_id=1) }}">
+  <h2 class="quest-title">{{ quest.title }}</h2>
+  <p class="quest-prompt">{{ quest.prompt }}</p>
+  <form method="POST" action="{{ url_for('run_quest', quest_id=quest_id) }}">
     <textarea id="reflectionInput" name="reflection" required placeholder="Type your answer here..." class="quest-textarea" oninput="checkInput()"></textarea>
     <button id="submitBtn" type="submit" class="global-button" disabled>Submit Result</button>
   </form>
@@ -103,3 +101,4 @@
 }
 </style>
 {% endblock %}
+

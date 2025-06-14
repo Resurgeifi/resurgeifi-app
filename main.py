@@ -1731,7 +1731,7 @@ def run_quest(quest_id):
         now = datetime.utcnow()
 
         # 🔁 Load quest YAML
-        quest_data = load_quest(quest_id)
+        quest = load_quest(quest_id)
 
         if request.method == "POST":
             reflection = request.form.get("reflection", "").strip()
@@ -1744,7 +1744,7 @@ def run_quest(quest_id):
                 .filter_by(user_id=user_id)\
                 .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
 
-            if len(recent_quests) >= 20:
+            if len(recent_quests) >= 3:
                 flash("You’ve already completed 3 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
@@ -1776,7 +1776,7 @@ def run_quest(quest_id):
             session["points_just_added"] = 5
             db_session.commit()
 
-            hero_tag = quest_data["hero"]
+            hero_tag = quest["hero"]
             session["from_quest"] = {
                 "quest_id": quest_id,
                 "reflection": summary_text or reflection
@@ -1784,7 +1784,7 @@ def run_quest(quest_id):
 
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
 
-        return render_template("quest_engine.html", quest_data=quest_data)
+        return render_template("quest_engine.html", quest=quest, quest_id=quest_id)
 
     except Exception as e:
         db_session.rollback()
@@ -1793,6 +1793,7 @@ def run_quest(quest_id):
         return redirect(url_for("circle"))
     finally:
         db_session.close()
+
     
 @app.route("/change-tag", methods=["GET", "POST"])
 @login_required
