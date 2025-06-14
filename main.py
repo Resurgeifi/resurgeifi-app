@@ -780,6 +780,7 @@ def menu():
             flash("User not found.")
             return redirect(url_for('login'))
 
+        # 📈 Days on Journey
         days_on_journey = 0
         if user.journey_start_date:
             try:
@@ -787,22 +788,20 @@ def menu():
             except Exception as e:
                 print("🔥 Error calculating journey days:", e)
 
+        # 📝 Journal Stats
         journal_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()
         journal_count = len(journal_entries)
         last_journal = journal_entries[0].timestamp.strftime("%b %d, %Y") if journal_entries else None
 
-        from models import CircleMessage
-        now = datetime.utcnow()
-        start_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-
-        circle_msgs = (
-            db.query(CircleMessage)
-            .filter(CircleMessage.sender_id == user.id)
-            .filter(CircleMessage.timestamp >= start_today)
-            .order_by(CircleMessage.timestamp.desc())
-            .all()
+        # 💬 Replace Circle Message with Hero Message
+        from models import QueryHistory
+        last_hero_msg = (
+            db.query(QueryHistory)
+            .filter_by(user_id=user.id)
+            .order_by(QueryHistory.timestamp.desc())
+            .first()
         )
-        last_circle_msg = circle_msgs[0].text if circle_msgs else None
+        last_hero_msg_text = last_hero_msg.user_input if last_hero_msg else None
 
         return render_template(
             "menu.html",
@@ -810,7 +809,7 @@ def menu():
             days_on_journey=days_on_journey,
             journal_count=journal_count,
             last_journal=last_journal,
-            last_circle_msg=last_circle_msg,
+            last_hero_msg=last_hero_msg_text,
             streak=session.get('streak', 0)
         )
 
@@ -1769,8 +1768,8 @@ def run_quest(quest_id):
                 .filter_by(user_id=user_id)\
                 .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
 
-            if len(recent_quests) >= 3:
-                flash("You’ve already completed 3 quests in the last 4 hours. Take a break and come back soon!", "info")
+            if len(recent_quests) >= 30:
+                flash("You’ve already completed 30 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
             # ✨ GPT Summary

@@ -8,16 +8,14 @@
      class="circle-title-img" />
 <!-- 🌄 Centered Quest Button -->
 <div style="display: flex; justify-content: center; align-items: center; min-height: 30vh; margin-top: 2rem;">
-  <a href="{{ url_for('run_quest', quest_id=1) }}" 
+  <a href="{{ url_for('quest_entrypoint') }}" 
      style="padding: 1.4rem 2.6rem; font-size: 1.5rem; font-weight: bold;
             background: linear-gradient(to right, #a162e8, #5f6caf);
             color: #fff; border-radius: 16px; text-decoration: none;
             box-shadow: 0 6px 16px rgba(0,0,0,0.4); transition: transform 0.2s ease;">
-    🌄 Begin Today’s Quest
+    🌄 Begin Next Quest
   </a>
 </div>
-
-
 
 <!-- 🧭 Snapshot Container -->
 <div class="main-content" style="text-align: center;">
@@ -27,20 +25,24 @@
   </p>
 
   <!-- Dark Card -->
-  <div class="card-dark">
-    <p><strong>🌀 Recovery Ring:</strong> {{ current_ring or "Not Yet Assigned" }}</p>
+<div class="card-dark">
+  <p><strong>🌀 Recovery Ring:</strong> {{ current_ring }}</p>
 
-    <p><strong>📈 Days on Journey:</strong> 
-      <span id="days-display">0</span> 
-      day{{ 's' if (days_on_journey|int) != 1 else '' }}
-    </p>
+  <p><strong>📈 Days on Journey:</strong> 
+    <span id="days-display">{{ days_on_journey }}</span> 
+    day{{ 's' if days_on_journey != 1 else '' }}
+  </p>
 
-    <p><strong>🔥 Streak:</strong> {{ streak or 0 }} day{{ 's' if (streak|int) != 1 else '' }}</p>
-    <p><strong>📝 Journal Entries:</strong> {{ journal_count or 0 }}</p>
-    <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or "None yet" }}</p>
-    <p><strong>💬 Last Circle Message:</strong></p>
-    <p style="font-style: italic;">“{{ last_circle_msg or 'No conversations yet' }}”</p>
-  </div>
+  <p><strong>🔥 Streak:</strong> {{ streak }} day{{ 's' if streak != 1 else '' }}</p>
+
+  <p><strong>📝 Journal Entries:</strong> {{ journal_count }}</p>
+
+  <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or 'None yet' }}</p>
+
+  <p><strong>💬 Last Hero Message:</strong></p>
+  <p style="font-style: italic;">“{{ last_hero_msg or 'No messages yet from the heroes' }}”</p>
+</div>
+
 
   <!-- ⏳ Count Button -->
   <button id="calculate-days-btn" class="global-button" style="margin-top: 1.5rem;">
