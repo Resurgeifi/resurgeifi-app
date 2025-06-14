@@ -789,11 +789,16 @@ def menu():
                 print("🔥 Error calculating journey days:", e)
 
         # 📝 Journal Stats
-        journal_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()
+        journal_entries = (
+            db.query(JournalEntry)
+            .filter_by(user_id=user.id)
+            .order_by(JournalEntry.timestamp.desc())
+            .all()
+        )
         journal_count = len(journal_entries)
         last_journal = journal_entries[0].timestamp.strftime("%b %d, %Y") if journal_entries else None
 
-        # 💬 Replace Circle Message with Hero Message
+        # 🧠 Replace Circle Message with Last Hero Interaction
         from models import QueryHistory
         last_hero_msg = (
             db.query(QueryHistory)
@@ -801,7 +806,7 @@ def menu():
             .order_by(QueryHistory.timestamp.desc())
             .first()
         )
-        last_hero_msg_text = last_hero_msg.user_input if last_hero_msg else None
+        last_hero_msg_text = last_hero_msg.user_message if last_hero_msg else None  # ✅ FIXED field name
 
         return render_template(
             "menu.html",
@@ -809,7 +814,7 @@ def menu():
             days_on_journey=days_on_journey,
             journal_count=journal_count,
             last_journal=last_journal,
-            last_hero_msg=last_hero_msg_text,
+            last_hero_msg=last_hero_msg_text,  # ✅ Variable passed to template
             streak=session.get('streak', 0)
         )
 
