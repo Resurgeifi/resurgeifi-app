@@ -118,13 +118,26 @@ client = OpenAI(api_key=api_key)
 
 # ✅ ElevenLabs Setup
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-GRACE_VOICE_ID = "hIeqtoW1V7vxkxl7mya3"
+
+HERO_VOICE_IDS = {
+    "grace": "hIeqtoW1V7vxkxl7mya3",       # Placeholder: Grace's real voice ID
+    "cognita": "hIeqtoW1V7vxkxl7mya3",     # Update when you create Cognita's voice
+    "sir_renity": "hIeqtoW1V7vxkxl7mya3",  # Placeholder
+    "lucentis": "hIeqtoW1V7vxkxl7mya3",    # Placeholder
+    "velessa": "hIeqtoW1V7vxkxl7mya3",     # Placeholder
+    "subox_slumber": "hIeqtoW1V7vxkxl7mya3" # Placeholder
+}
 
 @app.route("/api/tts", methods=["POST"])
 def text_to_speech():
-    text = clean_text_for_voice(request.json.get("text", ""))
+    data = request.json or {}
+    text = clean_text_for_voice(data.get("text", ""))
+    hero = (data.get("hero") or "grace").strip().lower()
+
     if not text:
         return {"error": "No text provided."}, 400
+
+    voice_id = HERO_VOICE_IDS.get(hero, HERO_VOICE_IDS["grace"])  # fallback to Grace if missing
 
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
@@ -141,7 +154,7 @@ def text_to_speech():
     }
 
     response = requests.post(
-        f"https://api.elevenlabs.io/v1/text-to-speech/{GRACE_VOICE_ID}/stream",
+        f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream",
         headers=headers,
         json=payload,
         stream=True
@@ -152,7 +165,6 @@ def text_to_speech():
 
     return Response(response.iter_content(chunk_size=4096),
                     content_type="audio/mpeg")
-
 
 # ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
