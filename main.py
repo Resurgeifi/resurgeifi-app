@@ -806,7 +806,6 @@ def menu():
             .order_by(QueryHistory.timestamp.desc())
             .first()
         )
-        last_hero_msg_text = last_hero_msg.user_message if last_hero_msg else None  # ✅ FIXED field name
 
         return render_template(
             "menu.html",
@@ -814,7 +813,7 @@ def menu():
             days_on_journey=days_on_journey,
             journal_count=journal_count,
             last_journal=last_journal,
-            last_hero_msg_text = last_hero_msg.question if last_hero_msg else None,
+            last_hero_msg_text=last_hero_msg.question if last_hero_msg else None,
             streak=session.get('streak', 0)
         )
 
@@ -824,6 +823,7 @@ def menu():
         return redirect(url_for("login"))
     finally:
         db.close()
+
 
 @app.route('/form')
 @login_required
