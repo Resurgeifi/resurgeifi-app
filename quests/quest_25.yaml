@@ -1,7 +1,11 @@
 quest_id: 25
-title: "Quest 25"
-hero: "Sir Renity"
-villain: "Charnobyl"
-intro_text: "This is Quest 25. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "If you vanished today, what would go unsaid?"
+title: "False Finish"
+hero: "Velessa"
+villain: "Captain Fine"
+intro_text: |
+  Velessa speaks. You’ve done so much already. But today, we face Captain Fine — the voice that says 'I’m good now' while you’re still bleeding inside.
+  
+  He haunts the outer edge of the Bridge Between, always polished, always convincing. But I invite you to pause — and feel what still needs tending.
+video_intro: None
+prompt: |
+  Where are you pretending to be okay, just to get through the day? Let stillness reveal what’s real.

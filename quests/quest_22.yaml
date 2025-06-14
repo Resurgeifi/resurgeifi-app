@@ -1,7 +1,11 @@
 quest_id: 22
-title: "Quest 22"
-hero: "Cognita"
-villain: "The Murk"
-intro_text: "This is Quest 22. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "What version of you are you scared of becoming again?"
+title: "The Storm You Survived"
+hero: "Sir Renity"
+villain: "Anxia"
+intro_text: |
+  Sir Renity, standing watch beside you. Today’s storm brews inside — the kind that floods the chest and steals the breath. Her name is Anxia. Her voice is made of spirals.
+  
+  She rises often in the Quake Rooms, a part of Inner where relapse storms hit hardest. The floor shakes. The air tightens. But here you are — still breathing. Still choosing to face it.
+video_intro: None
+prompt: |
+  What does your anxiety say when it wants to keep you stuck? Speak it, then breathe it out.

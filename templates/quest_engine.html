@@ -15,6 +15,16 @@
   padding: 2rem;
   text-align: center;
 ">
+  <video autoplay muted playsinline id="flashVideo" style="
+    max-width: 90%;
+    max-height: 60vh;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+  ">
+    <source src="{{ url_for('static', filename=quest.video_intro or 'videos/questintroplaceholder.mp4') }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
   <div class="quest-quote" style="
     color: #f6e7c1;
     font-size: 1.8rem;
@@ -26,7 +36,7 @@
     “{{ quest.intro_text }}”
   </div>
   <button onclick="endFlash()" style="
-    margin-top: 2rem;
+    margin-top: 1rem;
     font-size: 1.1rem;
     background-color: #f4a259;
     color: #1f3e36;
@@ -128,12 +138,3 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 {% endblock %}
-
-
-
-
-
-
-
-
-

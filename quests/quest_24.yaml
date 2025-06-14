@@ -1,7 +1,11 @@
 quest_id: 24
-title: "Quest 24"
+title: "The Beast Beneath"
 hero: "Lucentis"
-villain: "Captain Fine"
-intro_text: "This is Quest 24. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "What lie do you keep telling yourself out of habit?"
+villain: "Charnobyl"
+intro_text: |
+  Lucentis here. The villain today is not subtle. Charnobyl doesn’t whisper — he erupts. He waits beneath Skid Row, pulsing with heat, feeding on betrayal, on rage left unspoken.
+  
+  In the State of Inner, his crater glows when someone bottles too much. I’ll help you see clearly — not just the fire, but the root of it.
+video_intro: None
+prompt: |
+  What anger are you holding that feels too dangerous to speak aloud? Put it here. No judgment.

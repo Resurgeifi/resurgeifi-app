@@ -1,7 +1,7 @@
-quest_id: 11
+quest_id: "11"
 title: "Quest 11"
-hero: "Grace"
+hero: "Sir Renity"
 villain: "Anxia"
-intro_text: "This is Quest 11. Let’s explore a deeper part of your State of Inner."
+intro_text: "Steady now. This is Sir Renity. You’ve entered a part of the State of Inner where storms don’t always show on the surface — but they rage underneath. Anxia lurks here, whispering that you'll never feel safe again."
 video_intro: null
-prompt: "If your pain had a shape, what would it be?"
+prompt: "What does emotional safety mean to you — and when did you last feel it?"

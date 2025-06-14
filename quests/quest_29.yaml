@@ -1,7 +1,11 @@
 quest_id: 29
-title: "Quest 29"
+title: "The Hollow Smile"
 hero: "Lucentis"
-villain: "Highness Hollow"
-intro_text: "This is Quest 29. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "When do you feel like a burden?"
+villain: "Captain Fine"
+intro_text: |
+  Lucentis speaks. Captain Fine returns — mirror-bright, polished, but cracked. He reflects what others want to see, hiding the exhaustion within.
+  
+  In the State of Inner, his illusions hover over The Bridge Between. But we are not here to perform wellness. Only to embody truth.
+video_intro: None
+prompt: |
+  What mask do you wear that’s become too heavy to hold?

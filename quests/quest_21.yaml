@@ -1,7 +1,11 @@
 quest_id: 21
-title: "Quest 21"
-hero: "Grace"
-villain: "Anxia"
-intro_text: "This is Quest 21. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "What is your relationship with control right now?"
+title: "Cracked Mirrors"
+hero: "Cognita"
+villain: "The Undermind"
+intro_text: |
+  It’s Cognita. You’ve seen shadows in the corners of your thoughts — today, we face one of the cruelest: The Undermind. He reflects every flaw, every doubt, every reason to stop trying.
+  
+  The State of Inner has a place near Rehab called the Mirror Loop — a hallway of warped glass where self-image distorts. Many clients get stuck there, listening to his whispers. I’m here to help you break the loop.
+video_intro: None
+prompt: |
+  What’s a negative thought you’ve believed about yourself for too long? Let’s hold it up to the light and question it.

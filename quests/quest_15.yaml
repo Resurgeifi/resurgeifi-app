@@ -1,7 +1,7 @@
-quest_id: 15
+quest_id: "15"
 title: "Quest 15"
-hero: "Sir Renity"
-villain: "Charnobyl"
-intro_text: "This is Quest 15. Let’s explore a deeper part of your State of Inner."
+hero: "Grace"
+villain: "Captain Fine"
+intro_text: "Grace again. We’ve reached the edge of the Recovery Center, where pride wears a polished face. Captain Fine hides here — charming, confident, and crumbling underneath. Let’s be honest together."
 video_intro: null
-prompt: "When do you feel most disconnected from others?"
+prompt: "When do you pretend you’re okay — and what would it take to drop the act?"

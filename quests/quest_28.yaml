@@ -1,7 +1,11 @@
 quest_id: 28
-title: "Quest 28"
-hero: "Velessa"
-villain: "Warden Fall"
-intro_text: "This is Quest 28. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "What would emotional sobriety feel like inside you?"
+title: "The Fog of What-If"
+hero: "Cognita"
+villain: "The Murk"
+intro_text: |
+  Cognita returning. The Murk doesn’t shout. He obscures. His fog settles over decisions and convinces you that nothing will work.
+  
+  He circles the edges of Stepville, whispering what-if’s. Today, we name them — so they stop owning you.
+video_intro: None
+prompt: |
+  What fear about the future clouds your ability to act today?

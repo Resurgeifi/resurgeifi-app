@@ -1,7 +1,7 @@
-quest_id: 12
+quest_id: "12"
 title: "Quest 12"
-hero: "Cognita"
+hero: "Velessa"
 villain: "The Murk"
-intro_text: "This is Quest 12. Let’s explore a deeper part of your State of Inner."
+intro_text: "Ah, you’ve come again. This is Velessa. The State of Inner shifts with your breath — but some zones are thick with fog. The Murk clouds the way forward with fear. Let’s anchor ourselves."
 video_intro: null
-prompt: "Write about a relapse moment you dodged. What helped?"
+prompt: "Close your eyes and describe the sensation of fear. Where does it sit in your body?"

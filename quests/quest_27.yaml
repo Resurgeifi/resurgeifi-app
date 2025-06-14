@@ -1,7 +1,11 @@
 quest_id: 27
-title: "Quest 27"
-hero: "Cognita"
-villain: "The Crave"
-intro_text: "This is Quest 27. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "What does a safe relationship look like to you?"
+title: "The Voice That Waits"
+hero: "Sir Renity"
+villain: "Little Lack"
+intro_text: |
+  Sir Renity, calmly with you. Some threats do not roar. Little Lack waits in the quiet. She pulls you into stillness, then drains you from within.
+  
+  In the State of Inner, she drifts just outside Sobertropolis. We do not fear her. But we do not linger.
+video_intro: None
+prompt: |
+  When do you feel yourself slipping into ‘numb’? What helps — even a little — to reach for something meaningful?

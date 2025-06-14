@@ -1774,18 +1774,19 @@ def run_quest(quest_id):
 
         # 🔁 Load quest YAML
         quest = load_quest(quest_id)
+        quest_prompt = quest.get("prompt", "")
 
         if request.method == "POST":
             reflection = request.form.get("reflection", "").strip()
-            if not reflection:
-                flash("Please enter a reflection to submit.", "warning")
+            if not reflection or len(reflection) < 10:
+                flash("Please write a few more words so we can reflect on this with you.", "warning")
                 return redirect(url_for("run_quest", quest_id=quest_id))
 
+            # Limit rapid-fire submissions
             four_hours_ago = now - timedelta(hours=4)
             recent_quests = db_session.query(UserQuestEntry)\
                 .filter_by(user_id=user_id)\
                 .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
-
             if len(recent_quests) >= 30:
                 flash("You’ve already completed 30 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
@@ -1796,8 +1797,17 @@ def run_quest(quest_id):
                 response = client.chat.completions.create(
                     model="gpt-4o",
                     messages=[
-                        {"role": "system", "content": "Summarize this quest reflection in one short, emotional sentence. Do not sound robotic."},
-                        {"role": "user", "content": reflection}
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are a compassionate recovery coach summarizing what someone just shared in response to a deep mental health prompt. "
+                                "Give one sentence that emotionally reflects their effort and experience. Avoid sounding robotic or generic."
+                            )
+                        },
+                        {
+                            "role": "user",
+                            "content": f"Prompt: {quest_prompt}\n\nUser Response: {reflection}"
+                        }
                     ],
                     temperature=0.7
                 )
@@ -1836,7 +1846,6 @@ def run_quest(quest_id):
     finally:
         db_session.close()
 
-    
 @app.route("/change-tag", methods=["GET", "POST"])
 @login_required
 def change_resurgitag():

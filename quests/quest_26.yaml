@@ -1,7 +1,11 @@
 quest_id: 26
-title: "Quest 26"
+title: "The Weight of Sorry"
 hero: "Grace"
-villain: "The Undermind"
-intro_text: "This is Quest 26. Let’s explore a deeper part of your State of Inner."
-video_intro: null
-prompt: "How does anger try to protect you?"
+villain: "Warden Fall"
+intro_text: |
+  Grace again. Today’s shadow is Warden Fall — the one who says you must suffer forever to be forgiven. He lives near the Graveyard of Lost Souls, reciting your past like scripture.
+  
+  But forgiveness isn’t a performance. Let’s let truth speak louder than shame.
+video_intro: None
+prompt: |
+  What guilt still chains you to the past? What would it mean to believe you’re more than your mistakes?
