@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% block title %}{{ quest.title }} | Resurgifi{% endblock %}
+{% block title %}Today's Quest | Resurgifi{% endblock %}
 
 {% block content %}
+
 <!-- 🌌 Cinematic Flash Background -->
 <div id="questFlash" class="quest-flash" onanimationend="removeQuestFlash()">
   <div class="quest-quote">
@@ -13,23 +14,51 @@
 <div class="quest-card">
   <h2 class="quest-title">{{ quest.title }}</h2>
   <p class="quest-prompt">{{ quest.prompt }}</p>
+
   <form method="POST" action="{{ url_for('run_quest', quest_id=quest_id) }}">
-    <textarea id="reflectionInput" name="reflection" required placeholder="Type your answer here..." class="quest-textarea" oninput="checkInput()"></textarea>
-    <button id="submitBtn" type="submit" class="global-button" disabled>Submit Result</button>
+    <textarea name="reflection" class="quest-textarea" placeholder="Write your reflection here..."></textarea>
+    <br />
+    <button type="submit" class="global-button">Submit Reflection</button>
   </form>
 </div>
 
-<!-- 🎯 Interaction Fix Script -->
+<!-- 🔊 TTS Narration Script -->
 <script>
-  function removeQuestFlash() {
-    const flash = document.getElementById("questFlash");
-    if (flash) flash.remove();
+  const introText = document.querySelector('.quest-quote')?.innerText;
+  const promptText = document.querySelector('.quest-prompt')?.innerText;
+
+  function playHeroVoice(text) {
+    fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("TTS request failed");
+      return response.blob();
+    })
+    .then(blob => {
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audio.play().catch(err => console.warn("Voice playback error:", err));
+    })
+    .catch(err => {
+      console.error("Voice error:", err);
+    });
   }
 
-  function checkInput() {
-    const input = document.getElementById("reflectionInput");
-    const button = document.getElementById("submitBtn");
-    button.disabled = input.value.trim() === "";
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      if (introText) playHeroVoice(introText.replace(/Resurgifi/gi, "Ree-sur-ji-fy"));
+      setTimeout(() => {
+        if (promptText) playHeroVoice(promptText);
+      }, 6000);
+    }, 1000);
+  });
+
+  function removeQuestFlash() {
+    const flash = document.getElementById("questFlash");
+    if (flash) flash.style.display = "none";
   }
 </script>
 
@@ -43,7 +72,7 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  animation: fadeOut 8s ease forwards;
+  animation: fadeOut 12s ease forwards;
 }
 .quest-quote {
   color: #f6e7c1;
@@ -100,5 +129,8 @@
   pointer-events: none;
 }
 </style>
+
 {% endblock %}
+
+
 
