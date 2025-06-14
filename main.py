@@ -1720,6 +1720,31 @@ def submit_onboarding():
 @login_required
 def onboarding():
     return render_template("onboarding.html")
+@app.route("/quest", methods=["GET"])
+@login_required
+def quest_entrypoint():
+    db_session = SessionLocal()
+    try:
+        user_id = session.get("user_id")
+        user_entries = db_session.query(UserQuestEntry).filter_by(user_id=user_id).all()
+        completed_ids = {entry.quest_id for entry in user_entries}
+
+        # Look for first uncompleted quest (assumes 1–99 possible quests for now)
+        for qid in range(1, 100):
+            if os.path.exists(f"quests/quest_{qid:02}.yaml") and qid not in completed_ids:
+                return redirect(url_for("run_quest", quest_id=qid))
+
+        # If all quests are done, send them to their quest history (to replay)
+        flash("You’ve completed all available quests. Replay or wait for new ones.", "info")
+        return redirect(url_for("quest_history"))  # This will be created in MISSION 3
+
+    except Exception as e:
+        db_session.rollback()
+        flash("Something went wrong loading your next quest.", "error")
+        print(f"❌ Quest entrypoint error: {e}")
+        return redirect(url_for("dashboard"))
+    finally:
+        db_session.close()
 
 @app.route("/quest/<int:quest_id>", methods=["GET", "POST"])
 @login_required
