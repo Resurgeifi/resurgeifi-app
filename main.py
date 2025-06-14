@@ -814,7 +814,7 @@ def menu():
             days_on_journey=days_on_journey,
             journal_count=journal_count,
             last_journal=last_journal,
-            last_hero_msg=last_hero_msg_text,  # ✅ Variable passed to template
+            last_hero_msg_text = last_hero_msg.question if last_hero_msg else None
             streak=session.get('streak', 0)
         )
 
