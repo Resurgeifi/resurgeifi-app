@@ -10,11 +10,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  overflow-y: auto;
   z-index: 9999;
   padding: 2rem;
   text-align: center;
 ">
+
   <video autoplay muted playsinline id="flashVideo" style="
     max-width: 90%;
     max-height: 60vh;
@@ -36,7 +38,8 @@
     “{{ quest.intro_text }}”
   </div>
   <button onclick="endFlash()" style="
-    margin-top: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
     font-size: 1.1rem;
     background-color: #f4a259;
     color: #1f3e36;
@@ -46,7 +49,7 @@
     cursor: pointer;
     font-weight: 600;
   ">Next</button>
-</div>
+</div> <!-- ✅ This closes #questFlash -->
 
 <!-- 🧠 Quest Prompt -->
 <div class="quest-card" style="
