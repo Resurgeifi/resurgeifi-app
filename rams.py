@@ -4,7 +4,7 @@ from datetime import datetime
 from db import SessionLocal
 from models import User, UserBio, JournalEntry
 from inner_codex import INNER_CODEX
-from flask import g
+from flask import session, g 
 
 # Define HERO_NAMES once, for consistent use everywhere
 HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
@@ -33,6 +33,9 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     if not thread:
         thread = [{"speaker": "User", "text": user_input}]
 
+    # ✅ Pull real user_id from session
+    user_id = session.get("user_id")
+
     # Build the system prompt using build_prompt
     system_message = build_prompt(
         hero=tag,
@@ -42,14 +45,14 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             "formatted_thread": formatted_thread,
             "emotional_profile": emotional_profile,
             "nickname": nickname,
-            "user_id": None  # replace with session.get("user_id") if available here
+            "user_id": user_id  # ✅ FIXED
         }
     )
 
     # Villain-aware identity system message
     hero_identity_message = {
-    "role": "system",
-    "content": f"""
+        "role": "system",
+        "content": f"""
 You are {hero_name}, a {'villain' if is_villain else 'supportive hero'} in a recovery app called Resurgifi.
 
 You are speaking to a person named '{nickname}', who is in early recovery. You are not them — you are not the user — but you care deeply about their growth.
@@ -60,8 +63,7 @@ You are speaking to a person named '{nickname}', who is in early recovery. You a
 
 Stay emotionally realistic. Speak with presence and purpose.
 """.strip()
-}
-
+    }
 
     # Prepare messages for OpenAI chat completion
     messages = [
