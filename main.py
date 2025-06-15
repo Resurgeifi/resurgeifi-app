@@ -1628,13 +1628,16 @@ def contact():
             body=f"Name: {name}\nEmail: {email_addr}\n\nMessage:\n{message}"
         )
         mail.send(email)
-        response = make_response("Thanks, you're in.")
+
+        # Now render the thank-you page instead of raw string
+        response = make_response(render_template("thankyou.html", name=name))
         response.headers['Access-Control-Allow-Origin'] = 'https://resurgelabs.com'
         response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return response
 
     return "No message provided", 400
+
 @app.route("/contact", methods=["OPTIONS"])
 def contact_options():
     response = make_response()

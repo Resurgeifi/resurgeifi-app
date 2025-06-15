@@ -225,6 +225,14 @@
   {% block content %}{% endblock %}
 </div>
 
+<!-- 💸 Donate Footer -->
+<footer style="padding: 2rem 1rem 6rem 1rem; text-align: center; font-size: 1rem; background: transparent; color: #f6e7c1; z-index: 0;">
+  <p style="margin-bottom: 0.75rem;">Buy us a coffee so we can build this to help ourselves and those we love!</p>
+  <a href="https://venmo.com/Resurgifi" target="_blank" style="display: inline-block; padding: 0.5rem 1.25rem; background: #3d3d3d; color: #f6e7c1; text-decoration: none; border-radius: 8px; font-weight: bold; box-shadow: 0 0 5px #f6e7c1;">
+    Donate via Venmo @Resurgifi
+  </a>
+</footer>
+
 {% if request.endpoint not in ['landing', 'index'] %}<!-- 🔙 Bottom Nav -->
 <nav class="bottom-nav">
   <div class="nav-side nav-left">
@@ -342,13 +350,3 @@ function flashPoints() {
 {% if get_flashed_messages(with_categories=true)|selectattr(0, 'equalto', 'points')|list %}
   <script>flashPoints();</script>
 {% endif %}
-
-</body>
-</html>
-
-
-
-
-
-
-
