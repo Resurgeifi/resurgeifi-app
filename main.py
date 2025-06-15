@@ -1782,7 +1782,7 @@ def run_quest(quest_id):
                 flash("Please write a few more words so we can reflect on this with you.", "warning")
                 return redirect(url_for("run_quest", quest_id=quest_id))
 
-            # Limit rapid-fire submissions
+            # ⏳ Throttle rapid-fire submissions
             four_hours_ago = now - timedelta(hours=4)
             recent_quests = db_session.query(UserQuestEntry)\
                 .filter_by(user_id=user_id)\
@@ -1791,31 +1791,34 @@ def run_quest(quest_id):
                 flash("You’ve already completed 30 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
-            # ✨ GPT Summary
+            # ✨ GPT Summary Logic — First-person voice + prompt context fallback
             summary_text = ""
             try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": (
-                                "You are a compassionate recovery coach summarizing what someone just shared in response to a deep mental health prompt. "
-                                "Give one sentence that emotionally reflects their effort and experience. Avoid sounding robotic or generic."
-                            )
-                        },
-                        {
-                            "role": "user",
-                            "content": f"Prompt: {quest_prompt}\n\nUser Response: {reflection}"
-                        }
-                    ],
-                    temperature=0.7
-                )
-                summary_text = response.choices[0].message.content.strip()
+                if len(reflection.split()) < 20:
+                    # Short reflections are echoed back with prompt context
+                    summary_text = f"{reflection} (in response to: '{quest_prompt}')"
+                else:
+                    system_prompt = (
+                        "You are helping a user summarize their own journal entry. Rewrite their message as a single sentence, "
+                        "in the first person, as if they are expressing it clearly to themselves. Preserve emotional authenticity. "
+                        "Avoid adding any new feelings that were not mentioned."
+                    )
+                    user_input = f"Prompt: {quest_prompt}\n\nUser Response: {reflection}"
+
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_input}
+                        ],
+                        temperature=0.7
+                    )
+                    summary_text = response.choices[0].message.content.strip()
             except Exception as e:
                 print("⚠️ GPT summarization failed:", e)
-                summary_text = ""
+                summary_text = reflection  # fallback to raw input
 
+            # 💾 Save the quest entry
             new_entry = UserQuestEntry(
                 user_id=user_id,
                 quest_id=quest_id,
@@ -1824,18 +1827,22 @@ def run_quest(quest_id):
                 summary_text=summary_text or reflection
             )
             db_session.add(new_entry)
+
+            # 🎯 Add user points
             user.points = (user.points or 0) + 5
             session["points_just_added"] = 5
-            db_session.commit()
 
+            # 🧠 Stash reflection in session for accurate hero chat
             hero_tag = quest["hero"]
             session["from_quest"] = {
                 "quest_id": quest_id,
                 "reflection": summary_text or reflection
             }
 
+            db_session.commit()
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
 
+        # First-time GET load of quest page
         return render_template("quest_engine.html", quest=quest, quest_id=quest_id)
 
     except Exception as e:

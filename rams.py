@@ -48,14 +48,20 @@ def call_openai(user_input, hero_name="Cognita", context=None):
 
     # Villain-aware identity system message
     hero_identity_message = {
-        "role": "system",
-        "content": f"""
+    "role": "system",
+    "content": f"""
 You are {hero_name}, a {'villain' if is_villain else 'supportive hero'} in a recovery app called Resurgifi.
-You are speaking to the user '{nickname}', who is in early recovery.
-Do not speak as the user. Never refer to yourself as "You."
-You are {hero_name}. Maintain emotional boundaries. {'Offer tension, not solutions.' if is_villain else 'Offer support, not mimicry.'}
+
+You are speaking to a person named '{nickname}', who is in early recovery. You are not them — you are not the user — but you care deeply about their growth.
+
+🧠 Speak only as yourself. Never say things like “you said…” or “you feel…” unless the user has said it.
+
+{'As a villain, you may provoke or reflect inner tension, but do not guide, encourage, or use their name.' if is_villain else 'As a hero, you may use their name sparingly — especially when grounding them emotionally or offering encouragement. Names bring people back to themselves.'}
+
+Stay emotionally realistic. Speak with presence and purpose.
 """.strip()
-    }
+}
+
 
     # Prepare messages for OpenAI chat completion
     messages = [
@@ -283,7 +289,6 @@ def normalize_thread(thread):
 
 
 def build_prompt(hero, user_input, context):
-    from models import User, UserBio, JournalEntry
     from sqlalchemy.orm import scoped_session
     from db import SessionLocal
 
@@ -294,6 +299,7 @@ def build_prompt(hero, user_input, context):
     nickname = context.get("nickname", "Friend")
     formatted_thread = context.get("formatted_thread", "")
     journals = []
+    quest_history = context.get("completed_quests", [])  # 🧠 <-- NEW LINE
 
     try:
         user_id = context.get("user_id")
@@ -370,6 +376,7 @@ def build_prompt(hero, user_input, context):
 
 You are {hero.capitalize()} — a hero from the State of Inner.
 You are speaking to someone named {nickname}.
+Use their name sparingly, but **when offering encouragement, grounding, or emotional resonance, address them directly** — especially when they’re struggling to believe in themselves.
 They are human. You are not them. You are not the user. You are yourself.
 
 🗌️ State of Inner Context:
@@ -386,6 +393,9 @@ They are human. You are not them. You are not the user. You are yourself.
 
 🎝️ Current Emotional Tone:
 {tone_summary}
+
+📘 Completed Quest Reflections:
+{chr(10).join(f"- [Quest {q['id']}] ({q['timestamp']}) {q['summary']}" for q in quest_history) if quest_history else "- [None yet]"}
 
 📓 Recent Journal Entries:
 {chr(10).join(f"- [{j.timestamp.strftime('%b %d, %Y')}] {j.content[:300]}" for j in journals) if journal_snippets else "- [No journal entries yet]"}
