@@ -4,9 +4,9 @@ from datetime import datetime
 from db import SessionLocal
 from models import User, UserBio, JournalEntry
 from inner_codex import INNER_CODEX
-from flask import session, g 
+from flask import session, g
 
-# Define HERO_NAMES once, for consistent use everywhere
+# Define HERO_NAMES and VILLAIN_NAMES once, for consistent use everywhere
 HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
 VILLAIN_NAMES = [name.lower() for name in INNER_CODEX.get("villains", {})]
 
@@ -16,27 +16,39 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def call_openai(user_input, hero_name="Cognita", context=None):
     from openai import OpenAI
-    import os
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     tag = hero_name.strip().lower()
-    is_villain = tag in INNER_CODEX.get("villains", {})
+    is_villain = tag in VILLAIN_NAMES
 
-    # Extract context elements safely
+    # Safely extract elements from context
     thread = context.get("thread", []) if isinstance(context, dict) else []
     formatted_thread = context.get("formatted_thread", "") if isinstance(context, dict) else ""
     emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
-    nickname = context.get("nickname", "Friend") if isinstance(context, dict) else "Friend"
 
-    # If no existing thread, start with user input
+    # Default nickname until fetched
+    nickname = "Friend"
+    bio_text = ""
+    tone_summary = ""
+
+    # Pull real user data from DB
+    user_id = session.get("user_id")
+    if user_id:
+        db = SessionLocal()
+        user = db.query(User).filter_by(id=user_id).first()
+        if user:
+            nickname = user.nickname or nickname
+            tone_summary = user.tone_summary or ""
+            if user.user_bio:
+                bio_text = user.user_bio.bio or ""
+        db.close()
+
+    # If no existing thread, start one
     if not thread:
         thread = [{"speaker": "User", "text": user_input}]
 
-    # ✅ Pull real user_id from session
-    user_id = session.get("user_id")
-
-    # Build the system prompt using build_prompt
+    # Build system prompt
     system_message = build_prompt(
         hero=tag,
         user_input=user_input,
@@ -45,11 +57,13 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             "formatted_thread": formatted_thread,
             "emotional_profile": emotional_profile,
             "nickname": nickname,
-            "user_id": user_id  # ✅ FIXED
+            "bio": bio_text,
+            "tone_summary": tone_summary,
+            "user_id": user_id
         }
     )
 
-    # Villain-aware identity system message
+    # Identity system message
     hero_identity_message = {
         "role": "system",
         "content": f"""
@@ -65,13 +79,10 @@ Stay emotionally realistic. Speak with presence and purpose.
 """.strip()
     }
 
-    # Prepare messages for OpenAI chat completion
-    messages = [
-        hero_identity_message,
-        {"role": "system", "content": system_message}
-    ]
+    # Assemble messages
+    messages = [hero_identity_message, {"role": "system", "content": system_message}]
 
-    # Append recent conversation history (limit 30)
+    # Add thread history
     for entry in thread[-30:]:
         if isinstance(entry, dict) and "speaker" in entry:
             role = "user" if entry["speaker"].lower() == "user" else "assistant"
@@ -81,17 +92,17 @@ Stay emotionally realistic. Speak with presence and purpose.
                 role = "user" if speaker.lower() == "you" else "assistant"
                 messages.append({"role": role, "content": msg})
 
-    # Append current user input
+    # Add final user input
     messages.append({"role": "user", "content": user_input})
 
-    # Minimal debug logging — only key info to avoid duplication
+    # Minimal debug
     print("\n--- 📡 OpenAI CALL DEBUG ---")
     print(f"🧠 Hero Tag: {tag}")
     print(f"🗣️ User Input: {user_input}")
     print("🧵 Messages (last 3):", messages[-3:])
     print("--- END DEBUG ---\n")
 
-    # Call OpenAI Chat Completion API
+    # Call OpenAI API
     try:
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -104,6 +115,7 @@ Stay emotionally realistic. Speak with presence and purpose.
         print(f"🔥 OpenAI Error for {tag}: {e}")
         return "Something went wrong. Try again in a moment."
 
+
 def pull_recent_journal_summary(user_id):
     db = SessionLocal()
     summary_entry = (
@@ -114,7 +126,6 @@ def pull_recent_journal_summary(user_id):
     )
     db.close()
     return summary_entry.content.strip() if summary_entry else None
-
 
 def detect_crisis_tone(thread):
     crisis_keywords = [
