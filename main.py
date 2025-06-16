@@ -503,12 +503,15 @@ def circle_chat(resurgitag):
     from inner_codex import INNER_CODEX
     db = SessionLocal()
 
+    def normalize_name(name):
+        return name.strip().lower().replace(" ", "").replace("_", "")
+
     user_id = session.get("user_id")
     user_input = request.json.get("message")
     if not user_input:
         return jsonify({"error": "Message missing"}), 400
 
-    tag = resurgitag.strip().lower().lstrip("@")
+    tag = normalize_name(resurgitag.lstrip("@"))
 
     # 🧵 Pull last 7 days of conversation
     week_ago = datetime.utcnow() - timedelta(days=7)
@@ -522,46 +525,44 @@ def circle_chat(resurgitag):
         for entry in thread_query
     ]
 
-    # 🧠 Check if it's a known hero
-    is_hero = tag in [h.lower().replace(" ", "") for h in INNER_CODEX["heroes"].keys()]
-    is_villain = tag in [v.lower().replace(" ", "") for v in INNER_CODEX["villains"].keys()]
+    hero_key_map = {normalize_name(k): k for k in INNER_CODEX["heroes"].keys()}
+    villain_key_map = {normalize_name(k): k for k in INNER_CODEX["villains"].keys()}
+
+    is_hero = tag in hero_key_map
+    is_villain = tag in villain_key_map
 
     if is_hero:
-        canon_name = [h for h in INNER_CODEX["heroes"].keys() if h.lower().replace(" ", "") == tag][0]
+        canon_name = hero_key_map[tag]
         response = call_openai(user_input=user_input, hero_name=canon_name, context={
             "thread": context,
             "user_id": user_id,
         })
 
-        # 📝 Save USER message
-        db.add(QueryHistory(
-            user_id=user_id,
-            contact_tag=tag,
-            agent_name=canon_name,
-            question=user_input,
-            response="",
-            sender_role="user",
-            hero_name=canon_name
-        ))
-
-        # 💬 Save HERO response
-        db.add(QueryHistory(
-            user_id=user_id,
-            contact_tag=tag,
-            agent_name=canon_name,
-            question="",
-            response=response,
-            sender_role="assistant",
-            hero_name=canon_name
-        ))
-
+        db.add_all([
+            QueryHistory(
+                user_id=user_id,
+                contact_tag=tag,
+                agent_name=canon_name,
+                question=user_input,
+                response="",
+                sender_role="user",
+                hero_name=canon_name
+            ),
+            QueryHistory(
+                user_id=user_id,
+                contact_tag=tag,
+                agent_name=canon_name,
+                question="",
+                response=response,
+                sender_role="assistant",
+                hero_name=canon_name
+            )
+        ])
         db.commit()
         return jsonify({"response": response})
 
     elif is_villain:
-        canon_name = [v for v in INNER_CODEX["villains"].keys() if v.lower().replace(" ", "") == tag][0]
-
-        # ❗ Villains get NO journal context
+        canon_name = villain_key_map[tag]
         response = call_openai(user_input=user_input, hero_name=canon_name, context={
             "thread": context,
             "user_id": user_id,
@@ -574,14 +575,13 @@ def circle_chat(resurgitag):
             agent_name=canon_name,
             question=user_input,
             response=response,
-            sender_role="user",  # optional: could leave null for villains
+            sender_role="user",
             hero_name=canon_name
         ))
         db.commit()
         return jsonify({"response": response})
 
-    else:
-        return jsonify({"error": "No matching hero or villain found."}), 404
+    return jsonify({"error": "No matching hero or villain found."}), 404
 
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
@@ -589,8 +589,11 @@ def show_hero_chat(resurgitag):
     from inner_codex import INNER_CODEX
     db = SessionLocal()
 
+    def normalize_name(name):
+        return name.strip().lower().replace(" ", "").replace("_", "")
+
     user_id = session.get("user_id")
-    tag = resurgitag.strip().lower().lstrip("@")
+    tag = normalize_name(resurgitag.lstrip("@"))
 
     user = db.query(User).filter_by(id=user_id).first()
     contact_name = None
@@ -606,12 +609,9 @@ def show_hero_chat(resurgitag):
         if hero:
             contact_name = hero.display_name or tag
 
-    # 🧟‍♂️ Check Villains
+    # 🧟‍♂️ Check INNER_CODEX villains if still not found
     if not contact_name:
-        villain_map = {
-            k.lower().replace(" ", "").replace("@", ""): k
-            for k in INNER_CODEX["villains"].keys()
-        }
+        villain_map = {normalize_name(k): k for k in INNER_CODEX["villains"].keys()}
         if tag in villain_map:
             contact_name = villain_map[tag]
             messages = [{"speaker": contact_name, "text": f"{contact_name} waits in the shadows…"}]
@@ -642,9 +642,8 @@ def show_hero_chat(resurgitag):
         messages.insert(0, {"speaker": "You", "text": reflection_text})
         quest_flash = True
 
-        # 🧠 Trigger AI reflection response
-        canon_name = contact_name
         context = {"thread": [], "user_id": user_id}
+        canon_name = contact_name
 
         try:
             ai_response = call_openai(
@@ -654,7 +653,6 @@ def show_hero_chat(resurgitag):
             )
             messages.insert(1, {"speaker": canon_name, "text": ai_response})
 
-            # ✅ Save to DB
             db.add(QueryHistory(
                 user_id=user_id,
                 contact_tag=tag,

@@ -15,6 +15,8 @@ VILLAIN_NAMES = [name.lower() for name in INNER_CODEX.get("villains", {})]
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+def normalize_name(name):
+    return name.strip().lower().replace(" ", "_")
 
 def call_openai(user_input, hero_name="Cognita", context=None):
     print(f"\n[🧠 call_openai] 🔹 Hero: {hero_name} | 🔹 Input: {user_input}")
@@ -32,10 +34,13 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         system_prompt = build_prompt(hero=hero_name.lower(), user_input=user_input, context=context)
         print(f"[📜 Final Prompt Snippet]: {system_prompt[:200]}...\n")
 
-        # Send to OpenAI
+        # Send to OpenAI with user input included
         response = client.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "system", "content": system_prompt}],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ],
             temperature=0.8
         )
 
@@ -136,6 +141,7 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
     history = []
     agent_tag = session_data.get("hero_name") if session_data else None
 
+    # 🧵 Pull query history
     if user_id and agent_tag:
         thread = (
             db.query(QueryHistory)
@@ -155,26 +161,29 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
 
     formatted_thread = ""
     for msg in full_thread:
-        formatted_thread += f"{msg['speaker']} ({msg['time']}): \"{msg['text']}\"\n"
+        formatted_thread += f'{msg["speaker"]} ({msg["time"]}): "{msg["text"]}"\n'
 
+    # 🧭 If recent quest posted a reflection, prepend it
     quest_data = session.pop("from_quest", None)
     quest_reflection = quest_data.get("reflection") if quest_data else None
     if quest_reflection:
         formatted_thread = f'Grace: "The user has just completed a quest. They wrote: \'{quest_reflection}\'"\n\n' + formatted_thread
 
-    # 🧠 Pull nickname & bio
-    nickname = user.nickname if user and user.nickname else "Friend"
+    # 🧠 Bio + nickname
+    nickname = user.nickname or "Friend"
     bio_text = None
-    if user:
-        bio = db.query(UserBio).filter_by(user_id=user.id).first()
-        bio_text = bio.bio_text if bio else None
+    journal_summary = None
 
-    # ⛑️ Fallback if no bio
-    if not bio_text and user:
-        reason = user.theme_choice or "an unknown reason"
-        coping = user.default_coping or "an unspecified coping style"
-        traits = ", ".join(user.hero_traits or []) if user.hero_traits else "unknown trust preferences"
-        bio_text = f"""
+    if user:
+        bio_obj = db.query(UserBio).filter_by(user_id=user.id).first()
+        bio_text = bio_obj.bio_text if bio_obj else None
+
+        if not bio_text:
+            reason = user.theme_choice or "an unknown reason"
+            coping = user.default_coping or "an unspecified coping style"
+            traits = ", ".join(user.hero_traits) if user.hero_traits and isinstance(user.hero_traits, list) else "unknown trust preferences"
+
+            bio_text = f"""
 The user’s emotional profile includes:
 
 - They came to us due to: {reason}.
@@ -182,7 +191,7 @@ The user’s emotional profile includes:
 - In someone they trust, they look for: {traits}.
 """.strip()
 
-    # 📖 If no chat thread, fall back to journal
+    # 🧾 Fallback: Journal entry
     if not formatted_thread.strip() and user:
         journal_summary = pull_recent_journal_summary(user.id)
         if journal_summary:
@@ -191,54 +200,26 @@ The user’s emotional profile includes:
     db.close()
 
     emotional_profile = f"""
-{bio_text}
+{bio_text or "No bio available."}
 
 Let this shape your tone. Do not reference this directly.
 """.strip()
 
     return {
-    "formatted_thread": formatted_thread,
-    "emotional_profile": emotional_profile,
-    "nickname": nickname,
-    "thread": full_thread,
-    "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
-    "quest_history": quest_data.get("completed_quests", []) if quest_data else []
-}
+        "formatted_thread": formatted_thread,
+        "emotional_profile": emotional_profile,
+        "nickname": nickname,
+        "thread": full_thread,
+        "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
+        "quest_history": quest_data.get("completed_quests", []) if quest_data else []
+    }
 
-
-def get_prompt(hero_name, style="default"):
-    name = hero_name.lower().strip()
-
-    # Check HERO section
-    hero_data = INNER_CODEX["heroes"].get(name)
-    if hero_data and "prompts" in hero_data:
-        return hero_data["prompts"].get(style) or hero_data["prompts"].get("default")
-
-    # Check VILLAIN section
-    villain_data = INNER_CODEX["villains"].get(hero_name)
-    if isinstance(villain_data, dict) and "prompt" in villain_data:
-        return villain_data["prompt"]
-
-    # Fallback
-    return f"You are {hero_name}, a mysterious figure in the user's recovery world."
-
-
-def normalize_thread(thread):
-    normalized = []
-    for item in thread:
-        if isinstance(item, dict):
-            if "speaker" in item and "text" in item:
-                normalized.append(item)
-            else:
-                for speaker, text in item.items():
-                    normalized.append({
-                        "speaker": "User" if speaker.strip().lower() == "you" else speaker.capitalize(),
-                        "text": text.strip()
-                    })
-    return normalized
-
+def normalize_name(name):
+    return name.strip().lower().replace(" ", "").replace("_", "")
 
 def build_prompt(hero, user_input, context):
+    from inner_codex import INNER_CODEX  # Ensure this is accessible
+
     nickname = context.get("nickname", "Friend")
     tone_summary = context.get("tone_summary", "vulnerable")
     journals = context.get("journals", [])
@@ -246,15 +227,24 @@ def build_prompt(hero, user_input, context):
     formatted_thread = context.get("formatted_thread", "")
     user_bio_text = context.get("emotional_profile", "")
 
-    # 🧠 Pull hero or villain personality prompt
-    key = hero.strip().title()
-    hero_data = INNER_CODEX.get("heroes", {}).get(key)
-    is_villain = False
+    # 🔍 Build normalized name maps
+    hero_key_map = {normalize_name(k): k for k in INNER_CODEX.get("heroes", {})}
+    villain_key_map = {normalize_name(k): k for k in INNER_CODEX.get("villains", {})}
+    key = normalize_name(hero)
 
-    if not hero_data:
-        hero_data = INNER_CODEX.get("villains", {}).get(key)
-        if hero_data:
-            is_villain = True
+    canon_name = hero  # Default fallback
+    is_villain = False
+    hero_data = None
+
+    if key in hero_key_map:
+        canon_name = hero_key_map[key]
+        hero_data = INNER_CODEX["heroes"][canon_name]
+    elif key in villain_key_map:
+        canon_name = villain_key_map[key]
+        hero_data = INNER_CODEX["villains"][canon_name]
+        is_villain = True
+
+    print(f"[🔍 build_prompt] Key: '{key}' | Canon: '{canon_name}' | Found hero data: {bool(hero_data)} | Villain: {is_villain}")
 
     hero_prompt = None
     if hero_data:
@@ -264,21 +254,20 @@ def build_prompt(hero, user_input, context):
             hero_prompt = hero_data["prompt"]
 
     if hero_prompt:
-        print(f"🤖 Using {'villain' if is_villain else 'hero'} prompt for '{key}'.")
+        print(f"🤖 Using {'villain' if is_villain else 'hero'} prompt for '{canon_name}'.")
     else:
-        hero_prompt = f"You are {key}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
-        print(f"⚠️ No specific prompt found for '{key}'; using default prompt.")
+        hero_prompt = f"You are {canon_name}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
+        print(f"⚠️ No specific prompt found for '{canon_name}'; using default prompt.")
 
     region_context = INNER_CODEX.get("world", {}).get("description", "")
     memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
-    # 📜 Base Prompt Construction
     base_prompt = f"""
 {hero_prompt}
 
-You are {hero.capitalize()} — a hero from the State of Inner.
+You are {canon_name} — a hero from the State of Inner.
 You are speaking to someone named {nickname}.
 Use their name sparingly, but **when offering encouragement, grounding, or emotional resonance, address them directly** — especially when they’re struggling to believe in themselves.
 They are human. You are not them. You are not the user. You are yourself.
@@ -333,6 +322,3 @@ Speak with warmth, boundaries, and clarity. You are not their therapist — you 
 
     print("✅ build_prompt generated successfully.")
     return base_prompt.strip()
-
-def get_hero_for_quest(quest_id):
-    return INNER_CODEX.get("quest_hero_map", {}).get(quest_id, "Grace")  # Default fallback hero
