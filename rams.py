@@ -1,10 +1,11 @@
 import os
 import openai
 from datetime import datetime
-from db import SessionLocal
-from models import User, UserBio, JournalEntry
+from db import SessionLocal, pull_recent_journal_summary
+from models import User, UserBio, JournalEntry, QueryHistory
 from inner_codex import INNER_CODEX
 from flask import session, g
+from openai import OpenAI
 
 # Define HERO_NAMES and VILLAIN_NAMES once, for consistent use everywhere
 HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
@@ -13,108 +14,54 @@ VILLAIN_NAMES = [name.lower() for name in INNER_CODEX.get("villains", {})]
 # Set OpenAI API key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def call_openai(user_input, hero_name="Cognita", context=None):
-    from openai import OpenAI
-
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-    tag = hero_name.strip().lower()
-    is_villain = tag in VILLAIN_NAMES
-
-    # Safely extract elements from context
-    thread = context.get("thread", []) if isinstance(context, dict) else []
-    formatted_thread = context.get("formatted_thread", "") if isinstance(context, dict) else ""
-    emotional_profile = context.get("emotional_profile", "") if isinstance(context, dict) else ""
-
-    # Default nickname until fetched
-    nickname = "Friend"
-    bio_text = ""
-    tone_summary = ""
-
-    # Pull real user data from DB
-    user_id = session.get("user_id")
-    if user_id:
-        db = SessionLocal()
-        user = db.query(User).filter_by(id=user_id).first()
-        if user:
-            nickname = user.nickname or nickname
-            tone_summary = user.tone_summary or ""
-            if user.user_bio:
-                bio_text = user.user_bio.bio or ""
-        db.close()
-
-    # If no existing thread, start one
-    if not thread:
-        thread = [{"speaker": "User", "text": user_input}]
-
-    # Build system prompt
-    system_message = build_prompt(
-        hero=tag,
-        user_input=user_input,
-        context={
-            "thread": thread,
-            "formatted_thread": formatted_thread,
-            "emotional_profile": emotional_profile,
-            "nickname": nickname,
-            "bio": bio_text,
-            "tone_summary": tone_summary,
-            "user_id": user_id
-        }
-    )
-
-    # Identity system message
-    hero_identity_message = {
-        "role": "system",
-        "content": f"""
-You are {hero_name}, a {'villain' if is_villain else 'supportive hero'} in a recovery app called Resurgifi.
-
-You are speaking to a person named '{nickname}', who is in early recovery. You are not them — you are not the user — but you care deeply about their growth.
-
-🧠 Speak only as yourself. Never say things like “you said…” or “you feel…” unless the user has said it.
-
-{'As a villain, you may provoke or reflect inner tension, but do not guide, encourage, or use their name.' if is_villain else 'As a hero, you may use their name sparingly — especially when grounding them emotionally or offering encouragement. Names bring people back to themselves.'}
-
-Stay emotionally realistic. Speak with presence and purpose.
-""".strip()
-    }
-
-    # Assemble messages
-    messages = [hero_identity_message, {"role": "system", "content": system_message}]
-
-    # Add thread history
-    for entry in thread[-30:]:
-        if isinstance(entry, dict) and "speaker" in entry:
-            role = "user" if entry["speaker"].lower() == "user" else "assistant"
-            messages.append({"role": role, "content": entry["text"]})
-        elif isinstance(entry, dict):
-            for speaker, msg in entry.items():
-                role = "user" if speaker.lower() == "you" else "assistant"
-                messages.append({"role": role, "content": msg})
-
-    # Add final user input
-    messages.append({"role": "user", "content": user_input})
-
-    # Minimal debug
-    print("\n--- 📡 OpenAI CALL DEBUG ---")
-    print(f"🧠 Hero Tag: {tag}")
-    print(f"🗣️ User Input: {user_input}")
-    print("🧵 Messages (last 3):", messages[-3:])
-    print("--- END DEBUG ---\n")
-
-    # Call OpenAI API
+    print(f"\n[🧠 call_openai] 🔹 Hero: {hero_name} | 🔹 Input: {user_input}")
+    
     try:
+        user_id = context.get("user_id")
+        nickname = context.get("nickname", "Friend")
+        formatted_thread = context.get("formatted_thread", "")
+        
+        # Attempt to retrieve tone summary from journals
+        tone_summary = pull_recent_journal_summary(user_id) or ""
+        print(f"[🪞 Tone Summary]: {tone_summary[:120]}...")
+
+        # Log thread length and content
+        thread = context.get("thread", [])
+        print(f"[🧵 Thread Length]: {len(thread)}")
+        for i, entry in enumerate(thread[-3:], 1):
+            print(f"[🧵 Thread-{i}]: {entry}")
+
+        # Final prompt construction
+        system_prompt = build_prompt(
+            hero=hero_name.lower(),
+            user_input=user_input,
+            context={
+                "nickname": nickname,
+                "tone_summary": tone_summary,
+                "formatted_thread": formatted_thread,
+                "user_id": user_id,
+            }
+        )
+        print(f"[📜 Final Prompt Snippet]: {system_prompt[:200]}...\n")
+
+        # Send to OpenAI
         response = client.chat.completions.create(
             model="gpt-4o",
-            messages=messages,
-            temperature=0.85,
-            max_tokens=300
+            messages=[{"role": "system", "content": system_prompt}],
+            temperature=0.8
         )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"🔥 OpenAI Error for {tag}: {e}")
-        return "Something went wrong. Try again in a moment."
 
+        message = response.choices[0].message.content.strip()
+        print(f"[✅ OpenAI Response]: {message[:120]}...\n")
+        return message
+
+    except Exception as e:
+        print(f"[❌ ERROR in call_openai]: {e}")
+        traceback.print_exc()
+        return "Error: Could not reach your guide. Try again in a moment."
 
 def pull_recent_journal_summary(user_id):
     db = SessionLocal()
@@ -196,9 +143,6 @@ def select_heroes(tone, thread):
 def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
     db = SessionLocal()
     user = db.query(User).filter_by(id=user_id).first() if user_id else None
-
-    from models import QueryHistory, UserBio
-
     history = []
     agent_tag = session_data.get("hero_name") if session_data else None
 
@@ -307,7 +251,7 @@ def build_prompt(hero, user_input, context):
 
     db = SessionLocal()
     user_bio_text = ""
-    tone_summary = ""
+    tone_summary = pull_recent_journal_summary(user.id) or ""
     journal_snippets = []
     nickname = context.get("nickname", "Friend")
     formatted_thread = context.get("formatted_thread", "")
