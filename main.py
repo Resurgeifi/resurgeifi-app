@@ -667,6 +667,10 @@ def show_hero_chat(resurgitag):
             print(f"⚠️ AI quest reflection failed: {e}")
 
     return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=quest_flash)
+@app.route("/thank-you")
+def thank_you():
+    name = request.args.get("name", "Friend")
+    return render_template("thank_you.html", name=name)
 
 @app.route("/codex")
 def inner_codex():
@@ -1617,26 +1621,25 @@ def history():
 
 @app.route("/contact", methods=["POST"])
 def contact():
-    message = request.form.get("message")
-    name = request.form.get("name", "Unknown")
-    email_addr = request.form.get("email", "No email provided")
+    try:
+        message = request.form.get("message")
+        name = request.form.get("name", "Friend")
+        email_addr = request.form.get("email", "No email provided")
 
-    if message:
-        email = Message(
-            subject=f"📨 Contact Form from {name}",
-            recipients=[os.getenv("MAIL_FEEDBACK_RECIPIENT")],
-            body=f"Name: {name}\nEmail: {email_addr}\n\nMessage:\n{message}"
-        )
-        mail.send(email)
+        if message:
+            email = Message(
+                subject=f"📨 Contact Form from {name}",
+                recipients=[os.getenv("MAIL_FEEDBACK_RECIPIENT")],
+                body=f"Name: {name}\nEmail: {email_addr}\n\nMessage:\n{message}"
+            )
+            mail.send(email)
+            return render_template("thankyou.html", name=name)
 
-        # Now render the thank-you page instead of raw string
-        response = make_response(render_template("thankyou.html", name=name))
-        response.headers['Access-Control-Allow-Origin'] = 'https://resurgelabs.com'
-        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-        return response
+        return "No message provided", 400
+    except Exception as e:
+        print("🔥 Contact form error:", e)
+        return "Internal server error", 500
 
-    return "No message provided", 400
 
 @app.route("/contact", methods=["OPTIONS"])
 def contact_options():

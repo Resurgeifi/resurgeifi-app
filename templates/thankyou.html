@@ -2,23 +2,24 @@
 {% block title %}Thank You | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="thank-you-container" style="text-align: center; padding: 4rem 1rem; max-width: 700px; margin: 0 auto;">
+<div class="thank-you-container" style="text-align: center; padding: 4rem 1rem; max-width: 600px; margin: auto;">
   <h1 style="font-size: 2.5rem; margin-bottom: 1.5rem;">You're In 💫</h1>
-  <p style="font-size: 1.2rem;">{{ name }}, welcome to the first wave of Resurgifi.</p>
-  <p style="margin-top: 1rem;">You’ll hear from us soon. Until then — keep resurging.</p>
+  <p style="font-size: 1.2rem;">{{ name | default("Friend") }}, welcome to the first wave of Resurgifi.</p>
+  <p style="margin-top: 1rem;">You'll hear from us soon. Until then — keep resurging.</p>
 
-  <a href="/" class="global-button" style="margin-top: 2rem;">← Back to the beginning</a>
+  <a href="/" class="global-button" style="margin-top: 2rem;">⬅ Back to the beginning</a>
 
   <hr style="margin: 3rem auto; width: 60%; border-color: #444;" />
 
   <div class="donation-section" style="margin-top: 2rem;">
     <p style="font-style: italic; color: #aaa;">Want to support this mission?</p>
     <form action="https://www.buymeacoffee.com/resurgifi" method="get" target="_blank">
-      <button type="submit" class="global-button" style="background-color: #fdd835; color: #000; margin-top: 0.5rem;">
+      <button type="submit" class="global-button" style="background-color: #fdd835; color: #111; font-weight: bold;">
         ☕ Buy us a coffee
       </button>
     </form>
   </div>
 </div>
 {% endblock %}
+
 
