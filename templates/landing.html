@@ -6,7 +6,44 @@
   <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
 </audio>
 
-<!-- 🌌 Cinematic Flash Intro Slide -->
+<!-- ✨ Particle Background Effect -->
+<canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; pointer-events: none;"></canvas>
+<script>
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 1.5 + 0.5,
+      dx: (Math.random() - 0.5) * 0.5,
+      dy: (Math.random() - 0.5) * 0.5
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f6e7c1aa';
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+    });
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+</script>
+
+<!-- 🌟 Cinematic Flash Intro Slide -->
 <div class="intro-slide active">
   <div class="intro-text">
     “You’ve opened your eyes inside the State of Inner…<br>
@@ -25,20 +62,13 @@
     Skip Intro
   </a>
 </div>
-
-
   <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">This is more than an app — it’s an emotional universe.<br><br>🎧 Audio is playing. Turn sound on for full immersion.</div>
+    <div class="intro-text">This is more than an app — it’s an emotional universe.<br><br>Developed by people who have been through what you have.</div>
     <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="intro-image animated" alt="Grace">
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
     <div class="intro-text">“It’s time for technology to meet us in our minds — not just to track our pain, but to <em>transform</em> it.”</div>
-  </div>
-
-  <div class="intro-slide" onclick="nextSlide()">
-    <div class="intro-text">You’ve seen the breathing apps. The worksheets. The meditations on beaches.<br><br>We built <strong>Resurgifi</strong> to turn all that into a <em>battlefield and a practice ground</em>.<br>The tools come alive. — they <em>fight with you</em>.</div>
-    <img src="{{ url_for('static', filename='images/villains/wardenfall/wardenfall_flash.png') }}" class="intro-image animated">
   </div>
 
   <div class="intro-slide" onclick="nextSlide()">
