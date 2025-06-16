@@ -6,7 +6,7 @@ from models import User, UserBio, JournalEntry, QueryHistory
 from inner_codex import INNER_CODEX
 from flask import session, g # type: ignore
 from openai import OpenAI
-
+import traceback
 # Define HERO_NAMES and VILLAIN_NAMES once, for consistent use everywhere
 HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
 VILLAIN_NAMES = [name.lower() for name in INNER_CODEX.get("villains", {})]
@@ -50,14 +50,19 @@ def call_openai(user_input, hero_name="Cognita", context=None):
 
 def pull_recent_journal_summary(user_id):
     db = SessionLocal()
-    summary_entry = (
-        db.query(JournalEntry)
-        .filter_by(user_id=user_id)
-        .order_by(JournalEntry.created_at.desc())
-        .first()
-    )
-    db.close()
-    return summary_entry.content.strip() if summary_entry else None
+    try:
+        summary_entry = (
+            db.query(JournalEntry)
+            .filter_by(user_id=user_id)
+            .order_by(JournalEntry.timestamp.desc())  # ✅ FIXED HERE
+            .first()
+        )
+        return summary_entry.content.strip() if summary_entry else None
+    except Exception as e:
+        print(f"[🧨 pull_recent_journal_summary ERROR]: {e}")
+        return None
+    finally:
+        db.close()
 
 def detect_crisis_tone(thread):
     crisis_keywords = [

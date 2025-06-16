@@ -1722,11 +1722,11 @@ def submit_onboarding():
     user.core_trigger = q1
     user.default_coping = q2
     user.hero_traits = q3
-    user.onboarding_complete = True
+    user.has_completed_onboarding = True  # ✅ Fixed
 
-    db.commit()  # 💾 Save changes before using data
+    db.commit()
 
-    # ✅ Generate and store bio from raw form values
+    # ✅ Generate and store bio
     generate_and_store_bio(
         user_id=user.id,
         q1=q1,
@@ -1737,7 +1737,6 @@ def submit_onboarding():
     db.close()
     flash("Onboarding complete. Welcome aboard. 🛟")
     return redirect(url_for('menu'))
-
 
 @app.route("/onboarding", methods=["GET"])
 @login_required
@@ -1918,12 +1917,13 @@ def hero_profile(resurgitag):
 
     # 🔗 Static hero links
     hero_links = {
-        'lucentis': ['grace', 'velessa'],
-        'grace': ['lucentis', 'sirrenity'],
-        'velessa': ['grace', 'cognita'],
-        'sirrenity': ['cognita', 'lucentis'],
-        'cognita': ['sirrenity', 'velessa']
-    }
+    'lucentis': ['grace', 'velessa'],
+    'grace': ['lucentis', 'sir_renity'],
+    'velessa': ['grace', 'cognita'],
+    'sir_renity': ['cognita', 'lucentis'],
+    'cognita': ['sir_renity', 'velessa']
+}
+
     linked_allies = hero_links.get(resurgitag_clean, [])
 
     return render_template(
