@@ -202,7 +202,6 @@ Let this shape your tone. Do not reference this directly.
     "nickname": nickname,
     "thread": full_thread,
     "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
-    "journals": journal_snippets,
     "quest_history": quest_data.get("completed_quests", []) if quest_data else []
 }
 
