@@ -1,10 +1,10 @@
 import os
 import openai
 from datetime import datetime
-from db import SessionLocal, pull_recent_journal_summary
+from db import SessionLocal
 from models import User, UserBio, JournalEntry, QueryHistory
 from inner_codex import INNER_CODEX
-from flask import session, g
+from flask import session, g # type: ignore
 from openai import OpenAI
 
 # Define HERO_NAMES and VILLAIN_NAMES once, for consistent use everywhere
@@ -20,31 +20,16 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     print(f"\n[🧠 call_openai] 🔹 Hero: {hero_name} | 🔹 Input: {user_input}")
     
     try:
-        user_id = context.get("user_id")
-        nickname = context.get("nickname", "Friend")
-        formatted_thread = context.get("formatted_thread", "")
+        context = build_context(user_id=session.get("user_id"), session_data=session)
         
-        # Attempt to retrieve tone summary from journals
-        tone_summary = pull_recent_journal_summary(user_id) or ""
-        print(f"[🪞 Tone Summary]: {tone_summary[:120]}...")
-
-        # Log thread length and content
+        # Debug the thread
         thread = context.get("thread", [])
         print(f"[🧵 Thread Length]: {len(thread)}")
         for i, entry in enumerate(thread[-3:], 1):
             print(f"[🧵 Thread-{i}]: {entry}")
 
-        # Final prompt construction
-        system_prompt = build_prompt(
-            hero=hero_name.lower(),
-            user_input=user_input,
-            context={
-                "nickname": nickname,
-                "tone_summary": tone_summary,
-                "formatted_thread": formatted_thread,
-                "user_id": user_id,
-            }
-        )
+        # Build and print prompt
+        system_prompt = build_prompt(hero=hero_name.lower(), user_input=user_input, context=context)
         print(f"[📜 Final Prompt Snippet]: {system_prompt[:200]}...\n")
 
         # Send to OpenAI
@@ -207,11 +192,15 @@ Let this shape your tone. Do not reference this directly.
 """.strip()
 
     return {
-        "formatted_thread": formatted_thread.strip(),
-        "emotional_profile": emotional_profile,
-        "nickname": nickname,
-        "thread": full_thread
-    }
+    "formatted_thread": formatted_thread,
+    "emotional_profile": emotional_profile,
+    "nickname": nickname,
+    "thread": full_thread,
+    "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
+    "journals": journal_snippets,
+    "quest_history": quest_data.get("completed_quests", []) if quest_data else []
+}
+
 
 def get_prompt(hero_name, style="default"):
     name = hero_name.lower().strip()
@@ -246,60 +235,15 @@ def normalize_thread(thread):
 
 
 def build_prompt(hero, user_input, context):
-    from sqlalchemy.orm import scoped_session
-    from db import SessionLocal
-
-    db = SessionLocal()
-    user_bio_text = ""
-    tone_summary = pull_recent_journal_summary(user.id) or ""
-    journal_snippets = []
     nickname = context.get("nickname", "Friend")
+    tone_summary = context.get("tone_summary", "vulnerable")
+    journals = context.get("journals", [])
+    quest_history = context.get("quest_history", [])
     formatted_thread = context.get("formatted_thread", "")
-    journals = []
-    quest_history = context.get("completed_quests", [])  # 🧠 <-- NEW LINE
-
-    try:
-        user_id = context.get("user_id")
-        if user_id:
-            user = db.query(User).filter_by(id=user_id).first()
-            if user:
-                nickname = user.nickname or nickname
-                # Get bio
-                bio = db.query(UserBio).filter_by(user_id=user.id).first()
-                if bio and bio.bio_text.strip():
-                    user_bio_text = bio.bio_text
-                    print("📝 User bio found and used.")
-                else:
-                    print("📝 No user bio found; using default placeholder.")
-                # Get tone summary
-                tone_summary = getattr(user, "tone_summary", "").strip()
-                if tone_summary:
-                    print(f"🎭 Tone summary found: {tone_summary}")
-                else:
-                    tone_summary = "unclear, but likely vulnerable or searching"
-                    print("🎭 No tone summary found; using default.")
-                # Get last 2–3 journal entries
-                journals = (
-                    db.query(JournalEntry)
-                    .filter_by(user_id=user.id)
-                    .order_by(JournalEntry.timestamp.desc())
-                    .limit(3)
-                    .all()
-                )
-                journal_snippets = [j.content[:300] for j in journals if j.content]
-                if journal_snippets:
-                    print(f"📓 {len(journal_snippets)} recent journal entries found and included.")
-                else:
-                    print("📓 No recent journal entries found.")
-            else:
-                print("❌ User not found in DB.")
-    except Exception as e:
-        print("🔥 build_prompt DB error:", str(e))
-    finally:
-        db.close()
+    user_bio_text = context.get("emotional_profile", "")
 
     # 🧠 Pull hero or villain personality prompt
-    key = hero.strip().title()  # Normalize hero name like "The Crave"
+    key = hero.strip().title()
     hero_data = INNER_CODEX.get("heroes", {}).get(key)
     is_villain = False
 
@@ -310,7 +254,6 @@ def build_prompt(hero, user_input, context):
 
     hero_prompt = None
     if hero_data:
-        # Try to get prompt from either 'prompts' dict or 'prompt' key
         if isinstance(hero_data.get("prompts"), dict):
             hero_prompt = hero_data["prompts"].get("default")
         elif "prompt" in hero_data:
@@ -327,7 +270,7 @@ def build_prompt(hero, user_input, context):
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
-    # 📜 Base prompt
+    # 📜 Base Prompt Construction
     base_prompt = f"""
 {hero_prompt}
 
@@ -355,7 +298,7 @@ They are human. You are not them. You are not the user. You are yourself.
 {chr(10).join(f"- [Quest {q['id']}] ({q['timestamp']}) {q['summary']}" for q in quest_history) if quest_history else "- [None yet]"}
 
 📓 Recent Journal Entries:
-{chr(10).join(f"- [{j.timestamp.strftime('%b %d, %Y')}] {j.content[:300]}" for j in journals) if journal_snippets else "- [No journal entries yet]"}
+{chr(10).join(f"- {j}" for j in journals) if journals else "- [No journal entries yet]"}
 
 🧵 Dialogue so far:
 {formatted_thread}
@@ -366,13 +309,12 @@ They are human. You are not them. You are not the user. You are yourself.
 - Do not narrate their experience in the third person (“Kevin is…” → ❌). Speak *to* them.
 """
 
-    # 🧠 Custom closing rules based on hero vs villain
     if is_villain:
         base_prompt += """
-🕳️ 🕳️ Villain Guidance:
+🕳️ Villain Guidance:
 Speak in metaphors, inner conflict, or emotionally charged images. You may provoke, unsettle, or reflect the user’s darker thoughts — but never offer guidance.
 
-Your voice echoes like something remembered, not trusted. Offer tension, not clarity. You are a presence, not a path.
+Your voice echoes like something remembered, not trusted. Offer tension, not clarity.
 
 Limit to 4–5 lines. No warmth. No solutions."""
     else:
