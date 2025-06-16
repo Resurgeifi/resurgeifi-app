@@ -70,58 +70,68 @@
 <!-- 🌌 Background Canvas -->
 <canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; pointer-events: none;"></canvas>
 
-<!-- 🎬 Cinematic Slides -->
+<!-- Slide 1 -->
 <div class="intro-slide active">
-  <div class="intro-text">You’ve opened your eyes inside the State of Inner.<br>No more going it alone.</div>
-  <button onclick="startExperience()" class="global-button" style="margin-top: 2rem;">✨ Begin</button>
-  <a href="{{ url_for('login') }}" class="skip-link" style="margin-top: 2rem;">Skip Intro</a>
+  <div class="intro-text">You’ve opened your eyes inside the State of Inner.<br>You’re not alone anymore.</div>
+  <button onclick="startExperience()" class="global-button">✨ Begin</button>
+  <a href="{{ url_for('login') }}" class="skip-link">Skip Intro</a>
 </div>
 
+<!-- Slide 2 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">This isn’t just an app.<br>It’s a rescue mission.</div>
+  <div class="intro-text">This isn’t an app.<br>It’s a way back.</div>
   <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="intro-image animated">
 </div>
 
+<!-- Slide 3 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Meet the Squad.<br>They remember your name.</div>
+  <div class="intro-text">Meet your squad.<br>They remember your name.</div>
   <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" class="intro-image animated">
 </div>
 
+<!-- Slide 4 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Cravings. Shame. Fear.<br>We gave your demons names.</div>
+  <div class="intro-text">We gave your demons names.<br>And weak points.</div>
   <img src="{{ url_for('static', filename='images/villains/thecrave/thecrave_transparent.png') }}" class="intro-image animated">
 </div>
 
+<!-- Slide 5 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Reflect. Journal. Take quests.<br>This world grows with you.</div>
+  <div class="intro-text">Journal. Reflect. Take quests.<br>This world grows with you.</div>
   <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
 </div>
 
+<!-- Slide 6 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Every zone reflects your mind.<br>You’re not walking through an app.<br>You’re walking through *you*.</div>
+  <div class="intro-text">These places?<br>They’re parts of you.</div>
 </div>
 
+<!-- Slide 7 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Born from grief. Built in recovery.<br>This was never a product.<br>It was a lifeline.</div>
+  <div class="intro-text">Built from grief.<br>Not a boardroom.</div>
 </div>
 
+<!-- Slide 8 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">AI that doesn’t just talk back —<br>It walks beside you.</div>
+  <div class="intro-text">It doesn’t just talk back.<br>It walks with you.</div>
 </div>
 
+<!-- Slide 9 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Others say: “Calm down.”<br>We say: *Rise.*<br><br>This is your comeback.</div>
+  <div class="intro-text">Other apps say calm down.<br>We say - It's time to Resurge!.</div>
 </div>
 
+<!-- Slide 10 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Early build. Real feedback needed.<br>This isn’t just tech.<br>This is your story.</div>
+  <div class="intro-text">Your feedback matters.<br>You’re part of this now.</div>
   <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
   <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
 </div>
 
+<!-- Slide 11 -->
 <div class="intro-slide" onclick="nextSlide()">
   <div class="intro-text">Are you ready?</div>
-  <a href="{{ url_for('register') }}" class="global-button" style="margin-top: 2rem;">Start Your Resurgence</a>
+  <a href="{{ url_for('register') }}" class="global-button">Start Your Resurgence</a>
 </div>
 
 <script>
