@@ -1,95 +1,348 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- 🔊 Ambient Intro Music -->
+<!-- 🔊 Ambient Intro Music (hidden until user clicks) -->
 <audio id="landingAudio" loop preload="auto">
   <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
 </audio>
 
-<!-- ✨ Particle Background -->
+<!-- ✨ Particle Background Effect -->
 <canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; pointer-events: none;"></canvas>
 <script>
-const canvas = document.getElementById('particleCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-const particles = [];
-for (let i = 0; i < 100; i++) {
-  particles.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    radius: Math.random() * 1.5 + 0.5,
-    dx: (Math.random() - 0.5) * 0.5,
-    dy: (Math.random() - 0.5) * 0.5
-  });
-}
+  const particles = [];
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 1.5 + 0.5,
+      dx: (Math.random() - 0.5) * 0.5,
+      dy: (Math.random() - 0.5) * 0.5
+    });
+  }
 
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#f6e7c1aa';
-  particles.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fill();
-    p.x += p.dx;
-    p.y += p.dy;
-    if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-    if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-  });
-  requestAnimationFrame(animate);
-}
-animate();
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f6e7c1aa';
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+    });
+    requestAnimationFrame(animate);
+  }
+
+  animate();
 </script>
 
-<!-- 🔥 Slide 1 -->
+<!-- 🌟 Cinematic Flash Intro Slide -->
 <div class="intro-slide active">
   <div class="intro-text">
-    Are you ready for a change?<br>Are you ready to <strong>Resurgifi</strong> your life?
+    “You’ve opened your eyes inside the State of Inner…<br>
+    You don’t have to go it alone anymore.”
   </div>
+
+  <!-- 🌟 Begin -->
+  <button onclick="startExperience()" class="global-button" style="margin-top: 2rem;">
+    ✨ Begin Your Resurgence
+  </button>
+
+  <!-- ⏭️ Skip Intro (fade-in link) -->
+  <a href="{{ url_for('login') }}"
+     class="skip-link"
+     style="margin-top: 2rem; font-size: 1.05rem; color: #aaa; text-decoration: underline; background: none; border: none;">
+    Skip Intro
+  </a>
+</div>
+  <!-- 🎧 Ambient Music -->
+<audio id="landingAudio" loop preload="auto">
+  <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
+</audio>
+
+<!-- 🌌 Background Canvas -->
+<canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; pointer-events: none;"></canvas>
+
+<!-- 🎬 Cinematic Slides -->
+<div class="intro-slide active">
+  <div class="intro-text">You’ve opened your eyes inside the State of Inner.<br>No more going it alone.</div>
   <button onclick="startExperience()" class="global-button" style="margin-top: 2rem;">✨ Begin</button>
-  <a href="{{ url_for('login') }}" class="skip-link" style="margin-top: 2rem; font-size: 1.05rem; color: #aaa; text-decoration: underline;">Skip Intro</a>
+  <a href="{{ url_for('login') }}" class="skip-link" style="margin-top: 2rem;">Skip Intro</a>
 </div>
 
-<!-- 🔥 Slide 2 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">This isn’t just an app. It’s the first digital recovery ally built by people who’ve lived it.</div>
-  <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="intro-image animated" alt="Grace">
+  <div class="intro-text">This isn’t just an app.<br>It’s a rescue mission.</div>
+  <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="intro-image animated">
 </div>
 
-<!-- 🔥 Slide 3 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">We turn your inner world into a story — with heroes, villains, and your fight for peace.</div>
+  <div class="intro-text">Meet the Squad.<br>They remember your name.</div>
   <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" class="intro-image animated">
 </div>
 
-<!-- 🔥 Slide 4 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">The villains? They're cravings, fear, guilt — given faces and weak points.</div>
+  <div class="intro-text">Cravings. Shame. Fear.<br>We gave your demons names.</div>
   <img src="{{ url_for('static', filename='images/villains/thecrave/thecrave_transparent.png') }}" class="intro-image animated">
 </div>
 
-<!-- 🔥 Slide 5 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Reflect with heroes. Face the dark. Build your comeback with every quest.</div>
+  <div class="intro-text">Reflect. Journal. Take quests.<br>This world grows with you.</div>
   <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
 </div>
 
-<!-- 🔥 Slide 6 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">This wasn’t made by a company. It was born from relapse, grief, and the real fight for peace.</div>
+  <div class="intro-text">Every zone reflects your mind.<br>You’re not walking through an app.<br>You’re walking through *you*.</div>
 </div>
 
-<!-- 🔥 Slide 7 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Other apps say “Calm down.”<br>We say: <strong>Rise.</strong><br>This is your resurgence.</div>
+  <div class="intro-text">Born from grief. Built in recovery.<br>This was never a product.<br>It was a lifeline.</div>
 </div>
 
-<!-- 🔥 Slide 8 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Are you with us?</div>
+  <div class="intro-text">AI that doesn’t just talk back —<br>It walks beside you.</div>
+</div>
+
+<div class="intro-slide" onclick="nextSlide()">
+  <div class="intro-text">Others say: “Calm down.”<br>We say: *Rise.*<br><br>This is your comeback.</div>
+</div>
+
+<div class="intro-slide" onclick="nextSlide()">
+  <div class="intro-text">Early build. Real feedback needed.<br>This isn’t just tech.<br>This is your story.</div>
+  <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
+  <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
+</div>
+
+<div class="intro-slide" onclick="nextSlide()">
+  <div class="intro-text">Are you ready?</div>
   <a href="{{ url_for('register') }}" class="global-button" style="margin-top: 2rem;">Start Your Resurgence</a>
 </div>
+
+<script>
+let currentSlide = 0;
+const baseVolume = 0.2;
+const duckVolume = 0.05;
+
+
+function startExperience() {
+  document.getElementById('landingAudio').play().catch(err => console.warn("Audio blocked:", err));
+  nextSlide();
+}
+
+function nextSlide() {
+  const slides = document.querySelectorAll('.intro-slide');
+
+  if (currentSlide < slides.length - 1) {
+    slides[currentSlide].classList.remove('active');
+    currentSlide++;
+    slides[currentSlide].classList.add('active');
+
+    // 🎙 Try to play preloaded audio
+    const preloadedAudio = slideAudioCache[currentSlide];
+    if (preloadedAudio) {
+      preloadedAudio.currentTime = 0;
+      preloadedAudio.play().catch(err => console.warn("Preloaded audio error:", err));
+    } else {
+      // 🛠️ Fallback: read text dynamically via ElevenLabs
+      const text = slides[currentSlide].querySelector(".intro-text")?.innerText;
+      if (text) {
+        playVoice(text.replace(/Resurgifi/gi, "Ree-sur-ji-fy"));
+      }
+    }
+  }
+}
+
+// 👁 Reveal Skip Intro link after delay
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const skip = document.querySelector('.skip-link');
+    if (skip) skip.classList.add('show');
+  }, 2000);
+});
+
+let slideAudioCache = [];
+
+async function playVoice(text) {
+  const ambient = document.getElementById('landingAudio');
+  const duckVolume = 0.05;      // Lower than before when Grace is speaking
+  const baseVolume = 0.2;       // This is your NEW normal music volume
+
+
+  function fadeAudio(element, targetVolume, callback) {
+    const interval = setInterval(() => {
+      const current = element.volume;
+      const delta = (targetVolume - current) * 0.2;
+      element.volume = Math.max(0, Math.min(1, current + delta));
+      if (Math.abs(targetVolume - element.volume) < 0.01) {
+        element.volume = targetVolume;
+        clearInterval(interval);
+        if (callback) callback();
+      }
+    }, 50);
+  }
+
+  try {
+    const response = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text.replace(/Resurgifi/gi, "Resurgah-fye") })
+    });
+
+    if (!response.ok) {
+      console.warn("Voice fetch failed:", await response.text());
+      return;
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+
+    audio.onplay = () => {
+      if (ambient) fadeAudio(ambient, duckVolume);
+    };
+    audio.onended = () => {
+      if (ambient) fadeAudio(ambient, fullVolume);
+    };
+
+    audio.play().catch(err => console.warn("Playback error:", err));
+  } catch (err) {
+    console.error("TTS request failed:", err);
+  }
+}
+
+async function preloadSlideVoices() {
+  const slides = document.querySelectorAll('.intro-slide');
+  const ambient = document.getElementById('landingAudio');
+  const duckVolume = 0.1;
+  const fullVolume = 1.0;
+
+  function fadeAudio(element, targetVolume, callback) {
+    const interval = setInterval(() => {
+      const current = element.volume;
+      const delta = (targetVolume - current) * 0.2;
+      element.volume = Math.max(0, Math.min(1, current + delta));
+      if (Math.abs(targetVolume - element.volume) < 0.01) {
+        element.volume = targetVolume;
+        clearInterval(interval);
+        if (callback) callback();
+      }
+    }, 50);
+  }
+
+  for (let i = 0; i < slides.length; i++) {
+    const textElement = slides[i].querySelector('.intro-text');
+    if (!textElement) {
+      slideAudioCache.push(null);
+      continue;
+    }
+
+    const rawText = textElement.innerText;
+    const adjustedText = rawText.replace(/Resurgifi/gi, "Resurgah_fye");
+
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: adjustedText })
+      });
+
+      if (!response.ok) {
+        console.warn("TTS preload failed for slide", i, await response.text());
+        slideAudioCache.push(null);
+        continue;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+
+      audio.onplay = () => {
+        if (ambient) fadeAudio(ambient, duckVolume);
+      };
+      audio.onended = () => {
+        if (ambient) fadeAudio(ambient, baseVolume);  // ✅ safe consistent return volume
+      };
+
+
+      slideAudioCache.push(audio);
+    } catch (err) {
+      console.error("TTS preload error for slide", i, err);
+      slideAudioCache.push(null);
+    }
+  }
+}
+// ✅ Ensure landing audio starts at a safe volume across all devices
+document.addEventListener("DOMContentLoaded", () => {
+  const ambient = document.getElementById('landingAudio');
+  if (ambient) {
+    ambient.volume = 0.2;  // Default safe volume for intro
+  }
+});
+
+</script>
+
+
+<style>
+.intro-slide {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  height: 100vh;
+  width: 100vw;
+  background: radial-gradient(circle, #000000 20%, #1a1a1a 100%);
+  color: #f6e7c1;
+  padding: 2rem;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 9999;
+  transition: opacity 1s ease;
+  opacity: 0;
+}
+.intro-slide.active {
+  display: flex;
+  opacity: 1;
+  animation: fadeInSlide 1s forwards;
+}
+@keyframes fadeInSlide {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.intro-text {
+  font-size: 1.6rem;
+  font-weight: 300;
+  max-width: 700px;
+  margin-bottom: 2rem;
+}
+.intro-image {
+  max-height: 320px;
+  opacity: 0.8;
+  margin-top: 1rem;
+}
+.animated {
+  animation: floatImage 6s ease-in-out infinite;
+}
+@keyframes floatImage {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.skip-link {
+  opacity: 0;
+  transition: opacity 1.2s ease-in;
+  display: inline-block;
+}
+.skip-link.show {
+  opacity: 1;
+}
+
+</style>
 
 {% endblock %}
 
