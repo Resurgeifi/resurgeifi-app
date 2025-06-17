@@ -1738,6 +1738,10 @@ def submit_onboarding():
         print("🔥 ERROR IN ONBOARDING:", e)
         db.session.rollback()
         return jsonify({"error": "Server error during onboarding"}), 500
+@app.route("/onboarding", methods=["GET"])
+@login_required
+def onboarding():
+    return render_template("onboarding.html")
 
 @app.route("/quest", methods=["GET"])
 @login_required
