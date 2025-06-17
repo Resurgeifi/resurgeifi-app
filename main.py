@@ -1781,9 +1781,34 @@ def run_quest(quest_id):
 
         if request.method == "POST":
             reflection = request.form.get("reflection", "").strip()
-            if not reflection or len(reflection) < 10:
-                flash("Please write a few more words so we can reflect on this with you.", "warning")
+            if not reflection:
+                flash("Please share something so we can reflect with you.", "warning")
                 return redirect(url_for("run_quest", quest_id=quest_id))
+
+            # ✨ Handle very short reflections with OpenAI suggestions
+            if len(reflection.split()) <= 3:
+                try:
+                    system_prompt = (
+                        f"You are a therapist guiding someone in early recovery. They were asked:\n"
+                        f"'{quest_prompt}'\n\nThey replied with a single word or short phrase: '{reflection}'.\n"
+                        "Offer 3 short sentence expansions they might mean — emotionally gentle and real."
+                    )
+
+                    completion = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[{"role": "system", "content": system_prompt}],
+                        temperature=0.7
+                    )
+
+                    raw_output = completion.choices[0].message.content.strip()
+                    suggestions = [line.strip("-•123. ").strip() for line in raw_output.split("\n") if line.strip()]
+                    return render_template("quest_engine.html", quest=quest, quest_id=quest_id,
+                                           suggestions=suggestions, short_reflection=reflection)
+
+                except Exception as e:
+                    print("⚠️ GPT suggestion error:", e)
+                    flash("We had trouble expanding your thought. Try adding a bit more detail.", "warning")
+                    return redirect(url_for("run_quest", quest_id=quest_id))
 
             # ⏳ Throttle rapid-fire submissions
             four_hours_ago = now - timedelta(hours=4)
