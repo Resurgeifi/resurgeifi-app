@@ -1706,36 +1706,42 @@ def reset_test_user():
 def submit_onboarding():
     data = request.get_json()
     user_id = session.get("user_id")
-    user = db.session.query(User).get(user_id)
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    # Update user fields
-    user.theme_choice = data.get("journey", "")
-    user.default_coping = data.get("q2", "")
-    user.hero_traits = data.get("q3", [])
-    user.nickname = data.get("nickname", "Friend")
-    user.journey_start_date = data.get("journey_start_date")
-    user.timezone = data.get("timezone", "UTC")
-
-    # Generate + save their story
+    db_session = SessionLocal()
     try:
+        user = db_session.query(User).get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Update user fields
+        user.theme_choice = data.get("journey", "")
+        user.default_coping = data.get("q2", "")
+        user.hero_traits = data.get("q3", [])
+        user.nickname = data.get("nickname", "Friend")
+        user.journey_start_date = data.get("journey_start_date")
+        user.timezone = data.get("timezone", "UTC")
+        user.has_completed_onboarding = True
+
+        # Generate + save their story
         generate_and_store_bio(
+            db_session=db_session,
             user_id=user.id,
             q1=user.theme_choice,
             q2=user.default_coping,
             q3_traits=user.hero_traits
         )
-        db.session.commit()
+
+        db_session.commit()
+        return jsonify({"message": "Onboarding complete"}), 200
     except Exception as e:
-        db.session.rollback()
+        db_session.rollback()
         print(f"[Onboarding Error] {e}")
         return jsonify({"error": "Could not complete onboarding"}), 500
+    finally:
+        db_session.close()
 
-    return jsonify({"message": "Onboarding complete"}), 200
 
-def generate_and_store_bio(user_id, q1, q2, q3_traits):
+def generate_and_store_bio(db_session, user_id, q1, q2, q3_traits):
+    from models import UserBio
 
     traits = ", ".join(q3_traits) if isinstance(q3_traits, list) else q3_traits or "unknown trust preferences"
 
@@ -1755,12 +1761,12 @@ Humor breaks the tension for me. I feel close to people who can make me laugh wh
 - In people I trust, I look for: {traits}
 """.strip()
 
-    existing = db.session.query(UserBio).filter_by(user_id=user_id).first()
+    existing = db_session.query(UserBio).filter_by(user_id=user_id).first()
     if existing:
         existing.bio_text = bio_text
     else:
         new_bio = UserBio(user_id=user_id, bio_text=bio_text)
-        db.session.add(new_bio)
+        db_session.add(new_bio)
 
 @app.route("/onboarding", methods=["GET"])
 @login_required
