@@ -1701,6 +1701,9 @@ def reset_test_user():
     flash("TestUser created/reset. Starting onboarding.", "success")
     return redirect(url_for("onboarding"))
 
+from useronboarding import generate_and_store_bio
+from models import db, User
+
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
@@ -1721,11 +1724,14 @@ def submit_onboarding():
         user.nickname = data.get("nickname", "")
         user.journey_start_date = data.get("journey_start_date")
         user.timezone = data.get("timezone", "UTC")
+        user.has_completed_onboarding = True
 
-        # ✍️ Generate and store bio
-        generate_and_store_bio(db.session, user_id, user.theme_choice, user.default_coping, user.hero_traits)
+        # 🧠 Generate and store user backstory bio
+        generate_and_store_bio(user_id, user.theme_choice, user.default_coping, user.hero_traits)
 
         db.session.commit()
+
+        print("✅ USER ONBOARDING COMMITTED:", user.nickname)
         return jsonify({"message": "Onboarding complete"}), 200
 
     except Exception as e:
@@ -1733,39 +1739,6 @@ def submit_onboarding():
         db.session.rollback()
         return jsonify({"error": "Server error during onboarding"}), 500
 
-
-def generate_and_store_bio(db_session, user_id, q1, q2, q3_traits):
-    from models import UserBio
-
-    traits = ", ".join(q3_traits) if isinstance(q3_traits, list) else q3_traits or "unknown trust preferences"
-
-    bio_text = f"""
-I’ve done things I swore I never would, just to feed the craving. Addiction took pieces of me — friends, trust, even my self-respect.
-
-I’m here because I want to believe there’s still something worth saving.
-
-I try to find something still and sacred. Whether it’s prayer, music, or breath — I need something deeper to hold onto.
-
-I value honesty, even when it’s hard. I’d rather someone tell me the truth than sugarcoat things.
-
-Humor breaks the tension for me. I feel close to people who can make me laugh when I least expect it.
-
-- I came to treatment because: {q1}
-- When overwhelmed, I usually: {q2}
-- In people I trust, I look for: {traits}
-""".strip()
-
-    existing = db_session.query(UserBio).filter_by(user_id=user_id).first()
-    if existing:
-        existing.bio_text = bio_text
-    else:
-        db_session.add(UserBio(user_id=user_id, bio_text=bio_text))
-
-
-@app.route("/onboarding", methods=["GET"])
-@login_required
-def onboarding():
-    return render_template("onboarding.html")
 @app.route("/quest", methods=["GET"])
 @login_required
 def quest_entrypoint():
