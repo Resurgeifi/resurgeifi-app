@@ -322,3 +322,5 @@ Speak with warmth, boundaries, and clarity. You are not their therapist — you 
 
     print("✅ build_prompt generated successfully.")
     return base_prompt.strip()
+def get_hero_for_quest(quest_id):
+    return INNER_CODEX.get("quest_hero_map", {}).get(quest_id, "Grace")
