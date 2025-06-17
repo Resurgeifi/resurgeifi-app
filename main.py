@@ -55,6 +55,7 @@ import requests  # ✅ For ElevenLabs streaming
 from models import (
     db,
     User,
+    UserBio,
     UserConnection,
     JournalEntry,
     QueryHistory,
@@ -1703,38 +1704,63 @@ def reset_test_user():
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
-    db = SessionLocal()
-    user = db.query(User).filter_by(id=session['user_id']).first()
+    data = request.get_json()
+    user_id = session.get("user_id")
+    user = db.session.query(User).get(user_id)
+
     if not user:
-        flash("User not found.")
-        return redirect(url_for('onboarding'))
+        return jsonify({"error": "User not found"}), 404
 
-    form = request.form
+    # Update user fields
+    user.theme_choice = data.get("journey", "")
+    user.default_coping = data.get("q2", "")
+    user.hero_traits = data.get("q3", [])
+    user.nickname = data.get("nickname", "Friend")
+    user.journey_start_date = data.get("journey_start_date")
+    user.timezone = data.get("timezone", "UTC")
 
-    # ⛏️ Extract form data
-    q1 = form.get("q1")  # Core trigger
-    q2 = form.get("q2")  # Default coping strategy
-    q3 = form.getlist("q3")  # Hero trait preferences (checkboxes)
+    # Generate + save their story
+    try:
+        generate_and_store_bio(
+            user_id=user.id,
+            q1=user.theme_choice,
+            q2=user.default_coping,
+            q3_traits=user.hero_traits
+        )
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"[Onboarding Error] {e}")
+        return jsonify({"error": "Could not complete onboarding"}), 500
 
-    # 🧠 Save to user object
-    user.core_trigger = q1
-    user.default_coping = q2
-    user.hero_traits = q3
-    user.has_completed_onboarding = True  # ✅ Fixed
+    return jsonify({"message": "Onboarding complete"}), 200
 
-    db.commit()
+def generate_and_store_bio(user_id, q1, q2, q3_traits):
 
-    # ✅ Generate and store bio
-    generate_and_store_bio(
-        user_id=user.id,
-        q1=q1,
-        q2=q2,
-        q3_traits=q3
-    )
+    traits = ", ".join(q3_traits) if isinstance(q3_traits, list) else q3_traits or "unknown trust preferences"
 
-    db.close()
-    flash("Onboarding complete. Welcome aboard. 🛟")
-    return redirect(url_for('menu'))
+    bio_text = f"""
+I’ve done things I swore I never would, just to feed the craving. Addiction took pieces of me — friends, trust, even my self-respect.
+
+I’m here because I want to believe there’s still something worth saving.
+
+I try to find something still and sacred. Whether it’s prayer, music, or breath — I need something deeper to hold onto.
+
+I value honesty, even when it’s hard. I’d rather someone tell me the truth than sugarcoat things.
+
+Humor breaks the tension for me. I feel close to people who can make me laugh when I least expect it.
+
+- I came to treatment because: {q1}
+- When overwhelmed, I usually: {q2}
+- In people I trust, I look for: {traits}
+""".strip()
+
+    existing = db.session.query(UserBio).filter_by(user_id=user_id).first()
+    if existing:
+        existing.bio_text = bio_text
+    else:
+        new_bio = UserBio(user_id=user_id, bio_text=bio_text)
+        db.session.add(new_bio)
 
 @app.route("/onboarding", methods=["GET"])
 @login_required
