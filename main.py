@@ -1704,40 +1704,34 @@ def reset_test_user():
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
-    data = request.get_json()
-    user_id = session.get("user_id")
-    db_session = SessionLocal()
     try:
-        user = db_session.query(User).get(user_id)
+        data = request.get_json()
+        print("🔥 ONBOARDING DATA RECEIVED:", data)
+
+        user_id = session.get("user_id")
+        user = db.session.query(User).get(user_id)
+
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        # Update user fields
+        # 🔄 Store onboarding answers into user model
         user.theme_choice = data.get("journey", "")
         user.default_coping = data.get("q2", "")
         user.hero_traits = data.get("q3", [])
-        user.nickname = data.get("nickname", "Friend")
+        user.nickname = data.get("nickname", "")
         user.journey_start_date = data.get("journey_start_date")
         user.timezone = data.get("timezone", "UTC")
-        user.has_completed_onboarding = True
 
-        # Generate + save their story
-        generate_and_store_bio(
-            db_session=db_session,
-            user_id=user.id,
-            q1=user.theme_choice,
-            q2=user.default_coping,
-            q3_traits=user.hero_traits
-        )
+        # ✍️ Generate and store bio
+        generate_and_store_bio(db.session, user_id, user.theme_choice, user.default_coping, user.hero_traits)
 
-        db_session.commit()
+        db.session.commit()
         return jsonify({"message": "Onboarding complete"}), 200
+
     except Exception as e:
-        db_session.rollback()
-        print(f"[Onboarding Error] {e}")
-        return jsonify({"error": "Could not complete onboarding"}), 500
-    finally:
-        db_session.close()
+        print("🔥 ERROR IN ONBOARDING:", e)
+        db.session.rollback()
+        return jsonify({"error": "Server error during onboarding"}), 500
 
 
 def generate_and_store_bio(db_session, user_id, q1, q2, q3_traits):
@@ -1765,8 +1759,8 @@ Humor breaks the tension for me. I feel close to people who can make me laugh wh
     if existing:
         existing.bio_text = bio_text
     else:
-        new_bio = UserBio(user_id=user_id, bio_text=bio_text)
-        db_session.add(new_bio)
+        db_session.add(UserBio(user_id=user_id, bio_text=bio_text))
+
 
 @app.route("/onboarding", methods=["GET"])
 @login_required
