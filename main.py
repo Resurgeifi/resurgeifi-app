@@ -2023,7 +2023,7 @@ def dev_seed_scrolls():
                 message_type="scroll",
                 content=content,
                 is_public=False,
-                is_read=False  # <-- make sure this exists in your model!
+                is_read=False
             )
             db.add(msg)
 
@@ -2039,15 +2039,15 @@ def dev_seed_scrolls():
 
     finally:
         db.close()
-        @app.route("/dev/fill_onboarding")
+
+
+@app.route("/dev/fill_onboarding")
+@login_required
 def dev_fill_onboarding():
-    from db import SessionLocal
-    from models import User
     db = SessionLocal()
-    
     user_id = session.get("user_id")
     user = db.query(User).get(user_id)
-    
+
     if not user:
         return "No user found", 404
 
