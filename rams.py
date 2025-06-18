@@ -20,21 +20,27 @@ def normalize_name(name):
 
 def call_openai(user_input, hero_name="Cognita", context=None):
     print(f"\n[🧠 call_openai] 🔹 Hero: {hero_name} | 🔹 Input: {user_input}")
-    
+
     try:
         context = build_context(user_id=session.get("user_id"), session_data=session)
-        
-        # Debug the thread
+
+        # 🧵 Debug thread
         thread = context.get("thread", [])
         print(f"[🧵 Thread Length]: {len(thread)}")
         for i, entry in enumerate(thread[-3:], 1):
             print(f"[🧵 Thread-{i}]: {entry}")
 
-        # Build and print prompt
-        system_prompt = build_prompt(hero=hero_name.lower(), user_input=user_input, context=context)
-        print(f"[📜 Final Prompt Snippet]: {system_prompt[:200]}...\n")
+        # 🧠 Debug bio / emotional profile
+        print(f"\n[🧠 Nickname]: {context.get('nickname')}")
+        print(f"[🧾 Journal Summary]: {context.get('tone_summary')}")
+        print(f"[📜 Emotional Profile]:\n{context.get('emotional_profile')}\n")
+        print(f"[📜 Formatted Thread]:\n{context.get('formatted_thread')}\n")
 
-        # Send to OpenAI with user input included
+        # 🧱 Build final system prompt
+        system_prompt = build_prompt(hero=hero_name.lower(), user_input=user_input, context=context)
+        print(f"[🧱 FINAL SYSTEM PROMPT]:\n{system_prompt}\n")
+
+        # 🔮 Make OpenAI API call
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -45,7 +51,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         )
 
         message = response.choices[0].message.content.strip()
-        print(f"[✅ OpenAI Response]: {message[:120]}...\n")
+        print(f"[✅ OpenAI Response]:\n{message}\n")
         return message
 
     except Exception as e:

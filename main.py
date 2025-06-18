@@ -2039,6 +2039,24 @@ def dev_seed_scrolls():
 
     finally:
         db.close()
+        @app.route("/dev/fill_onboarding")
+def dev_fill_onboarding():
+    from db import SessionLocal
+    from models import User
+    db = SessionLocal()
+    
+    user_id = session.get("user_id")
+    user = db.query(User).get(user_id)
+    
+    if not user:
+        return "No user found", 404
+
+    user.theme_choice = user.theme_choice or "grief and trauma"
+    user.default_coping = user.default_coping or "shutting down emotionally"
+    user.hero_traits = user.hero_traits or ["directness", "compassion", "consistency"]
+    db.commit()
+    return "🛠️ Onboarding data filled for testing!"
+
 # Optional but useful for local testing
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5050)
