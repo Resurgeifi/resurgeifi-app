@@ -36,14 +36,21 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         system_prompt = build_prompt(hero=hero_name.lower(), user_input=user_input, context=context)
         print(f"[🧱 FINAL SYSTEM PROMPT]:\n{system_prompt}\n")
 
-        # 🔮 Make OpenAI API call
+        # 🔄 Convert thread into OpenAI-compatible message list
+        formatted_messages = [{"role": "system", "content": system_prompt}]
+        for msg in thread:
+            role = "user" if msg["speaker"].lower() == "user" else "assistant"
+            formatted_messages.append({
+                "role": role,
+                "content": msg["text"]
+            })
+        formatted_messages.append({"role": "user", "content": user_input})
+
+        # 🔮 Make OpenAI API call with thread memory
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_input}
-            ],
+            messages=formatted_messages,
             temperature=0.8
         )
 
@@ -176,21 +183,24 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
         )
         history = list(reversed(thread))
 
-    full_thread = []
-    for entry in history:
-        timestamp = entry.timestamp.strftime("%Y-%m-%d %H:%M")
-        full_thread.append({"speaker": "User", "text": entry.question.strip(), "time": timestamp})
-        full_thread.append({"speaker": entry.agent_name or "Resurgifi", "text": entry.response.strip(), "time": timestamp})
-
+    # 🧱 Build both a thread list and a formatted version (for debugging or prompt flavoring)
+    openai_thread = []
     formatted_thread = ""
-    for msg in full_thread:
-        formatted_thread += f'{msg["speaker"]} ({msg["time"]}): "{msg["text"]}"\n'
+    for entry in history:
+        if entry.question:
+            openai_thread.append({"role": "user", "content": entry.question.strip()})
+            formatted_thread += f'User: "{entry.question.strip()}"\n'
+        if entry.response:
+            openai_thread.append({"role": "assistant", "content": entry.response.strip()})
+            formatted_thread += f'{entry.agent_name or "Resurgifi"}: "{entry.response.strip()}"\n'
 
-    # 🧭 If recent quest posted a reflection, prepend it
+    # 🧭 Inject quest reflection if recent
     quest_data = session.pop("from_quest", None)
     quest_reflection = quest_data.get("reflection") if quest_data else None
     if quest_reflection:
-        formatted_thread = f'Grace: "The user has just completed a quest. They wrote: \'{quest_reflection}\'"\n\n' + formatted_thread
+        quest_intro = f'Grace: "The user just completed a quest. They wrote: \'{quest_reflection}\'"\n\n'
+        openai_thread.insert(0, {"role": "system", "content": f"The user has completed a quest reflection: '{quest_reflection}'"})
+        formatted_thread = quest_intro + formatted_thread
 
     # 🧠 Bio + nickname
     nickname = user.nickname or "Friend"
@@ -214,10 +224,11 @@ The user’s emotional profile includes:
 - In someone they trust, they look for: {traits}.
 """.strip()
 
-    # 🧾 Fallback: Journal entry
-    if not formatted_thread.strip() and user:
+    # 🧾 Fallback journal summary
+    if not openai_thread and user:
         journal_summary = pull_recent_journal_summary(user.id)
         if journal_summary:
+            openai_thread = [{"role": "user", "content": journal_summary}]
             formatted_thread = f'{nickname}: "{journal_summary}"\n'
 
     db.close()
@@ -232,7 +243,7 @@ Let this shape your tone. Do not reference this directly.
         "formatted_thread": formatted_thread,
         "emotional_profile": emotional_profile,
         "nickname": nickname,
-        "thread": full_thread,
+        "thread": openai_thread,  # 🔥 This is what call_openai() needs
         "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
         "quest_history": quest_data.get("completed_quests", []) if quest_data else []
     }
