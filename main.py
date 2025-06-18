@@ -599,18 +599,18 @@ def show_hero_chat(resurgitag):
     user = db.query(User).filter_by(id=user_id).first()
     contact_name = None
 
-    # 🔍 Check User table (real people)
+    # 🔍 Check for real user hero first
     contact = db.query(User).filter_by(resurgitag=tag).first()
     if contact and getattr(contact, "is_hero", False):
         contact_name = contact.nickname or contact.display_name or tag
 
-    # 🦸 Check HeroProfile if not found
+    # 🦸 Check HeroProfile
     if not contact_name:
         hero = db.query(HeroProfile).filter_by(resurgitag=tag).first()
         if hero:
             contact_name = hero.display_name or tag
 
-    # 🧟‍♂️ Check INNER_CODEX villains if still not found
+    # 🧟‍♂️ Check INNER_CODEX villains
     if not contact_name:
         villain_map = {normalize_name(k): k for k in INNER_CODEX["villains"].keys()}
         if tag in villain_map:
@@ -621,7 +621,7 @@ def show_hero_chat(resurgitag):
         flash("Hero not found.")
         return redirect(url_for("circle"))
 
-    # 💬 Pull 7-day message history
+    # 💬 Pull past messages
     week_ago = datetime.utcnow() - timedelta(days=7)
     thread = db.query(QueryHistory).filter_by(
         user_id=user.id,
@@ -630,40 +630,56 @@ def show_hero_chat(resurgitag):
 
     messages = []
     for entry in thread:
-        messages.append({"speaker": "You", "text": entry.question})
-        messages.append({"speaker": contact_name, "text": entry.response})
+        if entry.question:
+            messages.append({"speaker": "You", "text": entry.question})
+        if entry.response:
+            messages.append({"speaker": contact_name, "text": entry.response})
 
-    # 🧙 Handle quest reflection if present
+    # 🎯 Handle quest reflection
     quest_reflection = session.pop("from_quest", None)
     quest_flash = False
-    reflection_text = ""
 
     if quest_reflection:
-        reflection_text = quest_reflection.get("reflection", "")
-        messages.insert(0, {"speaker": "You", "text": reflection_text})
-        quest_flash = True
-
-        context = {"thread": [], "user_id": user_id}
+        reflection_text = quest_reflection.get("reflection", "").strip()
         canon_name = contact_name
+        quest_flash = True
 
         try:
             ai_response = call_openai(
                 user_input=reflection_text,
                 hero_name=canon_name,
-                context=context
+                context={"thread": [], "user_id": user_id}
             )
-            messages.insert(1, {"speaker": canon_name, "text": ai_response})
 
-            db.add(QueryHistory(
-                user_id=user_id,
-                contact_tag=tag,
-                agent_name=canon_name,
-                question=reflection_text,
-                response=ai_response
-            ))
+            # Add reflection + reply at the bottom
+            messages.append({"speaker": "You", "text": reflection_text})
+            messages.append({"speaker": canon_name, "text": ai_response})
+
+            db.add_all([
+                QueryHistory(
+                    user_id=user_id,
+                    contact_tag=tag,
+                    agent_name=canon_name,
+                    question=reflection_text,
+                    response="",
+                    sender_role="user",
+                    hero_name=canon_name
+                ),
+                QueryHistory(
+                    user_id=user_id,
+                    contact_tag=tag,
+                    agent_name=canon_name,
+                    question="",
+                    response=ai_response,
+                    sender_role="assistant",
+                    hero_name=canon_name
+                )
+            ])
             db.commit()
+
         except Exception as e:
             print(f"⚠️ AI quest reflection failed: {e}")
+            messages.append({"speaker": "System", "text": "The hero couldn’t respond right now. Try again later."})
 
     return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=quest_flash)
 @app.route("/thank-you")
@@ -1788,7 +1804,7 @@ def run_quest(quest_id):
                 flash("Please share something so we can reflect with you.", "warning")
                 return redirect(url_for("run_quest", quest_id=quest_id))
 
-            # ✨ Handle very short reflections with OpenAI suggestions
+            # ✨ If short, show expansion options
             if len(reflection.split()) <= 3:
                 try:
                     system_prompt = (
@@ -1813,7 +1829,7 @@ def run_quest(quest_id):
                     flash("We had trouble expanding your thought. Try adding a bit more detail.", "warning")
                     return redirect(url_for("run_quest", quest_id=quest_id))
 
-            # ⏳ Throttle rapid-fire submissions
+            # ⏳ Submission throttle
             four_hours_ago = now - timedelta(hours=4)
             recent_quests = db_session.query(UserQuestEntry)\
                 .filter_by(user_id=user_id)\
@@ -1822,58 +1838,53 @@ def run_quest(quest_id):
                 flash("You’ve already completed 30 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
-            # ✨ GPT Summary Logic — First-person voice + prompt context fallback
-            summary_text = ""
+            # 🧠 GPT Summary — Always used
             try:
-                if len(reflection.split()) < 20:
-                    # Short reflections are echoed back with prompt context
-                    summary_text = f"{reflection} (in response to: '{quest_prompt}')"
-                else:
-                    system_prompt = (
-                        "You are helping a user summarize their own journal entry. Rewrite their message as a single sentence, "
-                        "in the first person, as if they are expressing it clearly to themselves. Preserve emotional authenticity. "
-                        "Avoid adding any new feelings that were not mentioned."
-                    )
-                    user_input = f"Prompt: {quest_prompt}\n\nUser Response: {reflection}"
+                system_prompt = (
+                    "You are helping a user summarize their own journal entry. They were asked:\n\n"
+                    f"'{quest_prompt}'\n\n"
+                    f"They responded:\n\n'{reflection}'\n\n"
+                    "Rewrite their response as a single first-person sentence, as if they are expressing it clearly "
+                    "and emotionally to themselves. Keep it raw and authentic. Do not include the question. "
+                    "Do not add new emotions. Be gentle and real."
+                )
 
-                    response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_input}
-                        ],
-                        temperature=0.7
-                    )
-                    summary_text = response.choices[0].message.content.strip()
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "system", "content": system_prompt}],
+                    temperature=0.7
+                )
+                summary_text = response.choices[0].message.content.strip()
+
             except Exception as e:
                 print("⚠️ GPT summarization failed:", e)
                 summary_text = reflection  # fallback to raw input
 
-            # 💾 Save the quest entry
+            # 💾 Save quest result
             new_entry = UserQuestEntry(
                 user_id=user_id,
                 quest_id=quest_id,
                 completed=True,
                 timestamp=now,
-                summary_text=summary_text or reflection
+                summary_text=summary_text
             )
             db_session.add(new_entry)
 
-            # 🎯 Add user points
+            # 🏅 Award points
             user.points = (user.points or 0) + 5
             session["points_just_added"] = 5
 
-            # 🧠 Stash reflection in session for accurate hero chat
+            # 🧠 Store for chat
             hero_tag = quest["hero"]
             session["from_quest"] = {
                 "quest_id": quest_id,
-                "reflection": summary_text or reflection
+                "reflection": summary_text
             }
 
             db_session.commit()
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
 
-        # First-time GET load of quest page
+        # 📖 Initial quest load
         return render_template("quest_engine.html", quest=quest, quest_id=quest_id)
 
     except Exception as e:

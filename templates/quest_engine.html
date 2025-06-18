@@ -113,22 +113,25 @@
 let currentAudio = null;
 let whisperShown = false;
 
+function stopCurrentAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
+}
+
 async function playQuestVoice(text) {
   try {
     const response = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        hero: "{{ quest.hero|lower }}"
-      })
+      body: JSON.stringify({ text: text, hero: "{{ quest.hero|lower }}" })
     });
-    if (!response.ok) {
-      console.warn("Voice fetch failed:", await response.text());
-      return;
-    }
+    if (!response.ok) return;
     const audioBlob = await response.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
+    stopCurrentAudio();
     const audio = new Audio(audioUrl);
     currentAudio = audio;
     audio.play().catch(err => console.warn("Playback error:", err));
@@ -140,10 +143,7 @@ async function playQuestVoice(text) {
 function endFlash() {
   const flashAudio = document.getElementById("flashAudio");
   if (flashAudio) flashAudio.play();
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-  }
+  stopCurrentAudio();
   const flash = document.getElementById("questFlash");
   flash.style.opacity = 1;
   flash.style.transition = "opacity 1s ease";
@@ -153,6 +153,51 @@ function endFlash() {
     const promptText = document.querySelector(".quest-prompt")?.innerText;
     if (promptText) playQuestVoice(promptText);
   }, 1000);
+}
+
+function triggerFlash(imageUrl, text, audioPath) {
+  if (document.getElementById("whisperFlash")) return; // Only once per quest
+
+  const flash = document.createElement("div");
+  flash.id = "whisperFlash";
+  flash.style = `
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.88);
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 99999;
+    color: #f6e7c1;
+    text-align: center;
+    font-size: 1.8rem;
+    padding: 2rem;
+    opacity: 0;
+    transition: opacity 1s ease;
+  `;
+  flash.innerHTML = `
+    <img src="${imageUrl}" style="max-height: 220px; margin-bottom: 2rem;">
+    <p style="max-width: 600px;">${text}</p>
+  `;
+  document.body.appendChild(flash);
+
+  // Trigger fade-in
+  setTimeout(() => {
+    flash.style.opacity = 1;
+  }, 50);
+
+  stopCurrentAudio();
+  const audio = new Audio(audioPath);
+  currentAudio = audio;
+  audio.play();
+
+  setTimeout(() => {
+    flash.style.opacity = 0;
+    setTimeout(() => {
+      flash.remove();
+      const textarea = document.getElementById("reflectionBox");
+      if (textarea) textarea.focus();
+    }, 1000);
+  }, 4000);
 }
 
 function useSuggestion(text) {
@@ -169,10 +214,6 @@ window.addEventListener("DOMContentLoaded", () => {
   if (introText) playQuestVoice(introText);
 
   const textarea = document.getElementById("reflectionBox");
-  const whisperBox = document.getElementById("whisperBox");
-  const whisperImage = document.getElementById("whisperImage");
-  const whisperSound = document.getElementById("whisperSound");
-
   textarea.addEventListener("input", () => {
     if (whisperShown) return;
 
@@ -180,35 +221,36 @@ window.addEventListener("DOMContentLoaded", () => {
     const dotCount = (val.match(/\./g) || []).length;
 
     if (val.includes("love")) {
-      whisperImage.src = "/static/images/heroes/Grace_Transparent.png";
-      whisperImage.style.display = "block";
-      whisperBox.innerText = "Grace heard that. Keep going.";
-      whisperSound.src = "/static/audio/chime.mp3";
+      triggerFlash(
+        "/static/images/heroes/Grace_Transparent.png",
+        "Grace heard that. Keep going.",
+        "/static/audio/chime.mp3"
+      );
     } else if (dotCount >= 2) {
-      whisperImage.src = Math.random() < 0.5
-        ? "/static/images/heroes/Cognita_Transparent.png"
-        : "/static/images/heroes/Lucentis_Transparent.png";
-      whisperImage.style.display = "block";
-      whisperBox.innerText = "You're really digging... keep it going.";
-      whisperSound.src = "/static/audio/cognita_flash.mp3";
+      triggerFlash(
+        Math.random() < 0.5
+          ? "/static/images/heroes/Cognita_Transparent.png"
+          : "/static/images/heroes/Lucentis_Transparent.png",
+        "You're really digging... keep it going.",
+        "/static/audio/cognita_flash.mp3"
+      );
     } else if (val.includes("crave")) {
-      whisperImage.src = "/static/images/villains/thecrave_transparent.png";
-      whisperImage.style.display = "block";
-      whisperBox.innerText = "The Crave stirs... but you are stronger.";
-      whisperSound.src = "/static/audio/wardenfall_flash.mp3";
+      triggerFlash(
+        "/static/images/villains/thecrave/thecrave_transparent.png",
+        "The Crave stirs... but you are stronger.",
+        "/static/audio/wardenfall_flash.mp3"
+      );
     } else if (val.length > 25) {
-      whisperImage.style.display = "none";
-      whisperBox.innerText = "You're on to something… don’t stop now.";
-      whisperSound.src = "/static/audio/chime.mp3";
+      triggerFlash(
+        "/static/images/heroes/Velessa_Transparent.png",
+        "You're on to something… don’t stop now.",
+        "/static/audio/chime.mp3"
+      );
     } else {
-      whisperBox.style.display = "none";
-      whisperImage.style.display = "none";
       return;
     }
 
-    whisperBox.style.display = whisperBox.innerText ? "block" : "none";
     whisperShown = true;
-    if (whisperSound.src) whisperSound.play().catch(() => {});
   });
 });
 </script>

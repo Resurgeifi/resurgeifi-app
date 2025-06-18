@@ -1,6 +1,8 @@
+import os
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
+from openai import OpenAI  # ✅ This is what was missing
 
 db = SQLAlchemy()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
