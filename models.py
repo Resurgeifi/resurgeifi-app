@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 
 db = SQLAlchemy()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class WellMessage(db.Model):
     __tablename__ = "well_messages"
