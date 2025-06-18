@@ -37,6 +37,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         print(f"[🧱 FINAL SYSTEM PROMPT]:\n{system_prompt}\n")
 
         # 🔮 Make OpenAI API call
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
