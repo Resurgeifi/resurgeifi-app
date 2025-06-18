@@ -14,10 +14,6 @@ VILLAIN_NAMES = [name.lower() for name in INNER_CODEX.get("villains", {})]
 # Set OpenAI API key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-def normalize_name(name):
-    return name.strip().lower().replace(" ", "_")
-
 def call_openai(user_input, hero_name="Cognita", context=None):
     print(f"\n[🧠 call_openai] 🔹 Hero: {hero_name} | 🔹 Input: {user_input}")
 
@@ -52,6 +48,26 @@ def call_openai(user_input, hero_name="Cognita", context=None):
 
         message = response.choices[0].message.content.strip()
         print(f"[✅ OpenAI Response]:\n{message}\n")
+
+        # 💾 Save to QueryHistory
+        try:
+            user_id = session.get("user_id")
+            db = SessionLocal()
+
+            new_entry = QueryHistory(
+                user_id=user_id,
+                agent_name=hero_name,
+                question=user_input,
+                response=message,
+                timestamp=datetime.utcnow()
+            )
+            db.add(new_entry)
+            db.commit()
+            db.close()
+            print("[💾 QueryHistory]: Saved user message + hero response.")
+        except Exception as log_error:
+            print(f"[⚠️ ERROR saving to QueryHistory]: {log_error}")
+
         return message
 
     except Exception as e:

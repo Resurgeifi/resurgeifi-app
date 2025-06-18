@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- 🔊 Ambient Intro Music (hidden until user clicks) -->
+<!-- 🔊 Ambient Intro Music -->
 <audio id="landingAudio" loop preload="auto">
   <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
 </audio>
@@ -43,33 +43,6 @@
   animate();
 </script>
 
-<!-- 🌟 Cinematic Flash Intro Slide -->
-<div class="intro-slide active">
-  <div class="intro-text">
-    “You’ve opened your eyes inside the State of Inner…<br>
-    You don’t have to go it alone anymore.”
-  </div>
-
-  <!-- 🌟 Begin -->
-  <button onclick="startExperience()" class="global-button" style="margin-top: 2rem;">
-    ✨ Begin Your Resurgence
-  </button>
-
-  <!-- ⏭️ Skip Intro (fade-in link) -->
-  <a href="{{ url_for('login') }}"
-     class="skip-link"
-     style="margin-top: 2rem; font-size: 1.05rem; color: #aaa; text-decoration: underline; background: none; border: none;">
-    Skip Intro
-  </a>
-</div>
-  <!-- 🎧 Ambient Music -->
-<audio id="landingAudio" loop preload="auto">
-  <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
-</audio>
-
-<!-- 🌌 Background Canvas -->
-<canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; pointer-events: none;"></canvas>
-
 <!-- Slide 1 -->
 <div class="intro-slide active">
   <div class="intro-text">You’ve opened your eyes inside the State of Inner.<br>You are not alone... anymore.</div>
@@ -101,29 +74,29 @@
   <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
 </div>
 
-<!-- Slide 7 -->
+<!-- Slide 6 -->
 <div class="intro-slide" onclick="nextSlide()">
   <div class="intro-text">Built from grief... pain... relapse.<br>Not in a boardroom.</div>
 </div>
 
-<!-- Slide 8 -->
+<!-- Slide 7 -->
 <div class="intro-slide" onclick="nextSlide()">
   <div class="intro-text">The heroes do not just talk back...<br>They walk with you.</div>
 </div>
 
-<!-- Slide 9 -->
+<!-- Slide 8 -->
 <div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Other apps say calm down... Breath.<br>We say - Stand up!<br>It's time to Resurge!.</div>
+  <div class="intro-text">Other apps say calm down... Breathe.<br>We say - Stand up!<br>It's time to Resurge!</div>
 </div>
 
-<!-- Slide 10 -->
+<!-- Slide 9 -->
 <div class="intro-slide" onclick="nextSlide()">
   <div class="intro-text">We also need Your feedback.<br>You are with us now.</div>
   <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
   <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
 </div>
 
-<!-- Slide 11 -->
+<!-- Slide 10 -->
 <div class="intro-slide" onclick="nextSlide()">
   <div class="intro-text">Are you ready?</div>
   <a href="{{ url_for('register') }}" class="global-button">Start Your Resurgence</a>
@@ -131,30 +104,44 @@
 
 <script>
 let currentSlide = 0;
-const baseVolume = 0.2;
-const duckVolume = 0.05;
+let slideAudioCache = [];
 
+function fadeInAudio(audio, target = 0.15) {
+  let volume = 0;
+  audio.volume = 0;
+  const interval = setInterval(() => {
+    if (volume < target) {
+      volume += 0.01;
+      audio.volume = Math.min(volume, target);
+    } else {
+      clearInterval(interval);
+    }
+  }, 150);
+}
 
 function startExperience() {
-  document.getElementById('landingAudio').play().catch(err => console.warn("Audio blocked:", err));
+  const audio = document.getElementById('landingAudio');
+  if (audio) {
+    fadeInAudio(audio, 0.15);
+    audio.play().catch(err => {
+      console.warn("Autoplay blocked by browser until user interaction:", err);
+    });
+  }
   nextSlide();
 }
 
 function nextSlide() {
   const slides = document.querySelectorAll('.intro-slide');
-
   if (currentSlide < slides.length - 1) {
     slides[currentSlide].classList.remove('active');
     currentSlide++;
     slides[currentSlide].classList.add('active');
 
-    // 🎙 Try to play preloaded audio
     const preloadedAudio = slideAudioCache[currentSlide];
     if (preloadedAudio) {
       preloadedAudio.currentTime = 0;
       preloadedAudio.play().catch(err => console.warn("Preloaded audio error:", err));
     } else {
-      // 🛠️ Fallback: read text dynamically via ElevenLabs
       const text = slides[currentSlide].querySelector(".intro-text")?.innerText;
       if (text) {
         playVoice(text.replace(/Resurgifi/gi, "Ree-sur-ji-fy"));
@@ -163,21 +150,8 @@ function nextSlide() {
   }
 }
 
-// 👁 Reveal Skip Intro link after delay
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const skip = document.querySelector('.skip-link');
-    if (skip) skip.classList.add('show');
-  }, 2000);
-});
-
-let slideAudioCache = [];
-
 async function playVoice(text) {
   const ambient = document.getElementById('landingAudio');
-  const duckVolume = 0.05;      // Lower than before when Grace is speaking
-  const baseVolume = 0.2;       // This is your NEW normal music volume
-
 
   function fadeAudio(element, targetVolume, callback) {
     const interval = setInterval(() => {
@@ -196,7 +170,7 @@ async function playVoice(text) {
     const response = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text.replace(/Resurgifi/gi, "Resurgah-fye") })
+      body: JSON.stringify({ text })
     });
 
     if (!response.ok) {
@@ -209,10 +183,10 @@ async function playVoice(text) {
     const audio = new Audio(audioUrl);
 
     audio.onplay = () => {
-      if (ambient) fadeAudio(ambient, duckVolume);
+      if (ambient) fadeAudio(ambient, 0.05);
     };
     audio.onended = () => {
-      if (ambient) fadeAudio(ambient, fullVolume);
+      if (ambient) fadeAudio(ambient, 0.15);
     };
 
     audio.play().catch(err => console.warn("Playback error:", err));
@@ -221,77 +195,11 @@ async function playVoice(text) {
   }
 }
 
-async function preloadSlideVoices() {
-  const slides = document.querySelectorAll('.intro-slide');
-  const ambient = document.getElementById('landingAudio');
-  const duckVolume = 0.1;
-  const fullVolume = 1.0;
-
-  function fadeAudio(element, targetVolume, callback) {
-    const interval = setInterval(() => {
-      const current = element.volume;
-      const delta = (targetVolume - current) * 0.2;
-      element.volume = Math.max(0, Math.min(1, current + delta));
-      if (Math.abs(targetVolume - element.volume) < 0.01) {
-        element.volume = targetVolume;
-        clearInterval(interval);
-        if (callback) callback();
-      }
-    }, 50);
-  }
-
-  for (let i = 0; i < slides.length; i++) {
-    const textElement = slides[i].querySelector('.intro-text');
-    if (!textElement) {
-      slideAudioCache.push(null);
-      continue;
-    }
-
-    const rawText = textElement.innerText;
-    const adjustedText = rawText.replace(/Resurgifi/gi, "Resurgah_fye");
-
-    try {
-      const response = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: adjustedText })
-      });
-
-      if (!response.ok) {
-        console.warn("TTS preload failed for slide", i, await response.text());
-        slideAudioCache.push(null);
-        continue;
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-
-      audio.onplay = () => {
-        if (ambient) fadeAudio(ambient, duckVolume);
-      };
-      audio.onended = () => {
-        if (ambient) fadeAudio(ambient, baseVolume);  // ✅ safe consistent return volume
-      };
-
-
-      slideAudioCache.push(audio);
-    } catch (err) {
-      console.error("TTS preload error for slide", i, err);
-      slideAudioCache.push(null);
-    }
-  }
-}
-// ✅ Ensure landing audio starts at a safe volume across all devices
 document.addEventListener("DOMContentLoaded", () => {
-  const ambient = document.getElementById('landingAudio');
-  if (ambient) {
-    ambient.volume = 0.2;  // Default safe volume for intro
-  }
+  const skip = document.querySelector('.skip-link');
+  if (skip) setTimeout(() => skip.classList.add('show'), 2000);
 });
-
 </script>
-
 
 <style>
 .intro-slide {
@@ -346,18 +254,6 @@ document.addEventListener("DOMContentLoaded", () => {
 .skip-link.show {
   opacity: 1;
 }
-
 </style>
 
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
