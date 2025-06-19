@@ -46,10 +46,10 @@ def call_openai(user_input, hero_name="Cognita", context=None):
                 q = entry.question.strip() if entry.question else None
                 r = entry.response.strip() if entry.response else None
                 if q and q not in seen:
-                    thread.append({"speaker": "user", "text": q})
+                    thread.append({"role": "user", "content": q})
                     seen.add(q)
                 if r and r not in seen:
-                    thread.append({"speaker": "assistant", "text": r})
+                    thread.append({"role": "assistant", "content": r})
                     seen.add(r)
 
         print(f"[🧵 Thread Length]: {len(thread)}")
@@ -69,10 +69,11 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         # 🔄 Convert thread into OpenAI-compatible message list
         formatted_messages = [{"role": "system", "content": system_prompt}]
         for msg in thread:
-            role = "user" if msg["speaker"].lower() == "user" else "assistant"
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
             formatted_messages.append({
                 "role": role,
-                "content": msg["text"]
+                "content": content
             })
         formatted_messages.append({"role": "user", "content": user_input})
 
