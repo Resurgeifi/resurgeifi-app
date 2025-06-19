@@ -1,18 +1,20 @@
 import os
-import openai
 from datetime import datetime
+import traceback
+from flask import session, g  # type: ignore
+
+from openai import OpenAI
 from db import SessionLocal
 from models import User, UserBio, JournalEntry, QueryHistory
 from inner_codex import INNER_CODEX
-from flask import session, g # type: ignore
-from openai import OpenAI
-import traceback
-# Define HERO_NAMES and VILLAIN_NAMES once, for consistent use everywhere
+
+# Define HERO_NAMES and VILLAIN_NAMES once
 HERO_NAMES = [name.lower() for name in INNER_CODEX.get("heroes", {})]
 VILLAIN_NAMES = [name.lower() for name in INNER_CODEX.get("villains", {})]
 
-# Set OpenAI API key from environment
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Instantiate OpenAI client (new v4 API style)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 def call_openai(user_input, hero_name="Cognita", context=None):
     print(f"\n[🧠 call_openai] 🔹 Hero: {hero_name} | 🔹 Input: {user_input}")
@@ -253,7 +255,7 @@ def normalize_name(name):
     return name.strip().lower().replace(" ", "").replace("_", "")
 
 def build_prompt(hero, user_input, context):
-    
+
     def normalize_name(name):
         return name.strip().lower().replace(" ", "").replace("_", "")
 
