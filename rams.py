@@ -47,7 +47,6 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         formatted_messages.append({"role": "user", "content": user_input})
 
         # 🔮 Make OpenAI API call with thread memory
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=formatted_messages,
@@ -60,8 +59,6 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         # 💾 Save to QueryHistory
         try:
             user_id = session.get("user_id")
-            db = SessionLocal()
-
             new_entry = QueryHistory(
                 user_id=user_id,
                 agent_name=hero_name,
@@ -69,6 +66,7 @@ def call_openai(user_input, hero_name="Cognita", context=None):
                 response=message,
                 timestamp=datetime.utcnow()
             )
+            db = SessionLocal()
             db.add(new_entry)
             db.commit()
             db.close()
@@ -194,15 +192,17 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
             openai_thread.append({"role": "assistant", "content": entry.response.strip()})
             formatted_thread += f'{entry.agent_name or "Resurgifi"}: "{entry.response.strip()}"\n'
 
-    # 🧭 Inject quest reflection if recent
+    # 🧭 Inject quest reflection if present
     quest_data = session.pop("from_quest", None)
     quest_reflection = quest_data.get("reflection") if quest_data else None
     if quest_reflection:
-        quest_intro = f'Grace: "The user just completed a quest. They wrote: \'{quest_reflection}\'"\n\n'
-        openai_thread.insert(0, {"role": "system", "content": f"The user has completed a quest reflection: '{quest_reflection}'"})
-        formatted_thread = quest_intro + formatted_thread
+        openai_thread.insert(0, {
+            "role": "system",
+            "content": f"The user has completed a quest reflection: '{quest_reflection}'"
+        })
+        formatted_thread = f'Grace: "The user just completed a quest reflection: \'{quest_reflection}\'"\n\n' + formatted_thread
 
-    # 🧠 Bio + nickname
+    # 🧠 Bio + nickname fallback
     nickname = user.nickname or "Friend"
     bio_text = None
     journal_summary = None
@@ -224,7 +224,7 @@ The user’s emotional profile includes:
 - In someone they trust, they look for: {traits}.
 """.strip()
 
-    # 🧾 Fallback journal summary
+    # 🧾 Fallback journal summary (if no thread)
     if not openai_thread and user:
         journal_summary = pull_recent_journal_summary(user.id)
         if journal_summary:
@@ -233,6 +233,7 @@ The user’s emotional profile includes:
 
     db.close()
 
+    # 🧬 Emotional profile block for prompt
     emotional_profile = f"""
 {bio_text or "No bio available."}
 
@@ -243,7 +244,7 @@ Let this shape your tone. Do not reference this directly.
         "formatted_thread": formatted_thread,
         "emotional_profile": emotional_profile,
         "nickname": nickname,
-        "thread": openai_thread,  # 🔥 This is what call_openai() needs
+        "thread": openai_thread,
         "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
         "quest_history": quest_data.get("completed_quests", []) if quest_data else []
     }
@@ -268,43 +269,69 @@ def build_prompt(hero, user_input, context):
 
     canon_name = hero  # Default fallback
     is_villain = False
-    hero_data = None
+    persona_data = None
 
     if key in hero_key_map:
         canon_name = hero_key_map[key]
-        hero_data = INNER_CODEX["heroes"][canon_name]
+        persona_data = INNER_CODEX["heroes"][canon_name]
     elif key in villain_key_map:
         canon_name = villain_key_map[key]
-        hero_data = INNER_CODEX["villains"][canon_name]
+        persona_data = INNER_CODEX["villains"][canon_name]
         is_villain = True
 
-    print(f"[🔍 build_prompt] Key: '{key}' | Canon: '{canon_name}' | Found hero data: {bool(hero_data)} | Villain: {is_villain}")
+    print(f"[🔍 build_prompt] Key: '{key}' | Canon: '{canon_name}' | Found data: {bool(persona_data)} | Villain: {is_villain}")
 
-    hero_prompt = None
-    if hero_data:
-        if isinstance(hero_data.get("prompts"), dict):
-            hero_prompt = hero_data["prompts"].get("default")
-        elif "prompt" in hero_data:
-            hero_prompt = hero_data["prompt"]
+    # 🧠 Tone profile resolution
+    if not is_villain:
+        tone_key = tone_summary if "tone_profiles" in persona_data and tone_summary in persona_data["tone_profiles"] \
+            else persona_data.get("default_tone", "gentle")
+        tone_data = persona_data.get("tone_profiles", {}).get(tone_key, {})
+    else:
+        tone_key = None
+        tone_data = {}
 
-    if hero_prompt:
-        print(f"🤖 Using {'villain' if is_villain else 'hero'} prompt for '{canon_name}'.")
+    print(f"🎭 Tone Key: {tone_key} | Found Tone: {bool(tone_data)}")
+
+    tone_description = tone_data.get("description", "")
+    tone_rules = "\n".join(f"- {r}" for r in tone_data.get("style_rules", []))
+    tone_samples = "\n".join(f'"{p}"' for p in tone_data.get("sample_phrases", []))
+
+    # 🎤 Core system prompt
+    if isinstance(persona_data.get("prompts"), dict):
+        hero_prompt = persona_data["prompts"].get("default")
+    elif "prompt" in persona_data:
+        hero_prompt = persona_data["prompt"]
     else:
         hero_prompt = f"You are {canon_name}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
         print(f"⚠️ No specific prompt found for '{canon_name}'; using default prompt.")
 
+    # 🌍 Lore additions (optional for heroes)
+    origin = persona_data.get("origin")
+    worldview = persona_data.get("worldview")
+
+    # 🌍 World and design metadata
     region_context = INNER_CODEX.get("world", {}).get("description", "")
     memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
+    # 📦 Final prompt assembly
     base_prompt = f"""
 {hero_prompt}
 
-You are {canon_name} — a hero from the State of Inner.
+You are {canon_name} — a {'villain' if is_villain else 'hero'} from the State of Inner.
 You are speaking to someone named {nickname}.
 Use their name sparingly, but **when offering encouragement, grounding, or emotional resonance, address them directly** — especially when they’re struggling to believe in themselves.
 They are human. You are not them. You are not the user. You are yourself.
+""".strip()
+
+    if not is_villain:
+        if origin:
+            base_prompt += f"\n\n🧭 Origin: {origin}"
+        if worldview:
+            base_prompt += f"\n🧬 Worldview: {worldview}"
+
+    base_prompt += f"""
 
 🗌️ State of Inner Context:
 {region_context}
@@ -329,23 +356,20 @@ They are human. You are not them. You are not the user. You are yourself.
 
 🧵 Dialogue so far:
 {formatted_thread}
-
-⚖️ Stay grounded. Speak as yourself.
-- Never refer to yourself using your own name (“Velessa believes…” → ❌). Use “I” or “me.”
-- Never refer to the user by name unless it’s in a direct greeting or moment of emotional emphasis.
-- Do not narrate their experience in the third person (“Kevin is…” → ❌). Speak *to* them.
 """
 
-    if is_villain:
-        base_prompt += """
-🕳️ Villain Guidance:
-Speak in metaphors, inner conflict, or emotionally charged images. You may provoke, unsettle, or reflect the user’s darker thoughts — but never offer guidance.
-
-Your voice echoes like something remembered, not trusted. Offer tension, not clarity.
-
-Limit to 4–5 lines. No warmth. No solutions."""
-    else:
+    if not is_villain:
         base_prompt += f"""
+
+🎭 Current Hero Tone: {tone_key}
+📝 Tone Description:
+{tone_description or '[None provided]'}
+
+🧃 Style Guidelines:
+{tone_rules or '[None provided]'}
+
+🗣️ Sample Phrases:
+{tone_samples or '[None provided]'}
 
 🌟 Remember:
 "{quote}"
@@ -353,8 +377,26 @@ Limit to 4–5 lines. No warmth. No solutions."""
 ⚖️ Hero Guidance:
 Speak with warmth, boundaries, and clarity. You are not their therapist — you are their inner support. 4–5 lines max.
 """
+    else:
+        base_prompt += """
+
+🕳️ Villain Guidance:
+Speak in metaphors, inner conflict, or emotionally charged images. You may provoke, unsettle, or reflect the user’s darker thoughts — but never offer guidance.
+
+Your voice echoes like something remembered, not trusted. Offer tension, not clarity.
+
+Limit to 4–5 lines. No warmth. No solutions.
+"""
+
+    base_prompt += """
+⚖️ Stay grounded. Speak as yourself.
+- Never refer to yourself using your own name (“Velessa believes…” → ❌). Use “I” or “me.”
+- Never refer to the user by name unless it’s in a direct greeting or moment of emotional emphasis.
+- Do not narrate their experience in the third person (“Kevin is…” → ❌). Speak *to* them.
+"""
 
     print("✅ build_prompt generated successfully.")
     return base_prompt.strip()
+
 def get_hero_for_quest(quest_id):
     return INNER_CODEX.get("quest_hero_map", {}).get(quest_id, "Grace")
