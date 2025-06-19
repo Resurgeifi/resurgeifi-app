@@ -26,7 +26,6 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         thread = context.get("thread", [])
         if not thread:
             print("[🔁 Thread empty — rebuilding from QueryHistory]")
-            from models import QueryHistory
             db = SessionLocal()
             user_id = session.get("user_id")
             history = (
