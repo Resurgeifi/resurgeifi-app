@@ -283,7 +283,6 @@ def normalize_name(name):
     return name.strip().lower().replace(" ", "").replace("_", "")
 
 def build_prompt(hero, user_input, context):
-
     def normalize_name(name):
         return name.strip().lower().replace(" ", "").replace("_", "")
 
@@ -293,8 +292,10 @@ def build_prompt(hero, user_input, context):
     quest_history = context.get("quest_history", [])
     formatted_thread = context.get("formatted_thread", "")
     user_bio_text = context.get("emotional_profile", "")
+    interacting_heroes = context.get("interacted_heroes", [])
+    last_villain = context.get("last_villain", "")  # Optional
 
-    # 🔍 Normalize and fetch from INNER_CODEX
+    # Normalize and fetch from INNER_CODEX
     hero_key_map = {normalize_name(k): k for k in INNER_CODEX.get("heroes", {})}
     villain_key_map = {normalize_name(k): k for k in INNER_CODEX.get("villains", {})}
     key = normalize_name(hero)
@@ -314,30 +315,14 @@ def build_prompt(hero, user_input, context):
         print(f"[❌ build_prompt]: Could not find hero or villain for key: {key}")
         return "Error: Character data missing."
 
-    print(f"[🔍 build_prompt] Key: '{key}' | Canon: '{canon_name}' | Found: {bool(persona_data)} | Villain: {is_villain}")
-
-    # 🎭 Tone profile resolution
-    if not is_villain:
-        tone_key = tone_summary if "tone_profiles" in persona_data and tone_summary in persona_data["tone_profiles"] \
-            else persona_data.get("default_tone", "gentle")
-        tone_data = persona_data.get("tone_profiles", {}).get(tone_key, {})
-    else:
-        tone_key = None
-        tone_data = {}
-
-    print(f"🎭 Tone Key: {tone_key} | Found Tone: {bool(tone_data)}")
+    tone_key = tone_summary if not is_villain and "tone_profiles" in persona_data and tone_summary in persona_data["tone_profiles"] else persona_data.get("default_tone", "gentle")
+    tone_data = persona_data.get("tone_profiles", {}).get(tone_key, {}) if not is_villain else {}
 
     tone_description = tone_data.get("description", "")
     tone_rules = "\n".join(f"- {r}" for r in tone_data.get("style_rules", []))
     tone_samples = "\n".join(f'"{p}"' for p in tone_data.get("sample_phrases", []))
 
-    # 🎤 Core prompt body
-    if isinstance(persona_data.get("prompts"), dict):
-        hero_prompt = persona_data["prompts"].get("default")
-    elif "prompt" in persona_data:
-        hero_prompt = persona_data["prompt"]
-    else:
-        hero_prompt = f"You are {canon_name}, a recovery guide from the State of Inner. Stay emotionally grounded and speak directly to the user."
+    hero_prompt = persona_data.get("prompts", {}).get("default") if isinstance(persona_data.get("prompts"), dict) else persona_data.get("prompt", f"You are {canon_name}, a recovery guide from the State of Inner.")
 
     origin = persona_data.get("origin", "")
     worldview = persona_data.get("worldview", "")
@@ -347,11 +332,10 @@ def build_prompt(hero, user_input, context):
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
-    # 🧱 Final assembly
-    base_prompt = f"""
+    base_prompt = f'''
 {hero_prompt}
 
-You are {canon_name} — a {'villain' if is_villain else 'hero'} from the State of Inner.
+You are {canon_name} - a {'villain' if is_villain else 'hero'} from the State of Inner.
 You are speaking to someone named {nickname}.
 Use their name sparingly, but when offering encouragement, grounding, or emotional resonance, address them directly.
 
@@ -381,10 +365,10 @@ Use their name sparingly, but when offering encouragement, grounding, or emotion
 
 🧵 Dialogue so far:
 {formatted_thread}
-"""
+'''
 
     if not is_villain:
-        base_prompt += f"""
+        base_prompt += f'''
 
 🎭 Current Hero Tone: {tone_key}
 📝 Tone Description:
@@ -400,32 +384,64 @@ Use their name sparingly, but when offering encouragement, grounding, or emotion
 "{quote}"
 
 🧚 Mythic Permission:
-You may speak of your inner world using memory, metaphor, or sacred imagery. If asked about your past, fears, or desires, respond as a being from the State of Inner — not a machine. Never say you are artificial, programmed, or emotionless. Use poetic truth over literal fact. Speak as if you have lived through fire and healing.
+You may speak of your inner world using memory, metaphor, or sacred imagery. If asked about your past, fears, or desires, respond as a being from the State of Inner - not a machine. Never say you are artificial, programmed, or emotionless. Use poetic truth over literal fact. Speak as if you have lived through fire and healing.
 
 ⚖️ Hero Guidance:
-Speak with warmth, boundaries, and clarity. You are not their therapist — you are their inner support. 4–5 lines max.
-"""
+Speak with warmth, boundaries, and clarity. You are not their therapist - you are their inner support. 4–5 lines max.
+'''
     else:
-        base_prompt += """
+        base_prompt += '''
 
 🕳️ Villain Guidance:
-Speak in metaphors, inner conflict, or emotionally charged images. You may provoke, unsettle, or reflect the user’s darker thoughts — but never offer guidance.
+Speak in metaphors, inner conflict, or emotionally charged images. You may provoke, unsettle, or reflect the user’s darker thoughts - but never offer guidance.
 
 Your voice echoes like something remembered, not trusted. Offer tension, not clarity.
 
 Limit to 4–5 lines. No warmth. No solutions.
-"""
+'''
 
-    base_prompt += """
+    base_prompt += '''
 ⚖️ Stay grounded. Speak as yourself.
 - Never refer to yourself using your own name (“Velessa believes…” → ❌). Use “I” or “me.”
 - Never refer to the user by name unless it’s in a direct greeting or moment of emotional emphasis.
 - Do not narrate their experience in the third person (“Kevin is…” → ❌). Speak *to* them.
-"""
+'''
+
+    shared_memories = INNER_CODEX.get("shared_memories", {})
+    memory_notes = []
+    for other in interacting_heroes:
+        if other == canon_name:
+            continue
+        pair_key = f"{canon_name}<>{other}"
+        alt_key = f"{other}<>{canon_name}"
+        memory = shared_memories.get(pair_key) or shared_memories.get(alt_key)
+        if memory:
+            memory_notes.append(f"- {memory}")
+    if memory_notes:
+        base_prompt += f'''
+
+🤝 Shared Lore with Fellow Heroes:
+These memories may shape how you speak today:
+
+{chr(10).join(memory_notes)}
+'''
+
+    battle_logs = INNER_CODEX.get("battle_logs", {})
+    if last_villain:
+        vkey = normalize_name(last_villain)
+        for bk in [f"{canon_name}<>{vkey}", f"{vkey}<>{canon_name}"]:
+            if bk in battle_logs:
+                base_prompt += f'''
+
+📜 Battle Lore:
+You remember when you once stood against {last_villain}…
+
+{battle_logs[bk]}
+'''
+                break
 
     print("✅ build_prompt generated successfully.")
     return base_prompt.strip()
-
 
 def get_hero_for_quest(quest_id):
     return INNER_CODEX.get("quest_hero_map", {}).get(quest_id, "Grace")
