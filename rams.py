@@ -22,8 +22,29 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     try:
         context = build_context(user_id=session.get("user_id"), session_data=session)
 
-        # 🧵 Debug thread
+        # 🧵 Fallback: if thread is missing, rebuild from QueryHistory
         thread = context.get("thread", [])
+        if not thread:
+            print("[🔁 Thread empty — rebuilding from QueryHistory]")
+            from models import QueryHistory
+            db = SessionLocal()
+            user_id = session.get("user_id")
+            history = (
+                db.query(QueryHistory)
+                .filter_by(user_id=user_id)
+                .filter(QueryHistory.agent_name == hero_name)
+                .order_by(QueryHistory.timestamp.desc())
+                .limit(10)
+                .all()
+            )
+            db.close()
+            thread = []
+            for entry in reversed(history):
+                if entry.question:
+                    thread.append({"speaker": "user", "text": entry.question.strip()})
+                if entry.response:
+                    thread.append({"speaker": "assistant", "text": entry.response.strip()})
+
         print(f"[🧵 Thread Length]: {len(thread)}")
         for i, entry in enumerate(thread[-3:], 1):
             print(f"[🧵 Thread-{i}]: {entry}")
