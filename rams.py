@@ -253,7 +253,9 @@ def normalize_name(name):
     return name.strip().lower().replace(" ", "").replace("_", "")
 
 def build_prompt(hero, user_input, context):
-    from inner_codex import INNER_CODEX  # Ensure this is accessible
+    
+    def normalize_name(name):
+        return name.strip().lower().replace(" ", "").replace("_", "")
 
     nickname = context.get("nickname", "Friend")
     tone_summary = context.get("tone_summary", "vulnerable")
@@ -262,13 +264,13 @@ def build_prompt(hero, user_input, context):
     formatted_thread = context.get("formatted_thread", "")
     user_bio_text = context.get("emotional_profile", "")
 
-    # 🔍 Build normalized name maps
+    # 🔍 Normalize and fetch from INNER_CODEX
     hero_key_map = {normalize_name(k): k for k in INNER_CODEX.get("heroes", {})}
     villain_key_map = {normalize_name(k): k for k in INNER_CODEX.get("villains", {})}
     key = normalize_name(hero)
 
-    canon_name = hero  # Default fallback
     is_villain = False
+    canon_name = None
     persona_data = None
 
     if key in hero_key_map:
@@ -278,10 +280,13 @@ def build_prompt(hero, user_input, context):
         canon_name = villain_key_map[key]
         persona_data = INNER_CODEX["villains"][canon_name]
         is_villain = True
+    else:
+        print(f"[❌ build_prompt]: Could not find hero or villain for key: {key}")
+        return "Error: Character data missing."
 
-    print(f"[🔍 build_prompt] Key: '{key}' | Canon: '{canon_name}' | Found data: {bool(persona_data)} | Villain: {is_villain}")
+    print(f"[🔍 build_prompt] Key: '{key}' | Canon: '{canon_name}' | Found: {bool(persona_data)} | Villain: {is_villain}")
 
-    # 🧠 Tone profile resolution
+    # 🎭 Tone profile resolution
     if not is_villain:
         tone_key = tone_summary if "tone_profiles" in persona_data and tone_summary in persona_data["tone_profiles"] \
             else persona_data.get("default_tone", "gentle")
@@ -296,42 +301,32 @@ def build_prompt(hero, user_input, context):
     tone_rules = "\n".join(f"- {r}" for r in tone_data.get("style_rules", []))
     tone_samples = "\n".join(f'"{p}"' for p in tone_data.get("sample_phrases", []))
 
-    # 🎤 Core system prompt
+    # 🎤 Core prompt body
     if isinstance(persona_data.get("prompts"), dict):
         hero_prompt = persona_data["prompts"].get("default")
     elif "prompt" in persona_data:
         hero_prompt = persona_data["prompt"]
     else:
-        hero_prompt = f"You are {canon_name}, a recovery guide from the State of Inner. Stay emotionally grounded, and do not refer to anyone in third person."
-        print(f"⚠️ No specific prompt found for '{canon_name}'; using default prompt.")
+        hero_prompt = f"You are {canon_name}, a recovery guide from the State of Inner. Stay emotionally grounded and speak directly to the user."
 
-    # 🌍 Lore additions (optional for heroes)
-    origin = persona_data.get("origin")
-    worldview = persona_data.get("worldview")
+    origin = persona_data.get("origin", "")
+    worldview = persona_data.get("worldview", "")
 
-    # 🌍 World and design metadata
     region_context = INNER_CODEX.get("world", {}).get("description", "")
     memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
     quote = INNER_CODEX.get("quote", "")
 
-    # 📦 Final prompt assembly
+    # 🧱 Final assembly
     base_prompt = f"""
 {hero_prompt}
 
 You are {canon_name} — a {'villain' if is_villain else 'hero'} from the State of Inner.
 You are speaking to someone named {nickname}.
-Use their name sparingly, but **when offering encouragement, grounding, or emotional resonance, address them directly** — especially when they’re struggling to believe in themselves.
-They are human. You are not them. You are not the user. You are yourself.
-""".strip()
+Use their name sparingly, but when offering encouragement, grounding, or emotional resonance, address them directly.
 
-    if not is_villain:
-        if origin:
-            base_prompt += f"\n\n🧭 Origin: {origin}"
-        if worldview:
-            base_prompt += f"\n🧬 Worldview: {worldview}"
-
-    base_prompt += f"""
+🧭 Origin: {origin}
+🧬 Worldview: {worldview}
 
 🗌️ State of Inner Context:
 {region_context}
