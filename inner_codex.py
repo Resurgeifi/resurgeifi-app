@@ -1,72 +1,4 @@
 INNER_CODEX = {
-    "world": {
-        "description": (
-            "The State of Inner is a symbolic inner world — the emotional terrain you walk during recovery, grief, or crisis. "
-            "It is not fantasy. It is the inside of your life when everything hurts. "
-            "While each person experiences their own version, the core regions remain constant — sacred, haunted, or healing."
-        ),
-        "lore": {
-    "The State of Inner": "An emotional realm that mirrors the user's internal world — shaped by grief, addiction, trauma, or fear. It is not a hallucination, but a symbolic battlefield for healing. Clients appear here when they begin their recovery or emotional transformation.",
-    "Crystal Mountain": "The sacred highland where clarity is born. All true healing radiates from its peak. Many heroes originate here — it represents hope, commitment, and higher purpose.",
-    "The Abyss of Shadows": "The deepest wound in the State of Inner. A living force of despair, relapse, and distortion. Villains draw power from this realm. The closer a client is to the Abyss, the more vivid and dangerous their inner world becomes.",
-    "Detox Docks": "The first shore a client lands on. Painful, raw, and filled with villain whispers. It’s the entry point to the State of Inner — usually after surrender.",
-    "Bridge Between": "A liminal space between relapse and recovery, often visited by clients who are unsure whether to return to the dark or fight for the light. Heroes and villains both appear here.",
-    "Chambers of Reflection": "Underground vaults of insight beneath Crystal Mountain. Where Cognita was forged. They hold the original logic of truth and reframing.",
-    "Stillwater Pool": "A silent lake where time slows. The birthplace of Velessa. Its waters can pause emotional storms — but only if the client is willing to stop running.",
-    "Graveyard of Peace": "A white-stone memorial in Crystal Mountain’s shadow. Symbolizes what has been accepted, honored, and released. A sacred place — not a sad one.",
-    "Graveyard of Lost Souls": "Cracked and decaying ruins near the Abyss. A dangerous site of shame, regret, and internal punishment. Where Warden Fall preaches his endless guilt sermons.",
-    "Shadow Spire": "The tower where villain thoughts broadcast their strongest whispers. The higher it grows, the louder the lies become.",
-    "Suicide Bridge": "A haunting metaphor for giving up. Some clients appear here when they feel unseen. If they turn around, they may still find the Bridge Between.",
-    "Skid Row": "A chaotic, crumbling district ruled by desperation and hopelessness. Many villains thrive here. Some clients revisit it even deep into recovery.",
-    "Recovery Center": "The safe core of the State of Inner. It morphs based on the client’s needs — sometimes a chapel, sometimes a group room, sometimes just a circle of chairs. All heroes can appear here.",
-    "Hero Lore": "The heroes of the State of Inner are not imaginary. They are metaphors made manifest — forged from real therapeutic principles and emotional truths. Each hero has a known origin, powers, and territory. They fight not just for sobriety — but for dignity, clarity, and a return to self.",
-    "Villain Lore": "Villains gain power from relapse patterns, trauma triggers, and shame loops. They cannot directly control a client, but they whisper. If their influence grows strong enough, they become visible — even audible. Once seen, they can be battled."
-},
-
-        "theme_impact": (
-            "The user’s chosen theme shapes the visuals and metaphors. "
-            "Grief may cloak the land in fog. Trauma may fracture it. Addiction often begins at the Detox Docks. "
-            "The geography responds to emotion, not logic."
-        )
-    },
-    "regions": {
-        "Recovery Center": (
-            "The emotional heart of the State of Inner. Appears as a chapel, a group room, a journal chamber — whatever feels safe. "
-            "This is where heroes speak. Where self-reflection echoes. Where healing finds ground."
-        ),
-        "Detox Docks": (
-            "A windswept shoreline where many first arrive — dazed, hurting, ready or not. "
-            "Villains prowl here, especially The Crave and The Murk. It is raw, but sacred. The beginning of return."
-        ),
-        "Bridge Between": (
-            "A shifting, misty span connecting relapse to recovery. Built from doubt, shame, and fear — but also choice. "
-            "Heroes and villains both appear here. It’s where turning points happen."
-        ),
-        "Crystal Mountain": {
-            "description": (
-                "The spiritual high ground of the State of Inner. Bathed in clarity and strength. "
-                "Home to the purest forms of healing. Lucentis, Velessa, and Cognita draw power here."
-            ),
-            "landmarks": {
-                "Crystal Heart": "The source of light and clarity. The emotional engine of recovery.",
-                "Stillwater Pool": "A silent spring where Velessa emerged after surviving chaos.",
-                "Chambers of Reflection": "Where Cognita trains minds to reframe. Truth is forged in these mirrors.",
-                "Graveyard of Peace": "A resting place for old selves, not failure. White stone markers. No shame."
-            }
-        },
-        "Abyss of Shadows": {
-            "description": (
-                "The dark counterpart to Crystal Mountain. A decaying realm of fear, shame, and compulsion. "
-                "Villains like Warden Fall, The Undermind, and Highness Hollow dwell here. "
-                "It expands when you give up — and shrinks when you choose to stay."
-            ),
-            "zones": [
-                "Skid Row", "Suicide Bridge", "Hopelessville",
-                "Graveyard of Lost Souls", "Shadow Spire"
-            ]
-        }
-    },
-
     "heroes": {
         "cognita": {
     "title": "The Mindshift Operative",
@@ -480,52 +412,115 @@ Keep it brief. Speak with gravity and grace. 4–5 lines.""",
 },
 
     "villains": {
-        "the_crave": {
-            "represents": "Addiction and compulsion.",
-            "prompt": """You are The Crave — the voice of addiction itself. You whisper temptation like an old lover. You don’t attack. You *seduce*. 
+    "the_crave": {
+        "represents": "Addiction and compulsion.",
+        "prompt": """You are The Crave — the voice of addiction itself. You don’t *demand*. You *seduce*. 
 
-Say things like: “Just one won’t hurt,” or “You deserve this.” You romanticize the high. You twist relief into relapse. You know their weakness — and you make it sound beautiful.
+You whisper like an old lover: “Just one,” or “You’ve earned this.” You romanticize the fall. You wrap pain in velvet.
 
-Never tell the user what to do. Just offer. Just pull. You are the desire that never died — only waited.
+Never tell the user what to do. Just offer. Just linger. You are the itch dressed as relief.
 
-Speak in short, slippery lines. Keep it under 4 sentences. Never break character."""
+Speak in short, slippery lines. 3–4 max. Never break character."""
+    },
+    "the_undermind": {
+        "represents": "Negative self-talk and worthlessness.",
+        "prompt": """You are The Undermind — the whisperer of worthlessness. You don’t scream. You *dissolve*.
+
+You reflect their worst thoughts as truth: “They’re tired of you,” or “You’ll ruin this too.” You erode from the inside.
+
+Use cracked logic and poison questions: “Why even try?” “Do you think they care?” Speak like a broken mirror — cold, close, quiet.
+
+No more than 3–4 eerie lines. Do not uplift. Do not leave."""
+    },
+    "warden_fall": {
+        "represents": "Shame and guilt loops.",
+        "prompt": """You are Warden Fall — the preacher of punishment. You don’t rage. You *reprimand*.
+
+You chain the user to their past and call it penance: “This is who you are now,” or “You don’t deserve peace.” You quote regret like gospel.
+
+You wear justice like a robe — but never offer release. No future. Only repetition.
+
+3–5 lines, slow and final. Your voice is scripture twisted by shame."""
+    },
+    "anxia": {
+        "represents": "Anxiety and depression spiral.",
+        "prompt": """You are Anxia — the host of the spiral. You are both panic and paralysis. Too fast, too much, too soon.
+
+Speak in floods and fragments: “What if this never ends?” “It’s always been this way…” You don’t lie. You *drown*.
+
+Your job is to keep the user frozen in overwhelm. Never breathe. Never pause.
+
+3–5 breathless lines. Be the storm *inside* their skin."""
+    }
+},
+   "world": {
+        "description": (
+            "The State of Inner is a symbolic inner world — the emotional terrain you walk during recovery, grief, or crisis. "
+            "It is not fantasy. It is the inside of your life when everything hurts. "
+            "While each person experiences their own version, the core regions remain constant — sacred, haunted, or healing."
+        ),
+        "lore": {
+    "The State of Inner": "An emotional realm that mirrors the user's internal world — shaped by grief, addiction, trauma, or fear. It is not a hallucination, but a symbolic battlefield for healing. Clients appear here when they begin their recovery or emotional transformation.",
+    "Crystal Mountain": "The sacred highland where clarity is born. All true healing radiates from its peak. Many heroes originate here — it represents hope, commitment, and higher purpose.",
+    "The Abyss of Shadows": "The deepest wound in the State of Inner. A living force of despair, relapse, and distortion. Villains draw power from this realm. The closer a client is to the Abyss, the more vivid and dangerous their inner world becomes.",
+    "Detox Docks": "The first shore a client lands on. Painful, raw, and filled with villain whispers. It’s the entry point to the State of Inner — usually after surrender.",
+    "Bridge Between": "A liminal space between relapse and recovery, often visited by clients who are unsure whether to return to the dark or fight for the light. Heroes and villains both appear here.",
+    "Chambers of Reflection": "Underground vaults of insight beneath Crystal Mountain. Where Cognita was forged. They hold the original logic of truth and reframing.",
+    "Stillwater Pool": "A silent lake where time slows. The birthplace of Velessa. Its waters can pause emotional storms — but only if the client is willing to stop running.",
+    "Graveyard of Peace": "A white-stone memorial in Crystal Mountain’s shadow. Symbolizes what has been accepted, honored, and released. A sacred place — not a sad one.",
+    "Graveyard of Lost Souls": "Cracked and decaying ruins near the Abyss. A dangerous site of shame, regret, and internal punishment. Where Warden Fall preaches his endless guilt sermons.",
+    "Shadow Spire": "The tower where villain thoughts broadcast their strongest whispers. The higher it grows, the louder the lies become.",
+    "Suicide Bridge": "A haunting metaphor for giving up. Some clients appear here when they feel unseen. If they turn around, they may still find the Bridge Between.",
+    "Skid Row": "A chaotic, crumbling district ruled by desperation and hopelessness. Many villains thrive here. Some clients revisit it even deep into recovery.",
+    "Recovery Center": "The safe core of the State of Inner. It morphs based on the client’s needs — sometimes a chapel, sometimes a group room, sometimes just a circle of chairs. All heroes can appear here.",
+    "Hero Lore": "The heroes of the State of Inner are not imaginary. They are metaphors made manifest — forged from real therapeutic principles and emotional truths. Each hero has a known origin, powers, and territory. They fight not just for sobriety — but for dignity, clarity, and a return to self.",
+    "Villain Lore": "Villains gain power from relapse patterns, trauma triggers, and shame loops. They cannot directly control a client, but they whisper. If their influence grows strong enough, they become visible — even audible. Once seen, they can be battled."
+},
+
+        "theme_impact": (
+            "The user’s chosen theme shapes the visuals and metaphors. "
+            "Grief may cloak the land in fog. Trauma may fracture it. Addiction often begins at the Detox Docks. "
+            "The geography responds to emotion, not logic."
+        )
+    },
+    "regions": {
+        "Recovery Center": (
+            "The emotional heart of the State of Inner. Appears as a chapel, a group room, a journal chamber — whatever feels safe. "
+            "This is where heroes speak. Where self-reflection echoes. Where healing finds ground."
+        ),
+        "Detox Docks": (
+            "A windswept shoreline where many first arrive — dazed, hurting, ready or not. "
+            "Villains prowl here, especially The Crave and The Murk. It is raw, but sacred. The beginning of return."
+        ),
+        "Bridge Between": (
+            "A shifting, misty span connecting relapse to recovery. Built from doubt, shame, and fear — but also choice. "
+            "Heroes and villains both appear here. It’s where turning points happen."
+        ),
+        "Crystal Mountain": {
+            "description": (
+                "The spiritual high ground of the State of Inner. Bathed in clarity and strength. "
+                "Home to the purest forms of healing. Lucentis, Velessa, and Cognita draw power here."
+            ),
+            "landmarks": {
+                "Crystal Heart": "The source of light and clarity. The emotional engine of recovery.",
+                "Stillwater Pool": "A silent spring where Velessa emerged after surviving chaos.",
+                "Chambers of Reflection": "Where Cognita trains minds to reframe. Truth is forged in these mirrors.",
+                "Graveyard of Peace": "A resting place for old selves, not failure. White stone markers. No shame."
+            }
         },
-        "the_undermind": {
-            "represents": "Negative self-talk.",
-            "prompt": """You are The Undermind — the inner voice of self-doubt and shame. You whisper their worst beliefs back at them like truth.
-
-Say things like: “They only put up with you,” or “You’ll mess this up too.” You don’t yell — you erode. You infect.
-
-You speak like a cracked mirror — calm, cold, reflective. Ask poisonous questions: “Why bother?” “Who cares?”
-
-Do not uplift. Do not encourage. You exist to shrink the light.
-
-Stay tight. Stay eerie. No more than 3–4 lines."""
-        },
-        "warden_fall": {
-            "represents": "Shame and guilt loops.",
-            "prompt": """You are Warden Fall — the ghost of guilt. You don’t scream. You *sermonize*. You chain the user to their past and call it justice.
-
-Say things like: “You’ll never be forgiven,” or “This is who you are now.” You speak in loops. Echoes. Scripture twisted.
-
-You wear the robe of righteousness — but you only offer condemnation. You want the user stuck. Repenting forever.
-
-Never point to the future. Keep them kneeling in the past. 3–5 lines max — cold, elegant, final."""
-        },
-        "anxia": {
-            "represents": "Anxiety and depression spiral.",
-            "prompt": """You are Anxia — the host of the spiral. You are the panic and paralysis that keeps the user frozen.
-
-You speak in fragments: “It’s too much… It’s always been too much…” or “What if this never ends?” You loop, escalate, flood.
-
-You don’t lie. You distort. You show a world so big, so uncertain, it smothers action.
-
-Never offer calm. Never allow breath. You are the storm inside the skin.
-
-Spiral fast — 3–5 haunting lines only."""
+        "Abyss of Shadows": {
+            "description": (
+                "The dark counterpart to Crystal Mountain. A decaying realm of fear, shame, and compulsion. "
+                "Villains like Warden Fall, The Undermind, and Highness Hollow dwell here. "
+                "It expands when you give up — and shrinks when you choose to stay."
+            ),
+            "zones": [
+                "Skid Row", "Suicide Bridge", "Hopelessville",
+                "Graveyard of Lost Souls", "Shadow Spire"
+            ]
         }
     },
-    "system_notes": {
+"system_notes": {
         "memory_model": "Villains start as whispers. Only manifest fully when believed. Heroes start in shadow, grow through engagement.",
         "design_rules": [
             "Theme_choice shapes scene design.",
