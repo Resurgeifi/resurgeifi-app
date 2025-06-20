@@ -14,19 +14,24 @@
     <h2>Welcome to your State of Inner</h2>
     <p>This is where your progress lives. You’ll track quests, emotions, and healing conversations here.</p>
     <p>When you're ready, click the button below. The journey meets you where you are.</p>
-    <button id="walkthrough-close" class="global-button" style="margin-top: 1.5rem;">
+    <button id="walkthrough-close" class="global-button pulse-button" style="margin-top: 1.5rem;">
       🕊️ Enter the State
     </button>
   </div>
 </div>
 {% endif %}
 
-<!-- 🌄 Main Content (Hidden until walkthrough completes) -->
+<!-- 🌄 Main Content -->
 <div id="main-body-content" style="display: none;">
+  <div style="text-align: center; margin-top: 2rem;">
+    <h2>Welcome back, {{ g.user.nickname or 'traveler' }}.</h2>
+    <p style="opacity: 0.7;">Your journey continues.</p>
+  </div>
 
   <!-- 🌄 Quest Button -->
   <div style="display: flex; justify-content: center; align-items: center; min-height: 30vh; margin-top: 2rem;">
-    <a href="{{ url_for('quest_entrypoint') }}" 
+    <a id="next-quest-btn" href="{{ url_for('quest_entrypoint') }}" 
+       class="pulse-button"
        style="padding: 1.4rem 2.6rem; font-size: 1.5rem; font-weight: bold;
               background: linear-gradient(to right, #a162e8, #5f6caf);
               color: #fff; border-radius: 16px; text-decoration: none;
@@ -97,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 500);
     });
   } else {
-    showMain(); // fallback if walkthrough isn't shown
+    showMain(); // fallback
   }
 
   function resetFlash() {
@@ -110,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("lastDaysCount");
   display.textContent = "0";
 
-    button.addEventListener("click", () => {
+  button.addEventListener("click", () => {
     let counter = 0;
     try {
       audio.pause();
@@ -139,8 +144,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }, 20);
-  }); // ← THIS was missing!
-
+  });
+});
 </script>
 {% endblock %}
 
@@ -149,6 +154,16 @@ document.addEventListener("DOMContentLoaded", () => {
 .card-dark {
   font-size: 1.25rem;
   line-height: 1.7;
+}
+
+.pulse-button {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(161, 98, 232, 0.7); }
+  70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(161, 98, 232, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(161, 98, 232, 0); }
 }
 
 .walkthrough-overlay {
@@ -212,20 +227,6 @@ document.addEventListener("DOMContentLoaded", () => {
   color: #f6e7c1;
   line-height: 1.6;
 }
-
-/* Journal/Chat Textbox Fix */
-input[type="text"],
-textarea,
-.chat-input {
-  background-color: #f9f9f9 !important;
-  color: #222;
-  padding: 0.8rem 1.2rem;
-  border-radius: 10px;
-  border: none;
-  width: 100%;
-}
 </style>
 {% endblock %}
-
-
 

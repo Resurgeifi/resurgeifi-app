@@ -1290,6 +1290,11 @@ def journal():
                 user.points = (user.points or 0) + 1
                 session["points_just_added"] = 1
 
+            # ✅ Mark first quest as complete
+            if not user.first_quest_complete:
+                user.first_quest_complete = True
+                flash("✨ Quest Complete! Grace is proud of you for finishing your first journey.", "success")
+
             db.commit()
 
         raw_entries = db.query(JournalEntry).filter_by(user_id=user.id).order_by(JournalEntry.timestamp.desc()).all()

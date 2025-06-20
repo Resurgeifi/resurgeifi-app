@@ -75,6 +75,13 @@
   </div>
 </div>
 
+<!-- Grace Overlay -->
+<div id="graceOverlay" class="grace-overlay" style="display: none;">
+  <div class="grace-text-box">
+    <p>You just completed your first quest. That reflection? That’s how change begins. Go ahead and save it if it feels true.</p>
+  </div>
+</div>
+
 <audio id="flashSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/cognita_flash.mp3') }}"></audio>
 <audio id="wardenSound" preload="auto" playsinline src="{{ url_for('static', filename='audio/wardenfall_flash.mp3') }}"></audio>
 
@@ -127,6 +134,36 @@
 .entry-button.delete {
   background-color: #e11d48;
   color: #fff;
+}
+
+/* 🌀 Grace Overlay Styling */
+.grace-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9998;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(10, 10, 10, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f6e7c1;
+  font-size: 1.25rem;
+  text-align: center;
+  padding: 2rem;
+  animation: fadeIn 0.5s ease;
+}
+.grace-text-box {
+  background: #1f3e36;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 0 20px #00ffd5;
+  max-width: 500px;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 </style>
 
@@ -190,9 +227,27 @@ function bindDeleteFlash() {
 document.addEventListener("DOMContentLoaded", () => {
   bindJournalFlash();
   bindDeleteFlash();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("auto_summarize") === "true") {
+    const overlay = document.getElementById("graceOverlay");
+    const textarea = document.getElementById("entry");
+
+    if (overlay) overlay.style.display = "flex";
+    if (textarea) {
+      textarea.style.boxShadow = "0 0 15px 5px #f4d35e";
+      textarea.style.transition = "box-shadow 0.5s ease";
+    }
+
+    setTimeout(() => {
+      if (overlay) overlay.style.opacity = 0;
+      setTimeout(() => overlay.remove(), 1000);
+    }, 4500);
+  }
 });
 </script>
 {% endblock %}
+
 
 
 

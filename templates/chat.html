@@ -2,6 +2,15 @@
 {% block title %}Chat with {{ display_name }}{% endblock %}
 
 {% block content %}
+{% if not g.user.first_quest_complete %}
+<div id="graceChatOverlay" class="grace-overlay">
+  <div class="grace-text-box">
+    <p id="graceChatLine"></p>
+    <button id="graceChatNextBtn" class="global-button">Next</button>
+  </div>
+</div>
+{% endif %}
+
 <div class="chat-header">
   <h2 class="chat-hero-name">{{ display_name }}</h2>
   <p class="mantra">"They’re listening. Say what’s real."</p>
@@ -30,7 +39,6 @@
 </div>
 
 <style>
-/* Flash Message */
 .quest-flash-message {
   position: fixed;
   top: 1rem;
@@ -47,7 +55,6 @@
   transition: opacity 1s ease;
 }
 
-/* Chat Form Styling */
 .circle-form {
   display: flex;
   flex-direction: column;
@@ -88,6 +95,27 @@
 .send-button:hover {
   transform: scale(1.05);
 }
+
+.grace-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.88);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.grace-text-box {
+  background: #f6e7c1;
+  color: #1f3e36;
+  padding: 2rem;
+  border-radius: 20px;
+  font-size: 1.2rem;
+  text-align: center;
+  max-width: 600px;
+  box-shadow: 0 0 30px rgba(255,255,255,0.2);
+}
 </style>
 {% endblock %}
 
@@ -98,10 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatBox = document.getElementById("chat-box");
   const messageInput = document.getElementById("userMessage");
   const reflectBtn = document.getElementById("reflectBtn");
-
   chatBox.scrollTop = chatBox.scrollHeight;
 
-  // Fade out quest flash message after 5 seconds
   const questFlash = document.getElementById("questFlashMessage");
   if (questFlash) {
     setTimeout(() => {
@@ -160,6 +186,32 @@ document.addEventListener("DOMContentLoaded", () => {
     reflectBtn.addEventListener("click", () => {
       window.location.href = "/summarize-journal";
     });
+  }
+
+  const lines = [
+  "You made it.",
+  "This is how they get to know you — through your words.",
+  "Try to be honest. Even if it's messy.",
+  "When you're done, tap 'Summarize Journal' below. That's where the magic happens.",
+  "I'll stay nearby if you need me."
+];
+
+    let index = 0;
+    const lineEl = document.getElementById("graceChatLine");
+    const nextBtn = document.getElementById("graceChatNextBtn");
+    function showNextLine() {
+      index++;
+      if (index < lines.length) {
+        lineEl.textContent = lines[index];
+      } else {
+        overlay.style.opacity = 1;
+        overlay.style.transition = "opacity 0.8s ease";
+        overlay.style.opacity = 0;
+        setTimeout(() => overlay.remove(), 800);
+      }
+    }
+    lineEl.textContent = lines[0];
+    nextBtn.addEventListener("click", showNextLine);
   }
 });
 </script>

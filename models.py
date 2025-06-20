@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 from openai import OpenAI  # ✅ This is what was missing
-
+from flask_login import UserMixin
 db = SQLAlchemy()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -29,7 +29,7 @@ friend_association = db.Table(
     db.Column('friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True)
 )
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True, index=True)
