@@ -66,13 +66,13 @@ const questions = [
     title: "What’s your time zone?",
     name: "timezone",
     options: [
-      "Eastern (US)",
-      "Central (US)",
-      "Mountain (US)",
-      "Pacific (US)",
-      "Alaska",
-      "Hawaii",
-      "UTC"
+      { label: "Eastern (US)", value: "America/New_York" },
+      { label: "Central (US)", value: "America/Chicago" },
+      { label: "Mountain (US)", value: "America/Denver" },
+      { label: "Pacific (US)", value: "America/Los_Angeles" },
+      { label: "Alaska", value: "America/Anchorage" },
+      { label: "Hawaii", value: "Pacific/Honolulu" },
+      { label: "UTC", value: "UTC" }
     ]
   }
 ];
@@ -118,8 +118,12 @@ function renderQuestion() {
     optionsEl.appendChild(input);
   } else {
     current.options.forEach((option) => {
+      const label = typeof option === "string" ? option : option.label;
+      const value = typeof option === "string" ? option : option.value;
+
       const btn = document.createElement("button");
-      btn.textContent = option;
+      btn.textContent = label;
+      btn.dataset.value = value;
       btn.className = "global-button";
       btn.style = "margin: 0.5rem;";
       btn.onclick = () => {
@@ -127,7 +131,7 @@ function renderQuestion() {
 
         if (current.allowMultiple) {
           btn.classList.toggle("selected");
-          const selected = [...optionsEl.querySelectorAll(".selected")].map(el => el.textContent);
+          const selected = [...optionsEl.querySelectorAll(".selected")].map(el => el.dataset.value);
           if (selected.length <= current.limit) {
             responses[current.name] = selected;
             nextBtn.style.display = selected.length === current.limit ? "inline-block" : "none";
@@ -137,7 +141,7 @@ function renderQuestion() {
         } else {
           [...optionsEl.children].forEach(b => b.classList.remove("selected"));
           btn.classList.add("selected");
-          responses[current.name] = option;
+          responses[current.name] = value;
           nextBtn.style.display = "inline-block";
         }
       };
@@ -175,3 +179,4 @@ renderQuestion();
 </style>
 
 {% endblock %}
+

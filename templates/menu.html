@@ -7,55 +7,59 @@
      alt="State of Inner Title" 
      class="circle-title-img" />
 
-<!-- 🧭 Walkthrough Overlay (if user hasn't completed first quest) -->
+<!-- 🧭 Walkthrough Overlay -->
 {% if g.user and (g.user.first_quest_complete is none or not g.user.first_quest_complete) %}
 <div id="walkthrough" class="walkthrough-overlay">
   <div class="walkthrough-box">
     <h2>Welcome to your State of Inner</h2>
-    <p>This is where your progress lives. Here you’ll track your quests, emotions, and interactions with the Circle.</p>
-    <p>When you're ready, click “Begin Next Quest” below — it’s how your journey deepens.</p>
-    <button id="walkthrough-close" class="global-button">Got it. Let’s go ➤</button>
+    <p>This is where your progress lives. You’ll track quests, emotions, and healing conversations here.</p>
+    <p>When you're ready, click the button below. The journey meets you where you are.</p>
+    <button id="walkthrough-close" class="global-button" style="margin-top: 1.5rem;">
+      🕊️ Enter the State
+    </button>
   </div>
 </div>
 {% endif %}
 
-<!-- 🌄 Centered Quest Button -->
-<div style="display: flex; justify-content: center; align-items: center; min-height: 30vh; margin-top: 2rem;">
-  <a href="{{ url_for('quest_entrypoint') }}" 
-     style="padding: 1.4rem 2.6rem; font-size: 1.5rem; font-weight: bold;
-            background: linear-gradient(to right, #a162e8, #5f6caf);
-            color: #fff; border-radius: 16px; text-decoration: none;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4); transition: transform 0.2s ease;">
-    🌄 Begin Next Quest
-  </a>
-</div>
+<!-- 🌄 Main Content (Hidden until walkthrough completes) -->
+<div id="main-body-content" style="display: none;">
 
-<!-- 🧭 Snapshot Container -->
-<div class="main-content" style="text-align: center;">
-  <h1>📊 Your Current State</h1>
-  <p style="font-style: italic; margin-bottom: 1.5rem;">
-    Inner ring calibrated. Standing by for clarity...
-  </p>
-
-  <!-- Dark Card -->
-  <div class="card-dark">
-    <p><strong>🌀 Recovery Ring:</strong> {{ current_ring }}</p>
-    <p><strong>📈 Days on Journey:</strong> <span id="days-display">{{ days_on_journey }}</span> day{{ 's' if days_on_journey != 1 else '' }}</p>
-    <p><strong>🔥 Streak:</strong> {{ streak }} day{{ 's' if streak != 1 else '' }}</p>
-    <p><strong>📝 Journal Entries:</strong> {{ journal_count }}</p>
-    <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or 'None yet' }}</p>
-    <p><strong>💬 Last Hero Message:</strong></p>
-    <p style="font-style: italic;">“{{ last_hero_msg or 'No messages yet from the heroes' }}”</p>
+  <!-- 🌄 Quest Button -->
+  <div style="display: flex; justify-content: center; align-items: center; min-height: 30vh; margin-top: 2rem;">
+    <a href="{{ url_for('quest_entrypoint') }}" 
+       style="padding: 1.4rem 2.6rem; font-size: 1.5rem; font-weight: bold;
+              background: linear-gradient(to right, #a162e8, #5f6caf);
+              color: #fff; border-radius: 16px; text-decoration: none;
+              box-shadow: 0 6px 16px rgba(0,0,0,0.4); transition: transform 0.2s ease;">
+      🌄 Begin Next Quest
+    </a>
   </div>
 
-  <!-- ⏳ Count Button -->
-  <button id="calculate-days-btn" class="global-button" style="margin-top: 1.5rem;">
-    ⏳ Count Days
-  </button>
+  <!-- 🧭 Snapshot -->
+  <div class="main-content" style="text-align: center;">
+    <h1>📊 Your Current State</h1>
+    <p style="font-style: italic; margin-bottom: 1.5rem;">
+      Inner ring calibrated. Standing by for clarity...
+    </p>
 
-  <p class="mantra" style="margin-top: 2rem;">
-    Every entry, every question, every pause... it all counts.
-  </p>
+    <div class="card-dark">
+      <p><strong>🌀 Recovery Ring:</strong> {{ current_ring }}</p>
+      <p><strong>📈 Days on Journey:</strong> <span id="days-display">{{ days_on_journey }}</span> day{{ 's' if days_on_journey != 1 else '' }}</p>
+      <p><strong>🔥 Streak:</strong> {{ streak }} day{{ 's' if streak != 1 else '' }}</p>
+      <p><strong>📝 Journal Entries:</strong> {{ journal_count }}</p>
+      <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or 'None yet' }}</p>
+      <p><strong>💬 Last Hero Message:</strong></p>
+      <p style="font-style: italic;">“{{ last_hero_msg or 'No messages yet from the heroes' }}”</p>
+    </div>
+
+    <button id="calculate-days-btn" class="global-button" style="margin-top: 1.5rem;">
+      ⏳ Count Days
+    </button>
+
+    <p class="mantra" style="margin-top: 2rem;">
+      Every entry, every question, every pause... it all counts.
+    </p>
+  </div>
 </div>
 
 <!-- 🌟 Grace Flash -->
@@ -78,12 +82,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const audio = document.getElementById("graceSound");
   const walkthrough = document.getElementById("walkthrough");
   const closeBtn = document.getElementById("walkthrough-close");
+  const mainBody = document.getElementById("main-body-content");
+
+  function showMain() {
+    if (mainBody) mainBody.style.display = "block";
+  }
 
   if (walkthrough && closeBtn) {
     closeBtn.addEventListener("click", () => {
       walkthrough.style.opacity = 0;
-      setTimeout(() => walkthrough.style.display = "none", 500);
+      setTimeout(() => {
+        walkthrough.style.display = "none";
+        showMain();
+      }, 500);
     });
+  } else {
+    showMain(); // fallback if walkthrough isn't shown
   }
 
   function resetFlash() {
@@ -94,17 +108,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const actual = {{ days_on_journey or 0 }};
   localStorage.removeItem("lastDaysCount");
-  const stored = "0";
-  display.textContent = stored;
+  display.textContent = "0";
 
-  button.addEventListener("click", () => {
-    let counter = parseInt(stored) || 0;
+    button.addEventListener("click", () => {
+    let counter = 0;
     try {
       audio.pause();
       audio.currentTime = 0;
       audio.volume = 1.0;
       audio.play().catch(err => console.warn("Grace sound failed:", err));
-    } catch (e) { console.warn("Audio issue:", e); }
+    } catch (e) {
+      console.warn("Audio issue:", e);
+    }
 
     const interval = setInterval(() => {
       if (counter < actual) {
@@ -112,19 +127,20 @@ document.addEventListener("DOMContentLoaded", () => {
         display.textContent = counter;
       } else {
         clearInterval(interval);
-        localStorage.setItem("lastDaysCount", counter.toString());
         flash.style.display = "flex";
         requestAnimationFrame(() => {
           flash.style.opacity = 1;
           setTimeout(() => {
             flash.style.opacity = 0;
-            setTimeout(() => flash.style.display = "none", 600);
+            setTimeout(() => {
+              flash.style.display = "none";
+            }, 600);
           }, 3000);
         });
       }
     }, 20);
-  });
-});
+  }); // ← THIS was missing!
+
 </script>
 {% endblock %}
 
@@ -196,6 +212,20 @@ document.addEventListener("DOMContentLoaded", () => {
   color: #f6e7c1;
   line-height: 1.6;
 }
+
+/* Journal/Chat Textbox Fix */
+input[type="text"],
+textarea,
+.chat-input {
+  background-color: #f9f9f9 !important;
+  color: #222;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  border: none;
+  width: 100%;
+}
 </style>
 {% endblock %}
+
+
 
