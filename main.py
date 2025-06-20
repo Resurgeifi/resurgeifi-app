@@ -1740,6 +1740,8 @@ from models import db, User
 
 from flask import redirect, url_for  # Make sure this is imported at the top
 
+from flask_login import login_user  # make sure this is imported at top
+
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
@@ -1766,6 +1768,9 @@ def submit_onboarding():
         generate_and_store_bio(user_id, user.theme_choice, user.default_coping, user.hero_traits)
 
         db.session.commit()
+
+        # 🧠 Re-login user (this ensures current_user is refreshed)
+        login_user(user)
 
         # ✅ Set walkthrough flag for menu intro
         session["first_time_user"] = True

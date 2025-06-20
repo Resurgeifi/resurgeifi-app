@@ -8,7 +8,8 @@
      class="circle-title-img" />
 
 <!-- 🧭 Walkthrough Overlay (if user hasn't completed first quest) -->
-{% if not current_user.first_quest_complete %}
+{% if current_user and current_user.first_quest_complete is not defined or not current_user.first_quest_complete %}
+
 <div id="walkthrough" class="walkthrough-overlay">
   <div class="walkthrough-box">
     <h2>Welcome to your State of Inner</h2>
