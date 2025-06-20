@@ -2,6 +2,38 @@
 {% block title %}Today's Quest | Resurgifi{% endblock %}
 
 {% block content %}
+<style>
+.grace-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.88);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.grace-text-box {
+  background: #f6e7c1;
+  color: #1f3e36;
+  padding: 2rem;
+  border-radius: 20px;
+  font-size: 1.2rem;
+  text-align: center;
+  max-width: 600px;
+  box-shadow: 0 0 30px rgba(255,255,255,0.2);
+}
+</style>
+
+{% if not g.user.first_quest_complete %}
+<div id="graceIntroOverlay" class="grace-overlay">
+  <div class="grace-text-box">
+    <p id="graceLine"></p>
+    <button id="graceNextBtn" class="global-button">Next</button>
+  </div>
+</div>
+{% endif %}
+
 <!-- 🌌 Cinematic Flash Background -->
 <div id="questFlash" style="
   position: fixed;
@@ -110,6 +142,40 @@
 
 {% block scripts %}
 <script>
+(function () {
+  const overlay = document.getElementById("graceIntroOverlay");
+  if (!overlay) return;
+
+  const lines = [
+    "Hi — I’m Grace.",
+    "This first quest matters more than you think.",
+    "It’s not about writing something perfect. It’s about being honest.",
+    "Take a breath. I’ll stay close while you write.",
+    "Ready?"
+  ];
+
+  let index = 0;
+  const lineEl = document.getElementById("graceLine");
+  const nextBtn = document.getElementById("graceNextBtn");
+
+  function showNextLine() {
+    index++;
+    if (index < lines.length) {
+      lineEl.textContent = lines[index];
+    } else {
+      overlay.style.opacity = 1;
+      overlay.style.transition = "opacity 0.8s ease";
+      overlay.style.opacity = 0;
+      setTimeout(() => overlay.remove(), 800);
+    }
+  }
+
+  lineEl.textContent = lines[0];
+  nextBtn.addEventListener("click", showNextLine);
+})();
+
+// existing script continues here...
+
 let currentAudio = null;
 let whisperShown = false;
 
@@ -156,7 +222,7 @@ function endFlash() {
 }
 
 function triggerFlash(imageUrl, text, audioPath) {
-  if (document.getElementById("whisperFlash")) return; // Only once per quest
+  if (document.getElementById("whisperFlash")) return;
 
   const flash = document.createElement("div");
   flash.id = "whisperFlash";
@@ -179,11 +245,7 @@ function triggerFlash(imageUrl, text, audioPath) {
     <p style="max-width: 600px;">${text}</p>
   `;
   document.body.appendChild(flash);
-
-  // Trigger fade-in
-  setTimeout(() => {
-    flash.style.opacity = 1;
-  }, 50);
+  setTimeout(() => flash.style.opacity = 1, 50);
 
   stopCurrentAudio();
   const audio = new Audio(audioPath);
@@ -192,11 +254,7 @@ function triggerFlash(imageUrl, text, audioPath) {
 
   setTimeout(() => {
     flash.style.opacity = 0;
-    setTimeout(() => {
-      flash.remove();
-      const textarea = document.getElementById("reflectionBox");
-      if (textarea) textarea.focus();
-    }, 1000);
+    setTimeout(() => flash.remove(), 1000);
   }, 4000);
 }
 

@@ -58,6 +58,7 @@ class User(db.Model):
     core_trigger = db.Column(db.String(100), nullable=True)
     default_coping = db.Column(db.String(100), nullable=True)
     hero_traits = db.Column(db.JSON, nullable=True)
+    first_quest_complete = Column(Boolean, default=False)
 
     # Tracking fields
     journey_start_date = db.Column(db.DateTime, nullable=True)

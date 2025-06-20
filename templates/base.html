@@ -166,6 +166,14 @@
 </head>
 
 <body>
+  <!-- 🌌 Overlay Screen (Hidden by Default) -->
+<div id="overlay-screen" class="overlay-screen" style="display: none;">
+  <div class="overlay-content">
+    <p class="overlay-text">🌟 Welcome to your State of Inner. Let’s take one breath, then take one step.</p>
+    <button onclick="hideOverlay()" class="overlay-close">Got it</button>
+  </div>
+</div>
+
 {% if g.user and request.path not in ['/', '/landing'] %}
   <div id="top-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background-color: rgba(0,0,0,0.4); position: fixed; width: 100%; top: 0; z-index: 1000; backdrop-filter: blur(4px);">
     
@@ -345,6 +353,17 @@ function flashPoints() {
     }
   }
 }
+  function showOverlay(message = "🌟 Welcome to your State of Inner.") {
+    const overlay = document.getElementById("overlay-screen");
+    overlay.querySelector(".overlay-text").textContent = message;
+    overlay.style.display = "flex";
+  }
+
+  function hideOverlay() {
+    const overlay = document.getElementById("overlay-screen");
+    overlay.style.display = "none";
+  }
+
 </script>
 
 {% if get_flashed_messages(with_categories=true)|selectattr(0, 'equalto', 'points')|list %}

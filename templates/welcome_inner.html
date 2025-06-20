@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Welcome to Your Inner World{% endblock %}
+
+{% block content %}
+<div id="graceOverlay" class="grace-overlay">
+  <div id="graceTextBox" class="grace-text-box">
+    <p id="graceLine" class="grace-line"></p>
+  </div>
+</div>
+
+<div id="continueBtnContainer" style="display: none; text-align: center; margin-top: 2rem;">
+  <button id="continueBtn" class="global-button">Enter Your First Quest</button>
+</div>
+
+<style>
+.grace-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 2rem;
+}
+
+.grace-text-box {
+  background: #fff;
+  color: #333;
+  padding: 2rem;
+  border-radius: 20px;
+  font-size: 1.25rem;
+  text-align: center;
+  max-width: 600px;
+  box-shadow: 0 0 20px rgba(255,255,255,0.3);
+  animation: fadeIn 1.5s ease;
+}
+
+.grace-line {
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const lines = [
+    "Welcome to your State of Inner.",
+    "This isn’t just an app. It’s a place to be real.",
+    "Quests help you unlock hidden parts of yourself.",
+    "Be honest with what you write. I’ll guide you.",
+    "Let’s begin together — one truth at a time."
+  ];
+
+  let lineIndex = 0;
+  const lineEl = document.getElementById("graceLine");
+  const btnContainer = document.getElementById("continueBtnContainer");
+
+  function showNextLine() {
+    lineEl.style.opacity = 0;
+    setTimeout(() => {
+      lineEl.textContent = lines[lineIndex];
+      lineEl.style.opacity = 1;
+      lineIndex++;
+
+      if (lineIndex < lines.length) {
+        setTimeout(showNextLine, 4000);  // Next line every 4s
+      } else {
+        setTimeout(() => {
+          btnContainer.style.display = "block";
+        }, 4000);
+      }
+    }, 500);
+  }
+
+  showNextLine();
+
+  document.getElementById("continueBtn").addEventListener("click", () => {
+    window.location.href = "/quest";  // or your actual quest start route
+  });
+});
+</script>
+{% endblock %}
+
+

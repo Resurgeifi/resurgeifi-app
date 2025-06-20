@@ -6,6 +6,19 @@
 <img src="{{ url_for('static', filename='titles/stateofinner.png') }}" 
      alt="State of Inner Title" 
      class="circle-title-img" />
+
+<!-- 🧭 Walkthrough Overlay (if user hasn't completed first quest) -->
+{% if not current_user.first_quest_complete %}
+<div id="walkthrough" class="walkthrough-overlay">
+  <div class="walkthrough-box">
+    <h2>Welcome to your State of Inner</h2>
+    <p>This is where your progress lives. Here you’ll track your quests, emotions, and interactions with the Circle.</p>
+    <p>When you're ready, click “Begin Next Quest” below — it’s how your journey deepens.</p>
+    <button id="walkthrough-close" class="global-button">Got it. Let’s go ➤</button>
+  </div>
+</div>
+{% endif %}
+
 <!-- 🌄 Centered Quest Button -->
 <div style="display: flex; justify-content: center; align-items: center; min-height: 30vh; margin-top: 2rem;">
   <a href="{{ url_for('quest_entrypoint') }}" 
@@ -25,24 +38,15 @@
   </p>
 
   <!-- Dark Card -->
-<div class="card-dark">
-  <p><strong>🌀 Recovery Ring:</strong> {{ current_ring }}</p>
-
-  <p><strong>📈 Days on Journey:</strong> 
-    <span id="days-display">{{ days_on_journey }}</span> 
-    day{{ 's' if days_on_journey != 1 else '' }}
-  </p>
-
-  <p><strong>🔥 Streak:</strong> {{ streak }} day{{ 's' if streak != 1 else '' }}</p>
-
-  <p><strong>📝 Journal Entries:</strong> {{ journal_count }}</p>
-
-  <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or 'None yet' }}</p>
-
-  <p><strong>💬 Last Hero Message:</strong></p>
-  <p style="font-style: italic;">“{{ last_hero_msg or 'No messages yet from the heroes' }}”</p>
-</div>
-
+  <div class="card-dark">
+    <p><strong>🌀 Recovery Ring:</strong> {{ current_ring }}</p>
+    <p><strong>📈 Days on Journey:</strong> <span id="days-display">{{ days_on_journey }}</span> day{{ 's' if days_on_journey != 1 else '' }}</p>
+    <p><strong>🔥 Streak:</strong> {{ streak }} day{{ 's' if streak != 1 else '' }}</p>
+    <p><strong>📝 Journal Entries:</strong> {{ journal_count }}</p>
+    <p><strong>📅 Last Journal Entry:</strong> {{ last_journal or 'None yet' }}</p>
+    <p><strong>💬 Last Hero Message:</strong></p>
+    <p style="font-style: italic;">“{{ last_hero_msg or 'No messages yet from the heroes' }}”</p>
+  </div>
 
   <!-- ⏳ Count Button -->
   <button id="calculate-days-btn" class="global-button" style="margin-top: 1.5rem;">
@@ -72,13 +76,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const button = document.getElementById("calculate-days-btn");
   const flash = document.getElementById("graceFlash");
   const audio = document.getElementById("graceSound");
+  const walkthrough = document.getElementById("walkthrough");
+  const closeBtn = document.getElementById("walkthrough-close");
 
-  // Hide Grace fully on initial render
+  if (walkthrough && closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      walkthrough.style.opacity = 0;
+      setTimeout(() => walkthrough.style.display = "none", 500);
+    });
+  }
+
   function resetFlash() {
     flash.style.display = "none";
     flash.style.opacity = 0;
   }
-
   resetFlash();
 
   const actual = {{ days_on_journey or 0 }};
@@ -88,18 +99,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   button.addEventListener("click", () => {
     let counter = parseInt(stored) || 0;
-
-    // 🔇 Audio setup
     try {
       audio.pause();
       audio.currentTime = 0;
       audio.volume = 1.0;
-      audio.play().catch(err => {
-        console.warn("Grace sound failed to play:", err);
-      });
-    } catch (e) {
-      console.warn("Audio playback issue:", e);
-    }
+      audio.play().catch(err => console.warn("Grace sound failed:", err));
+    } catch (e) { console.warn("Audio issue:", e); }
 
     const interval = setInterval(() => {
       if (counter < actual) {
@@ -108,17 +113,12 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         clearInterval(interval);
         localStorage.setItem("lastDaysCount", counter.toString());
-
-        // 🌟 Show Grace
         flash.style.display = "flex";
         requestAnimationFrame(() => {
           flash.style.opacity = 1;
-
           setTimeout(() => {
             flash.style.opacity = 0;
-            setTimeout(() => {
-              flash.style.display = "none";
-            }, 600);
+            setTimeout(() => flash.style.display = "none", 600);
           }, 3000);
         });
       }
@@ -133,6 +133,33 @@ document.addEventListener("DOMContentLoaded", () => {
 .card-dark {
   font-size: 1.25rem;
   line-height: 1.7;
+}
+
+.walkthrough-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  transition: opacity 0.3s ease;
+}
+.walkthrough-box {
+  background: #1f1f1f;
+  border-radius: 12px;
+  padding: 2rem 3rem;
+  color: #fff;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+.walkthrough-box h2 {
+  margin-bottom: 1rem;
 }
 
 .hero-flash {
@@ -151,13 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
   transition: opacity 0.4s ease;
   opacity: 0;
 }
-
 .hero-flash img {
   width: 90vw;
   max-width: 460px;
   animation: pulseGlow 2.5s ease-out;
 }
-
 .speech-box {
   margin-top: 1.5rem;
   background: #000;
@@ -166,18 +191,11 @@ document.addEventListener("DOMContentLoaded", () => {
   text-align: center;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
-
 .hero-quote {
   font-size: 1.4rem;
   color: #f6e7c1;
   line-height: 1.6;
 }
-#graceFlash {
-  display: flex !important;
-  opacity: 1 !important;
-  z-index: 9999 !important;
-  background: rgba(255, 0, 0, 0.7); /* Temporary red tint to prove layer */
-}
-
 </style>
 {% endblock %}
+

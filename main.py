@@ -616,7 +616,7 @@ def show_hero_chat(resurgitag):
         if tag in villain_map:
             contact_name = villain_map[tag]
             messages = [{"speaker": contact_name, "text": f"{contact_name} waits in the shadows…"}]
-            return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=False)
+            return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=False, show_grace_intro=False)
 
         flash("Hero not found.")
         return redirect(url_for("circle"))
@@ -638,6 +638,7 @@ def show_hero_chat(resurgitag):
     # 🎯 Handle quest reflection
     quest_reflection = session.pop("from_quest", None)
     quest_flash = False
+    show_grace_intro = False
 
     if quest_reflection:
         reflection_text = quest_reflection.get("reflection", "").strip()
@@ -677,11 +678,25 @@ def show_hero_chat(resurgitag):
             ])
             db.commit()
 
+            # 🎥 Grace Walkthrough Trigger
+            if not user.first_quest_complete:
+                user.first_quest_complete = True
+                show_grace_intro = True
+                session["grace_walkthrough"] = True  # used to pace overlay logic
+                db.commit()
+
         except Exception as e:
             print(f"⚠️ AI quest reflection failed: {e}")
             messages.append({"speaker": "System", "text": "The hero couldn’t respond right now. Try again later."})
 
-    return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=quest_flash)
+    return render_template(
+        "chat.html",
+        resurgitag=tag,
+        messages=messages,
+        display_name=contact_name,
+        quest_flash=quest_flash,
+        show_grace_intro=show_grace_intro
+    )
 @app.route("/thank-you")
 def thank_you():
     name = request.args.get("name", "Friend")
@@ -839,6 +854,9 @@ def menu():
             .first()
         )
 
+        # 🎯 Trigger walkthrough overlay if this is first visit after onboarding
+        show_walkthrough = session.pop("first_time_user", False)
+
         return render_template(
             "menu.html",
             current_ring=user.theme_choice or "Unranked",
@@ -846,7 +864,8 @@ def menu():
             journal_count=journal_count,
             last_journal=last_journal,
             last_hero_msg_text=last_hero_msg.question if last_hero_msg else None,
-            streak=session.get('streak', 0)
+            streak=session.get('streak', 0),
+            show_walkthrough=show_walkthrough  # 🧠 PASS TO TEMPLATE
         )
 
     except SQLAlchemyError:
@@ -855,7 +874,6 @@ def menu():
         return redirect(url_for("login"))
     finally:
         db.close()
-
 
 @app.route('/form')
 @login_required
@@ -1720,6 +1738,8 @@ def reset_test_user():
 from useronboarding import generate_and_store_bio
 from models import db, User
 
+from flask import redirect, url_for  # Make sure this is imported at the top
+
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
 def submit_onboarding():
@@ -1747,8 +1767,11 @@ def submit_onboarding():
 
         db.session.commit()
 
+        # ✅ Set walkthrough flag for menu intro
+        session["first_time_user"] = True
+
         print("✅ USER ONBOARDING COMMITTED:", user.nickname)
-        return jsonify({"message": "Onboarding complete"}), 200
+        return jsonify({"redirect": url_for("menu")}), 200
 
     except Exception as e:
         print("🔥 ERROR IN ONBOARDING:", e)
@@ -1758,6 +1781,10 @@ def submit_onboarding():
 @login_required
 def onboarding():
     return render_template("onboarding.html")
+@app.route("/welcome-inner")
+@login_required
+def welcome_inner():
+    return render_template("welcome_inner.html")
 
 @app.route("/quest", methods=["GET"])
 @login_required
@@ -1873,6 +1900,10 @@ def run_quest(quest_id):
             # 🏅 Award points
             user.points = (user.points or 0) + 5
             session["points_just_added"] = 5
+
+            # ✅ Mark first quest complete if not already done
+            if not user.first_quest_complete:
+                user.first_quest_complete = True
 
             # 🧠 Store for chat
             hero_tag = quest["hero"]

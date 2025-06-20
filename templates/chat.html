@@ -22,7 +22,7 @@
 
 <form id="chatForm" class="circle-form">
   <textarea id="userMessage" rows="3" placeholder="Type something real..." required></textarea>
-  <button type="submit" class="global-button">Send</button>
+  <button type="submit" class="send-button">Send</button>
 </form>
 
 <div style="text-align: center; margin-bottom: 5rem;">
@@ -30,6 +30,7 @@
 </div>
 
 <style>
+/* Flash Message */
 .quest-flash-message {
   position: fixed;
   top: 1rem;
@@ -44,6 +45,48 @@
   z-index: 10000;
   opacity: 1;
   transition: opacity 1s ease;
+}
+
+/* Chat Form Styling */
+.circle-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 2rem auto 2rem;
+  width: 100%;
+  max-width: 720px;
+}
+
+#userMessage {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  background-color: #111;
+  color: #f0f0f0;
+  border: 1px solid #333;
+  border-radius: 12px;
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.05);
+  resize: vertical;
+}
+
+.send-button {
+  width: 100%;
+  max-width: 220px;
+  font-size: 1.15rem;
+  padding: 0.8rem 1.4rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(to right, #5f6caf, #a162e8);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.send-button:hover {
+  transform: scale(1.05);
 }
 </style>
 {% endblock %}
@@ -97,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
       chatBox.scrollTop = chatBox.scrollHeight;
 
       await new Promise(resolve => setTimeout(resolve, 2500));
-
       typingDiv.remove();
 
       const replyDiv = document.createElement("div");
@@ -122,4 +164,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 {% endblock %}
-
