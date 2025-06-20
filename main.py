@@ -76,6 +76,7 @@ import qrcode
 import io
 import base64
 from sqlalchemy import and_
+from flask_login import login_required
 
 
 # ✅ Load environment variables
