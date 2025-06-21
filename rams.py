@@ -287,7 +287,7 @@ def build_prompt(hero, user_input, context):
         return name.strip().lower().replace(" ", "").replace("_", "")
 
     nickname = context.get("nickname", "Friend")
-    tone_summary = context.get("tone_summary", "vulnerable")
+    tone_summary = infer_emotional_tone(user_input)
     journals = context.get("journals", [])
     quest_history = context.get("quest_history", [])
     formatted_thread = context.get("formatted_thread", "")
@@ -442,6 +442,35 @@ You remember when you once stood against {last_villain}…
 
     print("✅ build_prompt generated successfully.")
     return base_prompt.strip()
+# utils/tone_helpers.py
+
+STANDARD_TONES = [
+    "calm", "anxious", "overwhelmed", "grieving", "hopeless",
+    "angry", "numb", "shame", "inspired"
+]
+
+def infer_emotional_tone(text):
+    """Rudimentary keyword-based classifier. Replace with OpenAI later."""
+    text = text.lower()
+
+    if any(w in text for w in ["overwhelmed", "too much", "can't handle", "panic"]):
+        return "overwhelmed"
+    if any(w in text for w in ["scared", "worried", "nervous", "anxious"]):
+        return "anxious"
+    if any(w in text for w in ["sad", "grief", "loss", "miss", "cry"]):
+        return "grieving"
+    if any(w in text for w in ["hopeless", "give up", "nothing matters"]):
+        return "hopeless"
+    if any(w in text for w in ["angry", "pissed", "rage", "fury"]):
+        return "angry"
+    if any(w in text for w in ["numb", "empty", "blank", "flat"]):
+        return "numb"
+    if any(w in text for w in ["shame", "embarrassed", "worthless"]):
+        return "shame"
+    if any(w in text for w in ["grateful", "hopeful", "clear", "inspired"]):
+        return "inspired"
+
+    return "calm"
 
 def get_hero_for_quest(quest_id):
     return INNER_CODEX.get("quest_hero_map", {}).get(quest_id, "Grace")
