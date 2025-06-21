@@ -254,14 +254,11 @@ The user’s emotional profile includes:
 - In someone they trust, they look for: {traits}.
 """.strip()
 
-    # 🧾 Fallback journal summary (if no thread)
-    if not openai_thread and user:
-        journal_summary = pull_recent_journal_summary(user.id)
-        if journal_summary:
-            openai_thread = [{"role": "user", "content": journal_summary}]
-            formatted_thread = f'{nickname}: "{journal_summary}"\n'
+    # 🧾 Pull journal summary for tone context (do not inject into conversation!)
+        if user:
+         journal_summary = pull_recent_journal_summary(user.id)
 
-    db.close()
+         db.close()
 
     # 🧬 Emotional profile block for prompt
     emotional_profile = f"""
