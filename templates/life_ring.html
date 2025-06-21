@@ -6,17 +6,20 @@
   <h1>🛟 Life Ring: Real-World Support</h1>
 
   <p class="mantra" style="margin-bottom: 2rem;">
-    When virtual help isn't enough, we guide you toward a real-world hand. One question at a time.
+    You don’t have to do this alone. Tap the ring. We’ll guide you.
   </p>
 
-  <button onclick="startRescueFlow()" class="global-button" style="background-color: #e11d48;">
-    Begin Rescue Check-In
+  <button onclick="startRescueFlow()" class="global-button pulse-button" style="background-color: #e8602c;">
+    🚨 I Need Help Now
   </button>
 
   <!-- 🔄 Rescue Modal Container -->
   <div id="rescueModal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
       <p id="questionText" class="life-question">Loading...</p>
+      <p style="font-size: 0.95rem; font-style: italic; color: #444;">
+        Velessa whispers: “Even one breath is a beginning.”
+      </p>
       <div id="responseButtons"></div>
     </div>
   </div>
@@ -34,6 +37,11 @@
       <a id="matchVisit" class="global-button" target="_blank">🌐 Visit Website</a>
     </div>
   </div>
+
+  <!-- Optional: Voiceover -->
+  <audio id="lifeRingNarration" preload="auto">
+    <source src="/static/audio/velessa_breathe.mp3" type="audio/mpeg">
+  </audio>
 </div>
 {% endblock %}
 
@@ -53,6 +61,7 @@ function startRescueFlow() {
   currentStep = 0;
   userAnswers = {};
   document.getElementById("rescueModal").style.display = "flex";
+  document.getElementById("lifeRingNarration").play();
   showQuestion();
 }
 
@@ -113,7 +122,12 @@ function showRescueMatch() {
   }
 
   document.getElementById("rescueModal").style.display = "none";
-  document.getElementById("rescueResult").style.display = "block";
+
+  const resultBox = document.getElementById("rescueResult");
+  resultBox.classList.remove("show");
+  setTimeout(() => {
+    resultBox.classList.add("show");
+  }, 100);
 
   document.getElementById("matchName").textContent = match.name;
   document.getElementById("matchType").textContent = match.type;
@@ -183,6 +197,14 @@ function showRescueMatch() {
   padding: 2rem;
   border-radius: 14px;
   box-shadow: 0 0 12px rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.facility-box.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .facility-logo {
@@ -195,12 +217,16 @@ function showRescueMatch() {
 .facility-text {
   color: #1f1f1f !important;
 }
+
+.pulse-button {
+  animation: pulse 2s infinite;
+  border-radius: 12px;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(232, 96, 44, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(232, 96, 44, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(232, 96, 44, 0); }
+}
 </style>
 {% endblock %}
-
-
-
-
-
-
-
