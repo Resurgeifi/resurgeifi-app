@@ -142,8 +142,8 @@ padding: 2rem;
 
 {% block scripts %}
 <script>
-const userFirstName = "{{ g.user.first_name or 'friend' }}";
-const coreTrigger = "{{ g.user.core_trigger.lower() if g.user.core_trigger else '' }}";
+const userFirstName = "{{ user.first_name or 'friend' }}";
+const coreTrigger = "{{ user.core_trigger.lower() if user.core_trigger else '' }}";
 const lines = [
   `Hey ${userFirstName} — I’m Grace.`,
   coreTrigger
