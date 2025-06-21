@@ -14,9 +14,9 @@
   z-index: 10000;
 }
 .grace-text-box {
-  background: #f6e7c1;
-  color: #1f3e36;
-  padding: 2rem;
+  background: #fff9e6;
+  color: #0d1f1a;
+padding: 2rem;
   border-radius: 20px;
   font-size: 1.2rem;
   text-align: center;
@@ -160,9 +160,10 @@ window.addEventListener("DOMContentLoaded", () => {
   const nextBtn = document.getElementById("graceNextBtn");
   const overlay = document.getElementById("graceIntroOverlay");
 
-  if (lineEl && nextBtn) {
-    lineEl.style.color = "#f6e7c1";
-    lineEl.textContent = lines[0];
+    if (lineEl && nextBtn) {
+  lineEl.style.color = "#ffffff";
+  lineEl.style.textShadow = "1px 1px 3px rgba(0,0,0,0.75)";
+  lineEl.textContent = lines[0];
 
     nextBtn.addEventListener("click", () => {
       index++;

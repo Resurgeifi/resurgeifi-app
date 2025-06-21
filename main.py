@@ -1860,7 +1860,7 @@ def run_quest(quest_id):
                     raw_output = completion.choices[0].message.content.strip()
                     suggestions = [line.strip("-•123. ").strip() for line in raw_output.split("\n") if line.strip()]
                     return render_template("quest_engine.html", quest=quest, quest_id=quest_id,
-                                           suggestions=suggestions, short_reflection=reflection)
+                                           suggestions=suggestions, short_reflection=reflection, user=user)
 
                 except Exception as e:
                     print("⚠️ GPT suggestion error:", e)
@@ -1927,7 +1927,7 @@ def run_quest(quest_id):
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
 
         # 📖 Initial quest load
-        return render_template("quest_engine.html", quest=quest, quest_id=quest_id)
+        return render_template("quest_engine.html", quest=quest, quest_id=quest_id, user=user)
 
     except Exception as e:
         db_session.rollback()
