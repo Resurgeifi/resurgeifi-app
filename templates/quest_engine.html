@@ -147,16 +147,23 @@
   if (!overlay) return;
 
   const lines = [
-    "Hi — I’m Grace.",
-    "This first quest matters more than you think.",
-    "It’s not about writing something perfect. It’s about being honest.",
-    "Take a breath. I’ll stay close while you write.",
-    "Ready?"
+    "Hey{% if g.user.first_name %} {{ g.user.first_name }}{% endif %} — I’m Grace.",
+    {% if g.user.core_trigger %}
+      "Facing {{ g.user.core_trigger.lower() }} takes real courage.",
+    {% else %}
+      "This first quest matters more than you think.",
+    {% endif %}
+    "You don’t have to impress anyone here. Just tell the truth.",
+    "Take your time. I’ll be right here.",
+    "Ready to begin?"
   ];
 
   let index = 0;
   const lineEl = document.getElementById("graceLine");
   const nextBtn = document.getElementById("graceNextBtn");
+
+  lineEl.style.color = "#f6e7c1";
+  lineEl.textContent = lines[0];
 
   function showNextLine() {
     index++;
@@ -170,7 +177,6 @@
     }
   }
 
-  lineEl.textContent = lines[0];
   nextBtn.addEventListener("click", showNextLine);
 })();
 
@@ -312,4 +318,5 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+
 {% endblock %}
