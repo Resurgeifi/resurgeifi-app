@@ -142,44 +142,86 @@
 
 {% block scripts %}
 <script>
-(function () {
-  const overlay = document.getElementById("graceIntroOverlay");
-  if (!overlay) return;
+const userFirstName = "{{ g.user.first_name or 'friend' }}";
+const coreTrigger = "{{ g.user.core_trigger.lower() if g.user.core_trigger else '' }}";
+const lines = [
+  `Hey ${userFirstName} — I’m Grace.`,
+  coreTrigger
+    ? `Facing ${coreTrigger} takes real courage.`
+    : "This first quest matters more than you think.",
+  "You don’t have to impress anyone here. Just tell the truth.",
+  "Take your time. I’ll be right here.",
+  "Ready to begin?"
+];
 
-  const firstName = "{{ g.user.first_name | default('', true) }}";
-  const coreTrigger = "{{ g.user.core_trigger | default('', true) }}";
-
-  const lines = [
-    `Hey${firstName ? " " + firstName : ""} — I’m Grace.`,
-    coreTrigger
-      ? `Facing ${coreTrigger.toLowerCase()} takes real courage.`
-      : "This first quest matters more than you think.",
-    "You do not have to impress anyone here. Just tell the truth.",
-    "Take your time. I’ll be right here.",
-    "Ready to begin?"
-  ];
-
+window.addEventListener("DOMContentLoaded", () => {
   let index = 0;
   const lineEl = document.getElementById("graceLine");
   const nextBtn = document.getElementById("graceNextBtn");
+  const overlay = document.getElementById("graceIntroOverlay");
 
-  lineEl.style.color = "#f6e7c1";
-  lineEl.textContent = lines[0];
+  if (lineEl && nextBtn) {
+    lineEl.style.color = "#f6e7c1";
+    lineEl.textContent = lines[0];
 
-  function showNextLine() {
-    index++;
-    if (index < lines.length) {
-      lineEl.textContent = lines[index];
-    } else {
-      overlay.style.opacity = 1;
-      overlay.style.transition = "opacity 0.8s ease";
-      overlay.style.opacity = 0;
-      setTimeout(() => overlay.remove(), 800);
-    }
+    nextBtn.addEventListener("click", () => {
+      index++;
+      if (index < lines.length) {
+        lineEl.textContent = lines[index];
+      } else {
+        overlay.style.transition = "opacity 0.8s ease";
+        overlay.style.opacity = 0;
+        setTimeout(() => overlay.remove(), 800);
+      }
+    });
   }
 
-  nextBtn.addEventListener("click", showNextLine);
-})();
+  const introText = document.querySelector(".quest-quote")?.innerText;
+  if (introText) playQuestVoice(introText);
+
+  const textarea = document.getElementById("reflectionBox");
+  if (!textarea) return;
+
+  textarea.addEventListener("input", () => {
+    if (whisperShown) return;
+
+    const val = textarea.value.toLowerCase();
+    const dotCount = (val.match(/\./g) || []).length;
+
+    if (val.includes("love")) {
+      triggerFlash(
+        "/static/images/heroes/Grace_Transparent.png",
+        "Grace heard that. Keep going.",
+        "/static/audio/chime.mp3"
+      );
+    } else if (dotCount >= 2) {
+      triggerFlash(
+        Math.random() < 0.5
+          ? "/static/images/heroes/Cognita_Transparent.png"
+          : "/static/images/heroes/Lucentis_Transparent.png",
+        "You're really digging... keep it going.",
+        "/static/audio/cognita_flash.mp3"
+      );
+    } else if (val.includes("crave")) {
+      triggerFlash(
+        "/static/images/villains/thecrave/thecrave_transparent.png",
+        "The Crave stirs... but you are stronger.",
+        "/static/audio/wardenfall_flash.mp3"
+      );
+    } else if (val.length > 25) {
+      triggerFlash(
+        "/static/images/heroes/Velessa_Transparent.png",
+        "You're on to something… don’t stop now.",
+        "/static/audio/chime.mp3"
+      );
+    } else {
+      return;
+    }
+
+    whisperShown = true;
+  });
+});
+
 let currentAudio = null;
 let whisperShown = false;
 
@@ -199,6 +241,7 @@ async function playQuestVoice(text) {
       body: JSON.stringify({ text: text, hero: "{{ quest.hero|lower }}" })
     });
     if (!response.ok) return;
+
     const audioBlob = await response.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
     stopCurrentAudio();
@@ -213,11 +256,12 @@ async function playQuestVoice(text) {
 function endFlash() {
   const flashAudio = document.getElementById("flashAudio");
   if (flashAudio) flashAudio.play();
+
   stopCurrentAudio();
   const flash = document.getElementById("questFlash");
-  flash.style.opacity = 1;
   flash.style.transition = "opacity 1s ease";
   flash.style.opacity = 0;
+
   setTimeout(() => {
     flash.remove();
     const promptText = document.querySelector(".quest-prompt")?.innerText;
@@ -264,57 +308,13 @@ function triggerFlash(imageUrl, text, audioPath) {
 
 function useSuggestion(text) {
   const textarea = document.querySelector("textarea[name='reflection']");
-  textarea.value = text;
-  document.querySelector(".suggestion-box").remove();
+  if (textarea) textarea.value = text;
+  document.querySelector(".suggestion-box")?.remove();
 }
+
 function keepTyping() {
-  document.querySelector(".suggestion-box").remove();
+  document.querySelector(".suggestion-box")?.remove();
 }
-
-window.addEventListener("DOMContentLoaded", () => {
-  const introText = document.querySelector(".quest-quote")?.innerText;
-  if (introText) playQuestVoice(introText);
-
-  const textarea = document.getElementById("reflectionBox");
-  textarea.addEventListener("input", () => {
-    if (whisperShown) return;
-
-    const val = textarea.value.toLowerCase();
-    const dotCount = (val.match(/\./g) || []).length;
-
-    if (val.includes("love")) {
-      triggerFlash(
-        "/static/images/heroes/Grace_Transparent.png",
-        "Grace heard that. Keep going.",
-        "/static/audio/chime.mp3"
-      );
-    } else if (dotCount >= 2) {
-      triggerFlash(
-        Math.random() < 0.5
-          ? "/static/images/heroes/Cognita_Transparent.png"
-          : "/static/images/heroes/Lucentis_Transparent.png",
-        "You're really digging... keep it going.",
-        "/static/audio/cognita_flash.mp3"
-      );
-    } else if (val.includes("crave")) {
-      triggerFlash(
-        "/static/images/villains/thecrave/thecrave_transparent.png",
-        "The Crave stirs... but you are stronger.",
-        "/static/audio/wardenfall_flash.mp3"
-      );
-    } else if (val.length > 25) {
-      triggerFlash(
-        "/static/images/heroes/Velessa_Transparent.png",
-        "You're on to something… don’t stop now.",
-        "/static/audio/chime.mp3"
-      );
-    } else {
-      return;
-    }
-
-    whisperShown = true;
-  });
-});
 </script>
-
 {% endblock %}
+
