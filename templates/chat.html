@@ -35,8 +35,11 @@
 </form>
 
 <div style="text-align: center; margin-bottom: 5rem;">
-  <button class="global-button gray-button" id="reflectBtn">🪞 Summarize Journal</button>
+  <a href="{{ url_for('summarize_journal') }}" class="global-button gray-button">
+    🪞 Summarize Journal
+  </a>
 </div>
+
 
 <style>
 .quest-flash-message {
