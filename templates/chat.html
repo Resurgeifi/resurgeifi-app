@@ -199,23 +199,23 @@ document.addEventListener("DOMContentLoaded", () => {
   "I'll stay nearby if you need me."
 ];
 
-    let index = 0;
-    const lineEl = document.getElementById("graceChatLine");
-    const nextBtn = document.getElementById("graceChatNextBtn");
-    function showNextLine() {
-      index++;
-      if (index < lines.length) {
-        lineEl.textContent = lines[index];
-      } else {
-        overlay.style.opacity = 1;
-        overlay.style.transition = "opacity 0.8s ease";
-        overlay.style.opacity = 0;
-        setTimeout(() => overlay.remove(), 800);
-      }
-    }
+    const overlay = document.getElementById("graceChatOverlay");
+
+function showNextLine() {
+  index++;
+  if (index < lines.length) {
+    lineEl.textContent = lines[index];
+  } else {
+    overlay.style.opacity = 1;
+    overlay.style.transition = "opacity 0.8s ease";
+    overlay.style.opacity = 0;
+    setTimeout(() => overlay.remove(), 800);
+  }
+}
+
     lineEl.textContent = lines[0];
     nextBtn.addEventListener("click", showNextLine);
   }
-});
+);
 </script>
 {% endblock %}
