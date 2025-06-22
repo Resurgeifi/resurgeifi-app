@@ -49,7 +49,7 @@
 
   <a href="{{ url_for('register') }}" class="global-button">🌀 Begin Your Resurgence</a>
   <a href="{{ url_for('journal') }}" class="global-button">🖊 Start Journaling</a>
-  <a href="{{ url_for('circle_chat', hero_name='grace') }}" class="global-button">🎙 Talk to Grace</a>
+  <a href="{{ url_for('circle_chat', hero_name='grace', resurgitag=g.user.resurgitag if g.user else 'guest') }}" class="global-button">🎙 Talk to Grace</a>
   <a href="{{ url_for('intro') }}" class="skip-link">📽 Watch the Intro Again</a>
 </div>
 
