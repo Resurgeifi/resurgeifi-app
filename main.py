@@ -64,7 +64,6 @@ from models import (
     CircleMessage,
     DailyReflection,
     UserQuestEntry,
-    WishingWellMessage
 )
 from useronboarding import generate_and_store_bio  
 from flask_migrate import Migrate
@@ -172,7 +171,6 @@ def text_to_speech():
 # ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
 
-# ✅ Admin and user context loading
 @app.before_request
 def load_logged_in_user():
     user_id = session.get("user_id")
@@ -182,14 +180,10 @@ def load_logged_in_user():
         db_session = SessionLocal()
         try:
             g.user = db_session.query(User).filter_by(id=user_id).first()
-            if g.user:
-                # ✅ Check for Wishing Well messages
-                from models import WellMessage  # adjust path if needed
-                unread_count = db_session.query(WellMessage).filter_by(user_id=user_id, read=False).count()
-                g.user.has_well_messages = unread_count > 0
+           
         finally:
             db_session.close()
-# ✅ Login required decorator
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -208,77 +202,43 @@ def admin_required(f):
             return redirect(url_for("index"))
         return f(*args, **kwargs)
     return decorated_function
-@app.route("/admin/send-message", methods=["GET", "POST"])
-@admin_required
-def admin_send_message():
-    db = SessionLocal()
-    if request.method == "POST":
-        user_id = request.form.get("user_id")
-        tag = request.form.get("resurgitag")
-        content = request.form.get("content")
-        sender = request.form.get("sender") or "System"
-        msg_type = request.form.get("type") or "system"
 
-        # 🔎 Resolve user
-        user = None
-        if user_id:
-            user = db.query(User).filter_by(id=user_id).first()
-        elif tag:
-            user = db.query(User).filter_by(resurgitag=tag).first()
-
-        if not user:
-            flash("User not found.", "error")
-            return redirect(url_for("admin_send_message"))
-
-        # 💌 Create message
-        new_msg = WishingWellMessage(
-            user_id=user.id,
-            sender=sender,
-            message_type=msg_type,
-            content=content,
-            is_public=False,
-            is_read=False
-        )
-        db.add(new_msg)
-        db.commit()
-        flash("Message sent to user!", "success")
-        return redirect(url_for("admin_send_message"))
-
-    return render_template("admin_send_message.html")
 @app.route("/connect/<int:user_id>", methods=["GET", "POST"])
 @login_required
 def connect_user(user_id):
     db = SessionLocal()
     try:
-        current_user_id = session.get("user_id")
+        current_user = db.query(User).get(session["user_id"])
+        other_user = db.query(User).get(user_id)
 
-        # Prevent self-follow
-        if current_user_id == user_id:
+        if not other_user:
+            flash("User not found.", "danger")
+            return redirect(url_for("circle"))
+
+        if current_user.id == other_user.id:
             flash("You can't follow yourself.", "warning")
             return redirect(url_for("circle"))
 
-        # Check for existing connection
-        existing = db.query(UserConnection).filter_by(
-            follower_id=current_user_id, followed_id=user_id
-        ).first()
+        # Add mutual friendship if not already connected
+        added = False
+        if other_user not in current_user.friends:
+            current_user.friends.append(other_user)
+            added = True
+        if current_user not in other_user.friends:
+            other_user.friends.append(current_user)
+            added = True
 
-        if existing:
-            flash("You already follow this user.", "info")
-        else:
-            new_conn = UserConnection(
-                follower_id=current_user_id,
-                followed_id=user_id
-            )
-            db.add(new_conn)
+        if added:
             db.commit()
-            flash("🎉 Connection created successfully!", "success")
-
-        # Safe redirect
-        user = db.query(User).filter_by(id=user_id).first()
-        if user and user.resurgitag:
-            return redirect(url_for('view_public_profile', resurgitag=user.resurgitag))
+            flash(f"🎉 You’re now connected with @{other_user.resurgitag}.", "success")
         else:
-            return redirect(url_for('circle'))
+            flash("You're already connected with this user.", "info")
+
+        # Redirect to their public profile
+        if other_user.resurgitag:
+            return redirect(url_for("view_public_profile", resurgitag=other_user.resurgitag))
+        else:
+            return redirect(url_for("circle"))
 
     finally:
         db.close()
@@ -710,6 +670,66 @@ def show_hero_chat(resurgitag):
         quest_flash=quest_flash,
         show_grace_intro=show_grace_intro
     )
+@app.route("/direct/chat/<resurgitag>", methods=["GET"])
+@login_required
+def direct_chat_page(resurgitag):
+    db = SessionLocal()
+    user = db.query(User).get(session["user_id"])
+    contact = db.query(User).filter_by(resurgitag=resurgitag.lstrip("@")).first()
+
+    if not contact:
+        flash("User not found.")
+        return redirect(url_for("circle"))
+
+    # Block check (optional if you already wired it in)
+    if is_user_blocked(user.id, contact.id):
+        flash("You have blocked this user.")
+        return redirect(url_for("circle"))
+
+    # Pull last 7 days of messages
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    messages = db.query(DirectMessage).filter(
+        ((DirectMessage.sender_id == user.id) & (DirectMessage.recipient_id == contact.id)) |
+        ((DirectMessage.sender_id == contact.id) & (DirectMessage.recipient_id == user.id))
+    ).filter(DirectMessage.timestamp >= week_ago).order_by(DirectMessage.timestamp).all()
+
+    chat_log = []
+    for msg in messages:
+        speaker = "You" if msg.sender_id == user.id else contact.display_name or f"@{contact.resurgitag}"
+        chat_log.append({"speaker": speaker, "text": msg.content})
+
+    return render_template(
+        "chat.html",
+        resurgitag=contact.resurgitag,
+        messages=chat_log,
+        display_name=contact.display_name or f"@{contact.resurgitag}",
+        quest_flash=False,
+        show_grace_intro=False
+    )
+
+@app.route("/direct/chat/<resurgitag>", methods=["POST"])
+@login_required
+def send_direct_message(resurgitag):
+    db = SessionLocal()
+    user = db.query(User).get(session["user_id"])
+    contact = db.query(User).filter_by(resurgitag=resurgitag.lstrip("@")).first()
+
+    if not contact:
+        return jsonify({"error": "User not found"}), 404
+
+    # Block check
+    if is_user_blocked(user.id, contact.id):
+        return jsonify({"error": "You have blocked this user."}), 403
+
+    content = request.json.get("message", "").strip()
+    if not content:
+        return jsonify({"error": "Empty message"}), 400
+
+    dm = DirectMessage(sender_id=user.id, recipient_id=contact.id, content=content)
+    db.add(dm)
+    db.commit()
+
+    return jsonify({"response": "Message sent."})
 
 @app.route("/thank-you")
 def thank_you():
@@ -1480,142 +1500,6 @@ UPLOAD_FOLDER = '/tmp'
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-@app.route("/wishing_well", methods=["GET", "POST"])
-@login_required
-def wishing_well():
-    db = SessionLocal()
-    user_id = session["user_id"]
-
-    try:
-        if request.method == "POST":
-            message = request.form.get("wish_message", "").strip()
-            is_public = request.form.get("is_public") == "on"
-
-            if not message:
-                flash("Your wish cannot be empty.", "warning")
-                return redirect(url_for("wishing_well"))
-
-            new_wish = WishingWellMessage(
-                user_id=user_id,
-                sender="user",
-                message_type="wish",
-                content=message,
-                is_public=is_public
-            )
-            db.add(new_wish)
-            db.commit()
-            flash("🌠 Your wish has been cast into the Well.", "success")
-            return redirect(url_for("wishing_well"))
-
-        # ✅ Get last 5 unread *non-wish* messages
-        unread_scrolls = (
-            db.query(WishingWellMessage)
-            .filter(
-                WishingWellMessage.user_id == user_id,
-                WishingWellMessage.is_read == False,
-                WishingWellMessage.message_type != "wish"
-            )
-            .order_by(WishingWellMessage.timestamp.asc())
-            .limit(5)
-            .all()
-        )
-
-        # 🎁 Package scrolls for display
-        scroll_payload = [
-            {
-                "content": scroll.content,
-                "signed_by": scroll.sender or "The Well"
-            }
-            for scroll in unread_scrolls
-        ]
-
-        # 🌍 Optional: get recent public user wishes
-        recent_wishes = (
-            db.query(WishingWellMessage)
-            .filter_by(message_type="wish", is_public=True)
-            .order_by(WishingWellMessage.timestamp.desc())
-            .limit(15)
-            .all()
-        )
-
-        return render_template(
-            "wishing_well.html",
-            unread_scrolls=scroll_payload,
-            wishes=recent_wishes
-        )
-
-    except Exception as e:
-        db.rollback()
-        print("🧨 Wishing Well Error:", e)
-        flash("Something went wrong. Try again soon.", "error")
-        return redirect(url_for("menu"))
-
-    finally:
-        db.close()
-@app.route("/api/mark_scroll_read", methods=["POST"])
-@login_required
-def mark_scroll_read():
-    from flask import jsonify
-    db = SessionLocal()
-
-    try:
-        data = request.get_json()
-        scroll_id = data.get("scroll_id")
-
-        if not scroll_id:
-            return jsonify({"error": "Missing scroll_id"}), 400
-
-        scroll = db.query(WishingWellMessage).filter_by(id=scroll_id, user_id=session["user_id"]).first()
-        if not scroll:
-            return jsonify({"error": "Scroll not found"}), 404
-
-        scroll.is_read = True
-        db.commit()
-        return jsonify({"success": True}), 200
-
-    except Exception as e:
-        db.rollback()
-        print("🧨 Scroll Read Error:", e)
-        return jsonify({"error": "Server error"}), 500
-
-    finally:
-        db.close()
-
-@app.route('/wishing_well_archive')
-@login_required
-def wishing_well_archive():
-    from db import SessionLocal
-    db_session = SessionLocal()
-    user_id = session.get("user_id")
-
-    messages = db_session.query(WishingWellMessage)\
-        .filter_by(user_id=user_id)\
-        .order_by(WishingWellMessage.timestamp.desc())\
-        .all()
-
-    # Mark messages as read
-    for msg in messages:
-        if not msg.is_read:
-            msg.is_read = True
-    db_session.commit()
-
-    return render_template("wishing_well_archive.html", messages=messages)
-
-@app.context_processor
-def inject_global_well_status():
-    from models import WishingWellMessage
-    if "user_id" in session:
-        db = SessionLocal()
-        try:
-            has_unread = db.query(WishingWellMessage).filter_by(
-                user_id=session["user_id"],
-                message_type="wish",
-                is_read=False
-            ).count() > 0
-            return {"has_wish_messages": has_unread}
-        finally:
-            db.close()
-    return {"has_wish_messages": False}
 
 @app.route("/feedback", methods=["GET", "POST"])
 @login_required
@@ -1995,6 +1879,76 @@ def change_resurgitag():
 @login_required
 def circle():
     return redirect(url_for("form"))  # or wherever the new Circle interface lives
+# 🔐 Block a user
+@app.route("/block/<int:user_id>", methods=["POST"])
+@login_required
+def block_user(user_id):
+    db = SessionLocal()
+    try:
+        current_user_id = session.get("user_id")
+
+        if current_user_id == user_id:
+            flash("You can't block yourself.", "warning")
+            return redirect(url_for("circle"))
+
+        # Check if block already exists
+        existing_block = db.query(UserBlock).filter_by(
+            blocker_id=current_user_id,
+            blocked_id=user_id
+        ).first()
+
+        if existing_block:
+            flash("You already blocked this user.", "info")
+        else:
+            block = UserBlock(blocker_id=current_user_id, blocked_id=user_id)
+            db.add(block)
+            db.commit()
+            flash("User has been blocked. They will not be able to message you.", "success")
+
+        return redirect(url_for("view_public_profile", resurgitag=db.query(User).get(user_id).resurgitag))
+
+    finally:
+        db.close()
+
+
+# 🔓 Unblock a user
+@app.route("/unblock/<int:user_id>", methods=["POST"])
+@login_required
+def unblock_user(user_id):
+    db = SessionLocal()
+    try:
+        current_user_id = session.get("user_id")
+
+        block = db.query(UserBlock).filter_by(
+            blocker_id=current_user_id,
+            blocked_id=user_id
+        ).first()
+
+        if not block:
+            flash("You haven't blocked this user.", "info")
+        else:
+            db.delete(block)
+            db.commit()
+            flash("User has been unblocked.", "success")
+
+        return redirect(url_for("view_public_profile", resurgitag=db.query(User).get(user_id).resurgitag))
+
+    finally:
+        db.close()
+@app.route("/blocked-users")
+@login_required
+def blocked_users():
+    db = SessionLocal()
+    try:
+        blocked = (
+            db.query(UserBlock)
+            .filter_by(blocker_id=session.get("user_id"))
+            .join(User, User.id == UserBlock.blocked_id)
+            .all()
+        )
+        return render_template("blocked_users.html", blocked_users=blocked)
+    finally:
+        db.close()
 
 @app.route('/hero/<resurgitag>')
 def hero_profile(resurgitag):
@@ -2066,46 +2020,6 @@ def universal_fallback(any_path):
 @app.errorhandler(404)
 def fallback_404(error):
     return render_template("coming_soon.html"), 404
-@app.route("/dev/seed_scrolls")
-@login_required
-def dev_seed_scrolls():
-    db = SessionLocal()
-    user_id = session["user_id"]
-
-    try:
-        # Create 5 fake scroll messages
-        messages = [
-            ("You came back. That’s everything.", "System"),
-            ("A friend joined your Circle.", "Sarah"),
-            ("The water remembers you.", "Lucentis"),
-            ("You're still here. That counts.", "Velessa"),
-            ("You made it through today.", "Grace")
-        ]
-
-        for content, sender in messages:
-            msg = WishingWellMessage(
-                user_id=user_id,
-                sender=sender,
-                message_type="scroll",
-                content=content,
-                is_public=False,
-                is_read=False
-            )
-            db.add(msg)
-
-        db.commit()
-        flash("✅ Dev scrolls seeded into your wishing well.", "success")
-        return redirect(url_for("wishing_well"))
-
-    except Exception as e:
-        db.rollback()
-        flash("🧨 Could not seed scrolls.", "error")
-        print("Seeding error:", e)
-        return redirect(url_for("menu"))
-
-    finally:
-        db.close()
-
 
 @app.route("/dev/fill_onboarding")
 @login_required

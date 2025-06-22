@@ -6,7 +6,7 @@
   <source src="{{ url_for('static', filename='audio/ambient_intro.mp3') }}" type="audio/mpeg" />
 </audio>
 
-<!-- ✨ Particle Background Effect -->
+<!-- ✨ Particle Background -->
 <canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; pointer-events: none;"></canvas>
 <script>
   const canvas = document.getElementById('particleCanvas');
@@ -43,167 +43,19 @@
   animate();
 </script>
 
-<!-- Slide 1 -->
+<!-- ✨ Main Welcome CTA -->
 <div class="intro-slide active">
-  <div class="intro-text">You’ve opened your eyes inside the State of Inner.<br>You are not alone... anymore.</div>
-  <button onclick="startExperience()" class="global-button">✨ Begin</button>
-  <a href="{{ url_for('login') }}" class="skip-link">Skip Intro</a>
+  <div class="intro-text">Welcome to Resurgifi. <br>Where your story isn’t over.</div>
+
+  <a href="{{ url_for('register') }}" class="global-button">🌀 Begin Your Resurgence</a>
+  <a href="{{ url_for('journal') }}" class="global-button">🖊 Start Journaling</a>
+  <a href="{{ url_for('circle_chat', hero_name='grace') }}" class="global-button">🎙 Talk to Grace</a>
+  <a href="{{ url_for('intro') }}" class="skip-link">📽 Watch the Intro Again</a>
 </div>
-
-<!-- Slide 2 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">This is not just an app.<br>It is your way back.</div>
-  <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" class="intro-image animated">
-</div>
-
-<!-- Slide 3 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Meet your squad. They will be with you.<br>They remember you.</div>
-  <img src="{{ url_for('static', filename='images/heroes/Cognita_Transparent.png') }}" class="intro-image animated">
-</div>
-
-<!-- Slide 4 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">We also gave your demons names.<br>And show you their weak points.</div>
-  <img src="{{ url_for('static', filename='images/villains/thecrave/thecrave_transparent.png') }}" class="intro-image animated">
-</div>
-
-<!-- Slide 5 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Journal... Reflect... Take quests.<br>This world grows with you. It is The State of Inner</div>
-  <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
-</div>
-
-<!-- Slide 6 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Built from grief... pain... relapse.<br>Not in a boardroom.</div>
-</div>
-
-<!-- Slide 7 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">The heroes do not just talk back...<br>They walk with you.</div>
-</div>
-
-<!-- Slide 8 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Other apps say calm down... Breathe.<br>We say - Stand up!<br>It's time to Resurge!</div>
-</div>
-
-<!-- Slide 9 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">We also need Your feedback.<br>You are with us now.</div>
-  <img src="{{ url_for('static', filename='images/heroes/Lucentis_Transparent.png') }}" class="intro-image animated">
-  <script>navigator.vibrate && navigator.vibrate([300, 50, 300]);</script>
-</div>
-
-<!-- Slide 10 -->
-<div class="intro-slide" onclick="nextSlide()">
-  <div class="intro-text">Are you ready?</div>
-  <a href="{{ url_for('register') }}" class="global-button">Start Your Resurgence</a>
-</div>
-
-<script>
-let currentSlide = 0;
-let slideAudioCache = [];
-
-function fadeInAudio(audio, target = 0.15) {
-  let volume = 0;
-  audio.volume = 0;
-  const interval = setInterval(() => {
-    if (volume < target) {
-      volume += 0.01;
-      audio.volume = Math.min(volume, target);
-    } else {
-      clearInterval(interval);
-    }
-  }, 150);
-}
-
-function startExperience() {
-  const audio = document.getElementById('landingAudio');
-  if (audio) {
-    fadeInAudio(audio, 0.15);
-    audio.play().catch(err => {
-      console.warn("Autoplay blocked by browser until user interaction:", err);
-    });
-  }
-  nextSlide();
-}
-
-function nextSlide() {
-  const slides = document.querySelectorAll('.intro-slide');
-  if (currentSlide < slides.length - 1) {
-    slides[currentSlide].classList.remove('active');
-    currentSlide++;
-    slides[currentSlide].classList.add('active');
-
-    const preloadedAudio = slideAudioCache[currentSlide];
-    if (preloadedAudio) {
-      preloadedAudio.currentTime = 0;
-      preloadedAudio.play().catch(err => console.warn("Preloaded audio error:", err));
-    } else {
-      const text = slides[currentSlide].querySelector(".intro-text")?.innerText;
-      if (text) {
-        playVoice(text.replace(/Resurgifi/gi, "Ree-sur-ji-fy"));
-      }
-    }
-  }
-}
-
-async function playVoice(text) {
-  const ambient = document.getElementById('landingAudio');
-
-  function fadeAudio(element, targetVolume, callback) {
-    const interval = setInterval(() => {
-      const current = element.volume;
-      const delta = (targetVolume - current) * 0.2;
-      element.volume = Math.max(0, Math.min(1, current + delta));
-      if (Math.abs(targetVolume - element.volume) < 0.01) {
-        element.volume = targetVolume;
-        clearInterval(interval);
-        if (callback) callback();
-      }
-    }, 50);
-  }
-
-  try {
-    const response = await fetch("/api/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
-
-    if (!response.ok) {
-      console.warn("Voice fetch failed:", await response.text());
-      return;
-    }
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-
-    audio.onplay = () => {
-      if (ambient) fadeAudio(ambient, 0.05);
-    };
-    audio.onended = () => {
-      if (ambient) fadeAudio(ambient, 0.15);
-    };
-
-    audio.play().catch(err => console.warn("Playback error:", err));
-  } catch (err) {
-    console.error("TTS request failed:", err);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const skip = document.querySelector('.skip-link');
-  if (skip) setTimeout(() => skip.classList.add('show'), 2000);
-});
-</script>
 
 <style>
 .intro-slide {
-  display: none;
+  display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
@@ -216,43 +68,33 @@ document.addEventListener("DOMContentLoaded", () => {
   position: fixed;
   top: 0; left: 0;
   z-index: 9999;
-  transition: opacity 1s ease;
-  opacity: 0;
-}
-.intro-slide.active {
-  display: flex;
-  opacity: 1;
-  animation: fadeInSlide 1s forwards;
-}
-@keyframes fadeInSlide {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 .intro-text {
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   font-weight: 300;
   max-width: 700px;
   margin-bottom: 2rem;
 }
-.intro-image {
-  max-height: 320px;
-  opacity: 0.8;
-  margin-top: 1rem;
+.global-button {
+  margin: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  background-color: #f6e7c1;
+  color: #1a1a1a;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: none;
+  text-decoration: none;
+  transition: background 0.3s ease;
 }
-.animated {
-  animation: floatImage 6s ease-in-out infinite;
-}
-@keyframes floatImage {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+.global-button:hover {
+  background-color: #e0d4b2;
 }
 .skip-link {
-  opacity: 0;
-  transition: opacity 1.2s ease-in;
-  display: inline-block;
-}
-.skip-link.show {
-  opacity: 1;
+  color: #ccc;
+  margin-top: 1.5rem;
+  display: block;
+  font-size: 0.95rem;
+  text-decoration: underline;
 }
 </style>
 

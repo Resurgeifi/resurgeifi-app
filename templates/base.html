@@ -272,18 +272,6 @@
 </nav>
 {% endif %}
 
-<!-- 🧿 Wishing Well Icon -->
-{% if g.user and request.path not in ['/', '/landing'] %}
-  <a href="{{ url_for('wishing_well') }}" id="well-icon-link" title="Check the Well">
-    <img
-      src="{{ url_for('static', filename='icons/wellmessage.png') if g.user.has_well_messages else url_for('static', filename='icons/wellnone.png') }}"
-      id="well-icon"
-      alt="Wishing Well Icon"
-    />
-  </a>
-{% endif %}
-
-
 <!-- 🌟 Grace Flash -->
 <div id="graceFlash" class="hero-flash">
   <img src="{{ url_for('static', filename='images/heroes/Grace_Transparent.png') }}" alt="Grace Flash" />

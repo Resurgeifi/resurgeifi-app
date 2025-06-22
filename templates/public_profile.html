@@ -31,34 +31,50 @@
     {% endif %}
   </p>
 
-  <!-- 🚶 CTA to Follow -->
-<div style="margin-top: 2.5rem;">
-  <h3 style="color: #f6e7c1; margin-bottom: 1rem;">🚶 Follow This Journey</h3>
-
-  {% if g.user %}
-    <form action="{{ url_for('connect_user', user_id=friend.id) }}" method="post">
-      <button type="submit"
-              class="btn global-button"
-              style="padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: #f4a259; color: black; border-radius: 8px;">
-        🔐 Follow & Connect
-      </button>
-    </form>
-  {% else %}
-    <a href="{{ url_for('register', next=url_for('connect_user', user_id=friend.id)) }}"
-       class="btn global-button"
-       style="padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: #f4a259; color: black; border-radius: 8px;">
-      🔐 Follow & Connect
-    </a>
+  <!-- 🚫 Blocked notice -->
+  {% if is_blocked %}
+    <div style="margin-top: 1.5rem; padding: 1rem; background-color: #4b1d1d; color: #ffe0e0; border-radius: 8px;">
+      🚫 You’ve blocked this user. Their journey and messages will remain hidden.
+    </div>
   {% endif %}
-</div>
 
+  <!-- 🚶 CTA to Follow or Confirmation -->
+  <div style="margin-top: 2.5rem;">
+    {% if g.user %}
+      {% if g.user.id != friend.id %}
+        {% if is_friend %}
+          <h3 style="color: #c9f7cb; margin-bottom: 1rem;">✅ You follow this user!</h3>
+        {% elif not is_blocked %}
+          <h3 style="color: #f6e7c1; margin-bottom: 1rem;">🚶 Follow This Journey</h3>
+          <form action="{{ url_for('connect_user', user_id=friend.id) }}" method="post">
+            <button type="submit"
+                    class="btn global-button"
+                    style="padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: #f4a259; color: black; border-radius: 8px;">
+              🔐 Follow & Connect
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
 
+      {% if g.user.id != friend.id %}
+        <!-- Block/Unblock Button -->
+        <form action="{{ url_for('toggle_block_user', user_id=friend.id) }}" method="post" style="margin-top: 1.5rem;">
+          {% if is_blocked %}
+            <button class="btn btn-danger" style="font-size: 0.95rem;">🚫 Unblock This User</button>
+          {% else %}
+            <button class="btn btn-warning" style="font-size: 0.95rem;">⚠️ Block This User</button>
+          {% endif %}
+        </form>
+      {% endif %}
+
+    {% else %}
+      <a href="{{ url_for('register', next=url_for('connect_user', user_id=friend.id)) }}"
+         class="btn global-button"
+         style="padding: 0.75rem 1.5rem; font-size: 1.1rem; background-color: #f4a259; color: black; border-radius: 8px;">
+        🔐 Follow & Connect
+      </a>
+    {% endif %}
+  </div>
 
 </div>
 {% endblock %}
-
-
-
-
-
-

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Blocked Users | Resurgifi{% endblock %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2 style="color: #f6e7c1;">🚫 Blocked Users</h2>
+    <p style="color: #e0d4b2;">These users cannot message or follow your journey. You can unblock them anytime.</p>
+
+    {% if blocked_users %}
+      <ul class="list-group mt-3">
+        {% for block in blocked_users %}
+          <li class="list-group-item d-flex justify-content-between align-items-center" style="background-color: #1f3e36; color: #f6e7c1;">
+            {{ block.blocked.display_name or block.blocked.resurgitag or "Unknown" }}
+
+            <form method="POST" action="{{ url_for('unblock_user', user_id=block.blocked.id) }}" style="margin: 0;">
+              <button class="btn btn-outline-light btn-sm" type="submit">Unblock</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="mt-4 alert alert-info">
+        You haven’t blocked anyone yet.
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

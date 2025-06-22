@@ -40,95 +40,21 @@
   </a>
 </div>
 
-
-<style>
-.quest-flash-message {
-  position: fixed;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #2ecc71;
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  font-weight: 600;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  z-index: 10000;
-  opacity: 1;
-  transition: opacity 1s ease;
-}
-
-.circle-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-  margin: 2rem auto 2rem;
-  width: 100%;
-  max-width: 720px;
-}
-
-#userMessage {
-  width: 100%;
-  padding: 1rem;
-  font-size: 1.1rem;
-  background-color: #111;
-  color: #f0f0f0;
-  border: 1px solid #333;
-  border-radius: 12px;
-  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.05);
-  resize: vertical;
-}
-
-.send-button {
-  width: 100%;
-  max-width: 220px;
-  font-size: 1.15rem;
-  padding: 0.8rem 1.4rem;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(to right, #5f6caf, #a162e8);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease;
-}
-
-.send-button:hover {
-  transform: scale(1.05);
-}
-
-.grace-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background-color: rgba(0,0,0,0.88);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-.grace-text-box {
-  background: #f6e7c1;
-  color: #1f3e36;
-  padding: 2rem;
-  border-radius: 20px;
-  font-size: 1.2rem;
-  text-align: center;
-  max-width: 600px;
-  box-shadow: 0 0 30px rgba(255,255,255,0.2);
-}
-</style>
 {% endblock %}
 
 {% block scripts %}
+<!-- 🧠 Detect direct chat vs circle chat -->
+<script>
+  const isDirectChat = {{ 'true' if request.path.startswith('/direct/chat/') else 'false' }};
+</script>
+
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("chatForm");
   const chatBox = document.getElementById("chat-box");
   const messageInput = document.getElementById("userMessage");
-  const reflectBtn = document.getElementById("reflectBtn");
+  const resurgitag = "{{ resurgitag }}";
   chatBox.scrollTop = chatBox.scrollHeight;
 
   const questFlash = document.getElementById("questFlashMessage");
@@ -152,8 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
     messageInput.value = "";
 
     try {
-      const resurgitag = "{{ resurgitag }}";
-      const res = await fetch(`/circle/chat/${resurgitag}`, {
+      const chatPath = isDirectChat ? "/direct/chat/" : "/circle/chat/";
+      const res = await fetch(`${chatPath}${resurgitag}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message })
@@ -185,37 +111,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  if (reflectBtn) {
-    reflectBtn.addEventListener("click", () => {
-      window.location.href = "/summarize-journal";
+  const lines = [
+    "You made it.",
+    "This is how they get to know you — through your words.",
+    "Try to be honest. Even if it's messy.",
+    "When you're done, tap 'Summarize Journal' below. That's where the magic happens.",
+    "I'll stay nearby if you need me."
+  ];
+
+  const overlay = document.getElementById("graceChatOverlay");
+  const lineEl = document.getElementById("graceChatLine");
+  const nextBtn = document.getElementById("graceChatNextBtn");
+
+  if (overlay && lineEl && nextBtn) {
+    let index = 0;
+    lineEl.textContent = lines[0];
+    nextBtn.addEventListener("click", () => {
+      index++;
+      if (index < lines.length) {
+        lineEl.textContent = lines[index];
+      } else {
+        overlay.style.opacity = 0;
+        setTimeout(() => overlay.remove(), 800);
+      }
     });
   }
-
-  const lines = [
-  "You made it.",
-  "This is how they get to know you — through your words.",
-  "Try to be honest. Even if it's messy.",
-  "When you're done, tap 'Summarize Journal' below. That's where the magic happens.",
-  "I'll stay nearby if you need me."
-];
-
-    const overlay = document.getElementById("graceChatOverlay");
-
-function showNextLine() {
-  index++;
-  if (index < lines.length) {
-    lineEl.textContent = lines[index];
-  } else {
-    overlay.style.opacity = 1;
-    overlay.style.transition = "opacity 0.8s ease";
-    overlay.style.opacity = 0;
-    setTimeout(() => overlay.remove(), 800);
-  }
-}
-
-    lineEl.textContent = lines[0];
-    nextBtn.addEventListener("click", showNextLine);
-  }
-);
+});
 </script>
 {% endblock %}
+

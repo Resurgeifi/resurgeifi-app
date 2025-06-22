@@ -81,21 +81,33 @@ class User(db.Model, UserMixin):
     # Circle status
     mood_status = db.Column(db.String(50), default="🫥")
     last_active = db.Column(db.DateTime, default=datetime.utcnow)
-class WishingWellMessage(db.Model):
-    __tablename__ = "wishing_well_messages"
+
+class DirectMessage(db.Model):
+    __tablename__ = "direct_messages"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    sender = db.Column(db.String(100), nullable=False)  # 'user', or a hero name
-    message_type = db.Column(db.String(50), nullable=False, default="wish")  # 'wish', 'encouragement', etc
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    is_public = db.Column(db.Boolean, default=False)
-    is_read = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    recipient_tag = db.Column(db.String(100), nullable=True)  # NEW: optional @resurgitag field
+    read = db.Column(db.Boolean, default=False)
+    deleted_by_sender = db.Column(db.Boolean, default=False)
+    deleted_by_recipient = db.Column(db.Boolean, default=False)
 
-    user = db.relationship("User", backref="wishing_well_messages")
+    sender = db.relationship("User", foreign_keys=[sender_id], backref="messages_sent")
+    recipient = db.relationship("User", foreign_keys=[recipient_id], backref="messages_received")
+class UserBlock(db.Model):
+    __tablename__ = "user_blocks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    blocker_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    blocked_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    blocker = db.relationship("User", foreign_keys=[blocker_id], backref="blocks_initiated")
+    blocked = db.relationship("User", foreign_keys=[blocked_id], backref="blocks_received")
+
+    __table_args__ = (db.UniqueConstraint("blocker_id", "blocked_id", name="_block_uc"),)
 
 class UserBio(db.Model):
     __tablename__ = "user_bio"
