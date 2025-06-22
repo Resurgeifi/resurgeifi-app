@@ -597,28 +597,33 @@ def show_hero_chat(resurgitag):
     user_id = session.get("user_id")
     tag = normalize_name(resurgitag.lstrip("@"))
 
+    print(f"\n[🛣️ ROUTE HIT] /circle/chat/{resurgitag} → Normalized tag: {tag}")
     user = db.query(User).filter_by(id=user_id).first()
     contact_name = None
 
-    # 🔍 Check for real user hero first
+    # 🔍 Check for user hero
     contact = db.query(User).filter_by(resurgitag=tag).first()
     if contact and getattr(contact, "is_hero", False):
         contact_name = contact.nickname or contact.display_name or tag
+        print(f"[✅ MATCH] Found user hero: {contact_name}")
 
     # 🦸 Check HeroProfile
     if not contact_name:
         hero = db.query(HeroProfile).filter_by(resurgitag=tag).first()
         if hero:
             contact_name = hero.display_name or tag
+            print(f"[✅ MATCH] Found HeroProfile: {contact_name}")
 
     # 🧟‍♂️ Check INNER_CODEX villains
     if not contact_name:
         villain_map = {normalize_name(k): k for k in INNER_CODEX["villains"].keys()}
         if tag in villain_map:
             contact_name = villain_map[tag]
+            print(f"[🧨 VILLAIN FOUND]: {contact_name}")
             messages = [{"speaker": contact_name, "text": f"{contact_name} waits in the shadows…"}]
             return render_template("chat.html", resurgitag=tag, messages=messages, display_name=contact_name, quest_flash=False, show_grace_intro=False)
 
+        print("[❌ ERROR] No hero or villain matched.")
         flash("Hero not found.")
         return redirect(url_for("circle"))
 
@@ -629,6 +634,8 @@ def show_hero_chat(resurgitag):
         contact_tag=tag
     ).filter(QueryHistory.timestamp >= week_ago).order_by(QueryHistory.timestamp).all()
 
+    print(f"[📨 THREAD] Found {len(thread)} messages between user_id={user_id} and {tag}")
+
     messages = []
     for entry in thread:
         if entry.question:
@@ -636,7 +643,7 @@ def show_hero_chat(resurgitag):
         if entry.response:
             messages.append({"speaker": contact_name, "text": entry.response})
 
-    # 🎯 Handle quest reflection
+    # 🎯 Quest Reflection Handling
     quest_reflection = session.pop("from_quest", None)
     quest_flash = False
     show_grace_intro = False
@@ -646,6 +653,10 @@ def show_hero_chat(resurgitag):
         canon_name = contact_name
         quest_flash = True
 
+        print(f"[🪞 Quest Reflection Triggered]")
+        print(f"↳ Text: {reflection_text}")
+        print(f"↳ Canon name for AI call: {canon_name}")
+
         try:
             ai_response = call_openai(
                 user_input=reflection_text,
@@ -653,7 +664,8 @@ def show_hero_chat(resurgitag):
                 context={"thread": [], "user_id": user_id}
             )
 
-            # Add reflection + reply at the bottom
+            print(f"[🤖 AI RESPONSE] {ai_response[:250]}...")
+
             messages.append({"speaker": "You", "text": reflection_text})
             messages.append({"speaker": canon_name, "text": ai_response})
 
@@ -679,15 +691,15 @@ def show_hero_chat(resurgitag):
             ])
             db.commit()
 
-            # 🎥 Grace Walkthrough Trigger
             if not user.first_quest_complete:
                 user.first_quest_complete = True
                 show_grace_intro = True
-                session["grace_walkthrough"] = True  # used to pace overlay logic
+                session["grace_walkthrough"] = True
                 db.commit()
+                print(f"[🌱 First quest marked complete for user_id={user_id}]")
 
         except Exception as e:
-            print(f"⚠️ AI quest reflection failed: {e}")
+            print(f"[🔥 AI REFLECTION ERROR]: {e}")
             messages.append({"speaker": "System", "text": "The hero couldn’t respond right now. Try again later."})
 
     return render_template(
@@ -698,6 +710,7 @@ def show_hero_chat(resurgitag):
         quest_flash=quest_flash,
         show_grace_intro=show_grace_intro
     )
+
 @app.route("/thank-you")
 def thank_you():
     name = request.args.get("name", "Friend")

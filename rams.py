@@ -20,14 +20,20 @@ def call_openai(user_input, hero_name="Cognita", context=None):
     print(f"\n[🧠 call_openai] 🔹 Hero: {hero_name} | 🔹 Input: {user_input}")
 
     try:
-        context = build_context(user_id=session.get("user_id"), session_data=session)
+        user_id = session.get("user_id")
+        print(f"[🔐 session.user_id]: {user_id}")
+        if not user_id:
+            print("[⚠️ WARNING]: No user_id found in session!")
 
-        # 🧵 Fallback: if thread is missing, rebuild from QueryHistory
+        context = build_context(user_id=user_id, session_data=session)
+        if not context:
+            print("[⚠️ WARNING]: build_context returned None!")
+
+        # 🧵 Pull conversation thread
         thread = context.get("thread", [])
         if not thread:
             print("[🔁 Thread empty — rebuilding from QueryHistory]")
             db = SessionLocal()
-            user_id = session.get("user_id")
             history = (
                 db.query(QueryHistory)
                 .filter_by(user_id=user_id)
@@ -38,7 +44,6 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             )
             db.close()
 
-            # ✅ Deduplication logic added here
             thread = []
             seen = set()
             for entry in reversed(history):
@@ -50,33 +55,50 @@ def call_openai(user_input, hero_name="Cognita", context=None):
                 if r and r not in seen:
                     thread.append({"role": "assistant", "content": r})
                     seen.add(r)
+            print(f"[🔁 Rebuilt Thread Length]: {len(thread)}")
 
-        print(f"[🧵 Thread Length]: {len(thread)}")
-        for i, entry in enumerate(thread[-3:], 1):
-            print(f"[🧵 Thread-{i}]: {entry}")
+        else:
+            print(f"[🧵 Existing Thread Length]: {len(thread)}")
 
-        # 🧠 Debug bio / emotional profile
-        print(f"\n[🧠 Nickname]: {context.get('nickname')}")
-        print(f"[🧾 Journal Summary]: {context.get('tone_summary')}")
-        print(f"[📜 Emotional Profile]:\n{context.get('emotional_profile')}\n")
-        print(f"[📜 Formatted Thread]:\n{context.get('formatted_thread')}\n")
+        for i, entry in enumerate(thread[-5:], 1):
+            print(f"[🧵 Thread-{i}] {entry.get('role')}: {entry.get('content')[:100]}...")
 
-        # 🧱 Build final system prompt
+        # 🧠 Show core context values
+        nickname = context.get('nickname')
+        tone_summary = context.get('tone_summary')
+        emotional_profile = context.get('emotional_profile')
+        formatted_thread = context.get('formatted_thread')
+
+        if not nickname:
+            print("[⚠️ MISSING]: nickname is empty")
+        if not tone_summary:
+            print("[⚠️ MISSING]: journal tone summary is empty")
+        if not emotional_profile:
+            print("[⚠️ MISSING]: emotional_profile block is empty")
+
+        print(f"\n[🧠 Nickname]: {nickname}")
+        print(f"[🧾 Journal Tone Summary]: {tone_summary}")
+        print(f"[📜 Emotional Profile]:\n{emotional_profile}\n")
+        print(f"[🧾 Formatted Thread Preview]:\n{formatted_thread[:500]}\n")
+
+        # 🧱 Build prompt
         system_prompt = build_prompt(hero=hero_name.lower(), user_input=user_input, context=context)
-        print(f"[🧱 FINAL SYSTEM PROMPT]:\n{system_prompt}\n")
+        print(f"[🧱 FINAL SYSTEM PROMPT]:\n{system_prompt[:500]}...\n")
 
-        # 🔄 Convert thread into OpenAI-compatible message list
+        # 👂 Construct OpenAI messages
         formatted_messages = [{"role": "system", "content": system_prompt}]
         for msg in thread:
             role = msg.get("role", "user")
             content = msg.get("content", "")
-            formatted_messages.append({
-                "role": role,
-                "content": content
-            })
+            if not content:
+                print(f"[⚠️ EMPTY MESSAGE BLOCK]: {msg}")
+            formatted_messages.append({"role": role, "content": content})
+
         formatted_messages.append({"role": "user", "content": user_input})
 
-        # 🔮 Make OpenAI API call with thread memory
+        print(f"[📨 Final Message Count]: {len(formatted_messages)}")
+
+        # 🔮 API Call
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=formatted_messages,
@@ -84,11 +106,10 @@ def call_openai(user_input, hero_name="Cognita", context=None):
         )
 
         message = response.choices[0].message.content.strip()
-        print(f"[✅ OpenAI Response]:\n{message}\n")
+        print(f"[✅ OpenAI Response]:\n{message[:500]}...\n")
 
-        # 💾 Save to QueryHistory
+        # 💾 Save to DB
         try:
-            user_id = session.get("user_id")
             new_entry = QueryHistory(
                 user_id=user_id,
                 agent_name=hero_name,
@@ -100,9 +121,9 @@ def call_openai(user_input, hero_name="Cognita", context=None):
             db.add(new_entry)
             db.commit()
             db.close()
-            print("[💾 QueryHistory]: Saved user message + hero response.")
+            print("[💾 QueryHistory]: Saved successfully.")
         except Exception as log_error:
-            print(f"[⚠️ ERROR saving to QueryHistory]: {log_error}")
+            print(f"[⚠️ ERROR saving to DB]: {log_error}")
 
         return message
 
@@ -195,58 +216,66 @@ def select_heroes(tone, thread):
 
 def build_context(user_id=None, session_data=None, journal_data=None, onboarding=None):
     db = SessionLocal()
-    user = db.query(User).filter_by(id=user_id).first() if user_id else None
+    user = None
     history = []
     agent_tag = session_data.get("hero_name") if session_data else None
-
-    # 🧵 Pull query history
-    if user_id and agent_tag:
-        thread = (
-            db.query(QueryHistory)
-            .filter_by(user_id=user_id)
-            .filter(QueryHistory.agent_name == agent_tag)
-            .order_by(QueryHistory.timestamp.desc())
-            .limit(30)
-            .all()
-        )
-        history = list(reversed(thread))
-
-    # 🧱 Build both a thread list and a formatted version (for debugging or prompt flavoring)
     openai_thread = []
     formatted_thread = ""
-    for entry in history:
-        if entry.question:
-            openai_thread.append({"role": "user", "content": entry.question.strip()})
-            formatted_thread += f'User: "{entry.question.strip()}"\n'
-        if entry.response:
-            openai_thread.append({"role": "assistant", "content": entry.response.strip()})
-            formatted_thread += f'{entry.agent_name or "Resurgifi"}: "{entry.response.strip()}"\n'
-
-    # 🧭 Inject quest reflection if present
-    quest_data = session.pop("from_quest", None)
-    quest_reflection = quest_data.get("reflection") if quest_data else None
-    if quest_reflection:
-        openai_thread.insert(0, {
-            "role": "system",
-            "content": f"The user has completed a quest reflection: '{quest_reflection}'"
-        })
-        formatted_thread = f'Grace: "The user just completed a quest reflection: \'{quest_reflection}\'"\n\n' + formatted_thread
-
-    # 🧠 Bio + nickname fallback
-    nickname = user.nickname or "Friend"
+    nickname = "Friend"
     bio_text = None
     journal_summary = None
 
-    if user:
-        bio_obj = db.query(UserBio).filter_by(user_id=user.id).first()
-        bio_text = bio_obj.bio_text if bio_obj else None
+    try:
+        print(f"[🧠 BUILD_CONTEXT] user_id: {user_id}")
+        print(f"[🧠 BUILD_CONTEXT] session_data: {session_data}")
+        print(f"[🧠 BUILD_CONTEXT] agent_tag: {agent_tag}")
 
-        if not bio_text:
-            reason = user.theme_choice or "an unknown reason"
-            coping = user.default_coping or "an unspecified coping style"
-            traits = ", ".join(user.hero_traits) if user.hero_traits and isinstance(user.hero_traits, list) else "unknown trust preferences"
+        if user_id:
+            user = db.query(User).filter_by(id=user_id).first()
+            print(f"[👤 USER] Found: {user is not None}")
 
-            bio_text = f"""
+        # 🧵 Pull query history
+        if user_id and agent_tag:
+            thread = (
+                db.query(QueryHistory)
+                .filter_by(user_id=user_id)
+                .filter(QueryHistory.agent_name == agent_tag)
+                .order_by(QueryHistory.timestamp.desc())
+                .limit(30)
+                .all()
+            )
+            history = list(reversed(thread))
+            print(f"[📜 HISTORY] Entries found: {len(history)}")
+
+        for entry in history:
+            if entry.question:
+                openai_thread.append({"role": "user", "content": entry.question.strip()})
+                formatted_thread += f'User: "{entry.question.strip()}"\n'
+            if entry.response:
+                openai_thread.append({"role": "assistant", "content": entry.response.strip()})
+                formatted_thread += f'{entry.agent_name or "Resurgifi"}: "{entry.response.strip()}"\n'
+
+        # 🧭 Quest reflection injection
+        quest_data = session.pop("from_quest", None)
+        quest_reflection = quest_data.get("reflection") if quest_data else None
+        if quest_reflection:
+            openai_thread.insert(0, {
+                "role": "system",
+                "content": f"The user has completed a quest reflection: '{quest_reflection}'"
+            })
+            formatted_thread = f'Grace: "The user just completed a quest reflection: \'{quest_reflection}\'"\n\n' + formatted_thread
+            print(f"[🧩 QUEST] Injected reflection: {quest_reflection}")
+
+        if user:
+            nickname = user.nickname or "Friend"
+            bio_obj = db.query(UserBio).filter_by(user_id=user.id).first()
+            bio_text = bio_obj.bio_text if bio_obj else None
+
+            if not bio_text:
+                reason = user.theme_choice or "an unknown reason"
+                coping = user.default_coping or "an unspecified coping style"
+                traits = ", ".join(user.hero_traits) if user.hero_traits and isinstance(user.hero_traits, list) else "unknown trust preferences"
+                bio_text = f"""
 The user’s emotional profile includes:
 
 - They came to us due to: {reason}.
@@ -254,27 +283,35 @@ The user’s emotional profile includes:
 - In someone they trust, they look for: {traits}.
 """.strip()
 
-    # 🧾 Pull journal summary for tone context (do not inject into conversation!)
-        if user:
-         journal_summary = pull_recent_journal_summary(user.id)
+            journal_summary = pull_recent_journal_summary(user.id)
+            print(f"[📓 JOURNAL SUMMARY] {journal_summary}")
 
-         db.close()
-
-    # 🧬 Emotional profile block for prompt
-    emotional_profile = f"""
+        emotional_profile = f"""
 {bio_text or "No bio available."}
 
 Let this shape your tone. Do not reference this directly.
 """.strip()
 
-    return {
-        "formatted_thread": formatted_thread,
-        "emotional_profile": emotional_profile,
-        "nickname": nickname,
-        "thread": openai_thread,
-        "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
-        "quest_history": quest_data.get("completed_quests", []) if quest_data else []
-    }
+        print(f"[🧠 CONTEXT RETURN] nickname: {nickname}")
+        print(f"[🧠 CONTEXT RETURN] emotional_profile: {bool(bio_text)}")
+        print(f"[🧠 CONTEXT RETURN] thread length: {len(openai_thread)}")
+        print(f"[🧠 CONTEXT RETURN] journal_summary: {journal_summary}")
+
+        return {
+            "formatted_thread": formatted_thread,
+            "emotional_profile": emotional_profile,
+            "nickname": nickname,
+            "thread": openai_thread,
+            "tone_summary": journal_summary or "unclear, but likely vulnerable or searching",
+            "quest_history": quest_data.get("completed_quests", []) if quest_data else []
+        }
+
+    except Exception as e:
+        db.rollback()
+        print(f"[❌ DB ERROR] Rolled back due to: {e}")
+        raise
+    finally:
+        db.close()
 
 def normalize_name(name):
     return name.strip().lower().replace(" ", "").replace("_", "")
@@ -283,6 +320,8 @@ def build_prompt(hero, user_input, context):
     def normalize_name(name):
         return name.strip().lower().replace(" ", "").replace("_", "")
 
+    print(f"\n[🎭 build_prompt] Hero: {hero}")
+
     nickname = context.get("nickname", "Friend")
     tone_summary = infer_emotional_tone(user_input)
     journals = context.get("journals", [])
@@ -290,9 +329,17 @@ def build_prompt(hero, user_input, context):
     formatted_thread = context.get("formatted_thread", "")
     user_bio_text = context.get("emotional_profile", "")
     interacting_heroes = context.get("interacted_heroes", [])
-    last_villain = context.get("last_villain", "")  # Optional
+    last_villain = context.get("last_villain", "")
 
-    # Normalize and fetch from INNER_CODEX
+    print(f"[🧾 nickname]: {nickname}")
+    print(f"[🧠 inferred tone from input]: {tone_summary}")
+    print(f"[📚 journal count]: {len(journals)} | [🎒 quest count]: {len(quest_history)}")
+    print(f"[🧵 formatted_thread length]: {len(formatted_thread)}")
+    print(f"[📜 bio present?]: {'Yes' if user_bio_text else 'No'}")
+    print(f"[🤝 interacted heroes]: {interacting_heroes}")
+    print(f"[🕳️ last villain]: {last_villain}")
+
+    # Normalize and fetch persona
     hero_key_map = {normalize_name(k): k for k in INNER_CODEX.get("heroes", {})}
     villain_key_map = {normalize_name(k): k for k in INNER_CODEX.get("villains", {})}
     key = normalize_name(hero)
@@ -312,23 +359,31 @@ def build_prompt(hero, user_input, context):
         print(f"[❌ build_prompt]: Could not find hero or villain for key: {key}")
         return "Error: Character data missing."
 
+    print(f"[✅ Found persona]: {canon_name} | Is villain? {is_villain}")
+
+    # Tone resolution
     tone_key = tone_summary if not is_villain and "tone_profiles" in persona_data and tone_summary in persona_data["tone_profiles"] else persona_data.get("default_tone", "gentle")
     tone_data = persona_data.get("tone_profiles", {}).get(tone_key, {}) if not is_villain else {}
 
-    tone_description = tone_data.get("description", "")
-    tone_rules = "\n".join(f"- {r}" for r in tone_data.get("style_rules", []))
-    tone_samples = "\n".join(f'"{p}"' for p in tone_data.get("sample_phrases", []))
+    print(f"[🎭 tone_key used]: {tone_key}")
+    if not tone_data and not is_villain:
+        print(f"[⚠️ No tone data found for tone_key: {tone_key}]")
 
     hero_prompt = persona_data.get("prompts", {}).get("default") if isinstance(persona_data.get("prompts"), dict) else persona_data.get("prompt", f"You are {canon_name}, a recovery guide from the State of Inner.")
 
-    origin = persona_data.get("origin", "")
-    worldview = persona_data.get("worldview", "")
+    origin = persona_data.get("origin", "[origin missing]")
+    worldview = persona_data.get("worldview", "[worldview missing]")
 
-    region_context = INNER_CODEX.get("world", {}).get("description", "")
-    memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "")
+    print(f"[🌍 origin]: {origin}")
+    print(f"[🧬 worldview]: {worldview}")
+
+    # Global lore
+    region_context = INNER_CODEX.get("world", {}).get("description", "[world missing]")
+    memory_rules = INNER_CODEX.get("system_notes", {}).get("memory_model", "[memory model missing]")
     design_rules = "\n".join(f"- {r}" for r in INNER_CODEX.get("system_notes", {}).get("design_rules", []))
-    quote = INNER_CODEX.get("quote", "")
+    quote = INNER_CODEX.get("quote", "[quote missing]")
 
+    # Base
     base_prompt = f'''
 {hero_prompt}
 
@@ -369,13 +424,13 @@ Use their name sparingly, but when offering encouragement, grounding, or emotion
 
 🎭 Current Hero Tone: {tone_key}
 📝 Tone Description:
-{tone_description or '[None provided]'}
+{tone_data.get("description", "[None provided]")}
 
 🧃 Style Guidelines:
-{tone_rules or '[None provided]'}
+{chr(10).join(f"- {r}" for r in tone_data.get("style_rules", [])) or "[None provided]"}
 
 🗣️ Sample Phrases:
-{tone_samples or '[None provided]'}
+{chr(10).join(f'"{p}"' for p in tone_data.get("sample_phrases", [])) or "[None provided]"}
 
 🌟 Remember:
 "{quote}"
@@ -414,7 +469,9 @@ Limit to 4–5 lines. No warmth. No solutions.
         memory = shared_memories.get(pair_key) or shared_memories.get(alt_key)
         if memory:
             memory_notes.append(f"- {memory}")
+
     if memory_notes:
+        print(f"[🤝 Shared memory lore included]: {len(memory_notes)} entries")
         base_prompt += f'''
 
 🤝 Shared Lore with Fellow Heroes:
@@ -428,6 +485,7 @@ These memories may shape how you speak today:
         vkey = normalize_name(last_villain)
         for bk in [f"{canon_name}<>{vkey}", f"{vkey}<>{canon_name}"]:
             if bk in battle_logs:
+                print(f"[⚔️ Battle memory found]: {bk}")
                 base_prompt += f'''
 
 📜 Battle Lore:
@@ -437,14 +495,8 @@ You remember when you once stood against {last_villain}…
 '''
                 break
 
-    print("✅ build_prompt generated successfully.")
+    print("[✅ build_prompt] prompt successfully assembled.\n")
     return base_prompt.strip()
-# utils/tone_helpers.py
-
-STANDARD_TONES = [
-    "calm", "anxious", "overwhelmed", "grieving", "hopeless",
-    "angry", "numb", "shame", "inspired"
-]
 
 def infer_emotional_tone(text):
     """Rudimentary keyword-based classifier. Replace with OpenAI later."""
