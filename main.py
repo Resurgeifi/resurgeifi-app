@@ -781,7 +781,7 @@ def send_direct_message(resurgitag):
     if is_blocked(user.id, contact.id):
         return jsonify({"error": "You have blocked this user."}), 403
 
-    content = request.json.get("message", "").strip()
+    content = (request.json.get("message") if request.is_json else request.form.get("message", "")).strip()
     if not content:
         return jsonify({"error": "Empty message"}), 400
 
