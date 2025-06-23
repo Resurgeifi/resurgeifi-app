@@ -38,6 +38,7 @@ def clean_text_for_voice(raw_text, speaker_name=None):
 # 🔒 Auth + Security
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from user_utils import is_blocked  # ✅ correct if file is at root
 
 # 🌍 Flask Core
 from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify, g, Response
@@ -720,13 +721,16 @@ def direct_chat_page(resurgitag):
 def send_direct_message(resurgitag):
     db = SessionLocal()
     user = db.query(User).get(session["user_id"])
-    contact = db.query(User).filter_by(resurgitag=resurgitag.lstrip("@")).first()
+
+    # Normalize and match case-insensitively
+    resurgitag_clean = resurgitag.lstrip("@").lower()
+    contact = db.query(User).filter(func.lower(User.resurgitag) == f"@{resurgitag_clean}").first()
 
     if not contact:
         return jsonify({"error": "User not found"}), 404
 
-    # Block check
-    if is_user_blocked(user.id, contact.id):
+    # Check if contact has blocked user
+    if is_blocked(user.id, contact.id):
         return jsonify({"error": "You have blocked this user."}), 403
 
     content = request.json.get("message", "").strip()
@@ -738,11 +742,6 @@ def send_direct_message(resurgitag):
     db.commit()
 
     return jsonify({"response": "Message sent."})
-
-@app.route("/thank-you")
-def thank_you():
-    name = request.args.get("name", "Friend")
-    return render_template("thank_you.html", name=name)
 
 @app.route("/codex")
 def inner_codex():
