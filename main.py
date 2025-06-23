@@ -690,7 +690,7 @@ def direct_chat_page(resurgitag):
         return redirect(url_for("circle"))
 
     # ✅ Only run if contact was found
-    if is_user_blocked(user.id, contact.id):
+    if is_blocked(user.id, contact.id):
         flash("You have blocked this user.")
         return redirect(url_for("circle"))
 
