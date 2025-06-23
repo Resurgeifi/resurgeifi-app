@@ -228,11 +228,13 @@ def connect_user(user_id):
             flash("You can't follow yourself.", "warning")
             return redirect(url_for("circle"))
 
-        # Add mutual friendship if not already connected
         added = False
+
+        # Ensure mutual friendship
         if other_user not in current_user.friends:
             current_user.friends.append(other_user)
             added = True
+
         if current_user not in other_user.friends:
             other_user.friends.append(current_user)
             added = True
@@ -243,11 +245,7 @@ def connect_user(user_id):
         else:
             flash("You're already connected with this user.", "info")
 
-        # Redirect to their public profile
-        if other_user.resurgitag:
-            return redirect(url_for("view_public_profile", resurgitag=other_user.resurgitag))
-        else:
-            return redirect(url_for("circle"))
+        return redirect(url_for("view_public_profile", resurgitag=other_user.resurgitag))
 
     finally:
         db.close()
