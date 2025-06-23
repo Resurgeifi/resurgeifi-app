@@ -65,6 +65,7 @@ from models import (
     CircleMessage,
     DailyReflection,
     UserQuestEntry,
+    DirectMessage
 )
 from useronboarding import generate_and_store_bio  
 from flask_migrate import Migrate
