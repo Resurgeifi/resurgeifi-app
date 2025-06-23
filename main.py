@@ -676,6 +676,7 @@ def direct_chat_page(resurgitag):
     db = SessionLocal()
     user = db.query(User).get(session["user_id"])
     contact = db.query(User).filter_by(resurgitag=resurgitag.lstrip("@")).first()
+    print(f"[DEBUG] resurgitag from URL: {resurgitag}")
 
     if not contact:
         flash("User not found.")
