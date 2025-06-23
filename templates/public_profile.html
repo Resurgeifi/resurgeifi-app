@@ -58,8 +58,8 @@
 
       {% if g.user.id != friend.id %}
         <!-- Block/Unblock Button -->
-        <form action="{{ url_for('toggle_block_user', user_id=friend.id) }}" method="post" style="margin-top: 1.5rem;">
-          {% if is_blocked %}
+        <form action="{{ url_for('block_user', user_id=friend.id) }}" method="post">
+         {% if is_blocked %}
             <button class="btn btn-danger" style="font-size: 0.95rem;">🚫 Unblock This User</button>
           {% else %}
             <button class="btn btn-warning" style="font-size: 0.95rem;">⚠️ Block This User</button>
