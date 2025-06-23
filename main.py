@@ -203,6 +203,14 @@ def admin_required(f):
             return redirect(url_for("index"))
         return f(*args, **kwargs)
     return decorated_function
+@app.context_processor
+def inject_unread_count():
+    if "user_id" not in session:
+        return {}
+    db = SessionLocal()
+    user_id = session["user_id"]
+    count = db.query(DirectMessage).filter_by(recipient_id=user_id, read=False).count()
+    return {"unread_count": count}
 
 @app.route("/connect/<int:user_id>", methods=["GET", "POST"])
 @login_required
@@ -685,15 +693,23 @@ def direct_chat_page(resurgitag):
     # Case-insensitive match using SQL func.lower
     contact = db.query(User).filter(func.lower(User.resurgitag) == f"@{resurgitag_clean}").first()
 
-    # 💥 Null check to prevent .id access on None
     if not contact:
         flash("User not found.")
         return redirect(url_for("circle"))
 
-    # ✅ Only run if contact was found
     if is_blocked(user.id, contact.id):
         flash("You have blocked this user.")
         return redirect(url_for("circle"))
+
+    # ✅ Mark all messages sent *to the user* from this contact as read
+    unread_messages = db.query(DirectMessage).filter_by(
+        sender_id=contact.id,
+        recipient_id=user.id,
+        read=False
+    ).all()
+    for msg in unread_messages:
+        msg.read = True
+    db.commit()
 
     # 🕰 Get past week's messages
     week_ago = datetime.utcnow() - timedelta(days=7)
@@ -716,6 +732,39 @@ def direct_chat_page(resurgitag):
         quest_flash=False,
         show_grace_intro=False
     )
+@app.route("/inbox")
+@login_required
+def inbox():
+    db = SessionLocal()
+    user_id = session["user_id"]
+
+    # Fetch all conversations where the user is sender or recipient
+    messages = db.query(DirectMessage).filter(
+        (DirectMessage.sender_id == user_id) | (DirectMessage.recipient_id == user_id)
+    ).order_by(DirectMessage.timestamp.desc()).all()
+
+    # Build a dict keyed by contact_id to group messages
+    threads = {}
+    for msg in messages:
+        contact_id = msg.recipient_id if msg.sender_id == user_id else msg.sender_id
+        if contact_id not in threads:
+            threads[contact_id] = {
+                "last_message": msg,
+                "unread_count": 0,
+                "contact": db.query(User).get(contact_id)
+            }
+
+        # Count unread messages addressed to the current user
+        if msg.recipient_id == user_id and not msg.read:
+            threads[contact_id]["unread_count"] += 1
+
+    # Sort threads: Unread first, then by last message timestamp
+    sorted_threads = sorted(
+        threads.values(),
+        key=lambda x: (x["unread_count"] == 0, -x["last_message"].timestamp.timestamp())
+    )
+
+    return render_template("inbox.html", threads=sorted_threads)
 
 @app.route("/direct/chat/<resurgitag>", methods=["POST"])
 @login_required
@@ -742,7 +791,8 @@ def send_direct_message(resurgitag):
     db.add(dm)
     db.commit()
 
-    return jsonify({"response": "Message sent."})
+    return "", 204  # No Content
+
 
 @app.route("/codex")
 def inner_codex():

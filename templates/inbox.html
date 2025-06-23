@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Inbox | Resurgifi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">Your Inbox</h2>
+  {% if threads %}
+    {% for thread in threads %}
+      <a href="{{ url_for('direct_chat_page', resurgitag=thread.contact.resurgitag) }}" class="text-decoration-none text-reset">
+        <div class="card mb-3 shadow-sm {% if thread.unread_count > 0 %}border-primary{% endif %}">
+          <div class="card-body">
+            <h5 class="card-title">@{{ thread.contact.display_name or thread.contact.resurgitag }}</h5>
+            <p class="card-text text-muted">
+              {{ thread.last_message.content[:60] }}{% if thread.last_message.content|length > 60 %}...{% endif %}
+            </p>
+            <p class="card-text">
+              {% if thread.unread_count > 0 %}
+                <span class="badge bg-primary">{{ thread.unread_count }} unread</span>
+              {% else %}
+                <small class="text-muted">Last seen {{ thread.last_message.timestamp.strftime('%b %d, %I:%M %p') }}</small>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  {% else %}
+    <p>You haven’t talked to anyone yet. Try starting a conversation in The Circle!</p>
+  {% endif %}
+</div>
+{% endblock %}

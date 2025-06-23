@@ -71,6 +71,18 @@
         cursor: pointer;
         z-index: 10001;
       }
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background-color: red;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 50%;
+  z-index: 10;
+}
 
       .menu-icon span {
         background-color: #f6e7c1;
@@ -265,9 +277,13 @@
     <a href="/form" class="nav-item" aria-label="Circle">
       <img src="{{ url_for('static', filename='icons/circle-logo.png') }}" alt="Circle Icon" class="nav-icon" />
     </a>
-    <a href="/settings" class="nav-item" aria-label="Settings">
-      <img src="{{ url_for('static', filename='icons/gear.png') }}" alt="Settings Icon" class="nav-icon" />
-    </a>
+    <a href="/inbox" class="nav-item" aria-label="Messages" style="position: relative;">
+  <img src="{{ url_for('static', filename='icons/message-bubble.png') }}" alt="Messages Icon" class="nav-icon" />
+  {% if unread_count and unread_count > 0 %}
+    <span class="badge">{{ unread_count }}</span>
+  {% endif %}
+</a>
+
   </div>
 </nav>
 {% endif %}
