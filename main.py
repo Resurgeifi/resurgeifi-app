@@ -74,9 +74,8 @@ from markupsafe import Markup
 import qrcode
 import io
 import base64
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from flask_login import login_required
-
 
 # ✅ Load environment variables
 load_dotenv()
@@ -670,24 +669,25 @@ def show_hero_chat(resurgitag):
         quest_flash=quest_flash,
         show_grace_intro=show_grace_intro
     )
+
 @app.route("/direct/chat/<resurgitag>", methods=["GET"])
 @login_required
 def direct_chat_page(resurgitag):
     db = SessionLocal()
     user = db.query(User).get(session["user_id"])
-    contact = db.query(User).filter_by(resurgitag=resurgitag.lstrip("@")).first()
     print(f"[DEBUG] resurgitag from URL: {resurgitag}")
+
+    resurgitag_clean = resurgitag.lstrip("@").lower()
+    contact = db.query(User).filter(func.lower(User.resurgitag) == f"@{resurgitag_clean}").first()
 
     if not contact:
         flash("User not found.")
         return redirect(url_for("circle"))
 
-    # Block check (optional if you already wired it in)
     if is_user_blocked(user.id, contact.id):
         flash("You have blocked this user.")
         return redirect(url_for("circle"))
 
-    # Pull last 7 days of messages
     week_ago = datetime.utcnow() - timedelta(days=7)
     messages = db.query(DirectMessage).filter(
         ((DirectMessage.sender_id == user.id) & (DirectMessage.recipient_id == contact.id)) |
@@ -707,6 +707,7 @@ def direct_chat_page(resurgitag):
         quest_flash=False,
         show_grace_intro=False
     )
+
 
 @app.route("/direct/chat/<resurgitag>", methods=["POST"])
 @login_required
