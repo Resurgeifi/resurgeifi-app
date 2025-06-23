@@ -677,26 +677,33 @@ def direct_chat_page(resurgitag):
     user = db.query(User).get(session["user_id"])
     print(f"[DEBUG] resurgitag from URL: {resurgitag}")
 
+    # Normalize to lowercase and strip leading '@'
     resurgitag_clean = resurgitag.lstrip("@").lower()
+
+    # Case-insensitive match using SQL func.lower
     contact = db.query(User).filter(func.lower(User.resurgitag) == f"@{resurgitag_clean}").first()
 
+    # 💥 Null check to prevent .id access on None
     if not contact:
         flash("User not found.")
         return redirect(url_for("circle"))
 
+    # ✅ Only run if contact was found
     if is_user_blocked(user.id, contact.id):
         flash("You have blocked this user.")
         return redirect(url_for("circle"))
 
+    # 🕰 Get past week's messages
     week_ago = datetime.utcnow() - timedelta(days=7)
     messages = db.query(DirectMessage).filter(
         ((DirectMessage.sender_id == user.id) & (DirectMessage.recipient_id == contact.id)) |
         ((DirectMessage.sender_id == contact.id) & (DirectMessage.recipient_id == user.id))
     ).filter(DirectMessage.timestamp >= week_ago).order_by(DirectMessage.timestamp).all()
 
+    # 🗨️ Format for display
     chat_log = []
     for msg in messages:
-        speaker = "You" if msg.sender_id == user.id else contact.display_name or f"@{contact.resurgitag}"
+        speaker = "You" if msg.sender_id == user.id else (contact.display_name or f"@{contact.resurgitag}")
         chat_log.append({"speaker": speaker, "text": msg.content})
 
     return render_template(
@@ -707,7 +714,6 @@ def direct_chat_page(resurgitag):
         quest_flash=False,
         show_grace_intro=False
     )
-
 
 @app.route("/direct/chat/<resurgitag>", methods=["POST"])
 @login_required
