@@ -848,7 +848,7 @@ def about():
 
 @app.route('/')
 def landing():
-    return render_template('landing.html')
+    return render_template('menu.html')
 
 @app.route("/menu")
 @login_required
