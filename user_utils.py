@@ -1,6 +1,6 @@
 # utils/user_utils.py
 
-from database import SessionLocal
+from db import SessionLocal
 from models import UserBlock
 
 def is_blocked(sender_id, recipient_id):
