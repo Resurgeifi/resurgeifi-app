@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resurgifi Progress Summary</title>
+  <style>
+    body {
+      font-family: 'Helvetica', 'Arial', sans-serif;
+      margin: 2rem;
+      color: #333;
+    }
+
+    h1, h2, h3 {
+      color: #2b3e50;
+    }
+
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+    }
+
+    .intro {
+      font-size: 1rem;
+      margin-bottom: 25px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .summary-box {
+      background-color: #f7f7f7;
+      border-left: 5px solid #5c9ef5;
+      padding: 20px;
+      white-space: pre-wrap;
+    }
+
+    .footer {
+      border-top: 1px solid #ccc;
+      margin-top: 40px;
+      padding-top: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .qr-container {
+      text-align: right;
+    }
+
+    .qr-container img {
+      width: 100px;
+      height: 100px;
+    }
+
+    .blurb {
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Resurgifi Progress Summary</h1>
+    <h3>For: {{ nickname }}</h3>
+    <p><strong>Reflection Period:</strong> Last {{ days }} Days</p>
+  </div>
+
+  <div class="intro">
+    <p>
+      This document summarizes {{ nickname }}’s emotional and behavioral journey using Resurgifi over the past {{ days }} days.
+      It includes journal reflections, AI-assisted hero dialogues, and therapeutic quest completions. This is not a clinical evaluation,
+      but a visual progress report designed to support conversation between client and provider.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>📄 Emotional Progress Summary</h2>
+    <div class="summary-box">
+      {{ summary }}
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="blurb">
+      <p>
+        <strong>What is Resurgifi?</strong><br>
+        Resurgifi is a cinematic storytelling tool for addiction recovery. It helps clients reflect and grow using guided quests, AI-driven journal prompts, and metaphor-rich conversations with therapeutic heroes. Built from lived experience, it's designed to complement—not replace—clinical care.
+      </p>
+      <p>
+        <strong>Want to learn more?</strong><br>
+        Scan the QR code to visit our clinical codex for professionals.
+      </p>
+    </div>
+    <div class="qr-container">
+      <img src="data:image/png;base64,{{ qr_code_data }}" alt="QR Code">
+    </div>
+  </div>
+
+</body>
+</html>
+

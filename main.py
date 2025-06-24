@@ -551,6 +551,152 @@ def circle_chat(resurgitag):
         return jsonify({"response": response})
 
     return jsonify({"error": "No matching hero or villain found."}), 404
+@app.route("/summary/professional", methods=["GET"])
+@login_required
+def professional_summary():
+    from openai import OpenAI
+    import uuid
+
+    db = SessionLocal()
+    user_id = session.get("user_id")
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    # 1️⃣ Get time range — default to 7 days
+    try:
+        days = int(request.args.get("days", 7))
+        assert days in [7, 14, 30]
+    except:
+        flash("Invalid time range. Please choose 7, 14, or 30 days.", "warning")
+        return redirect(url_for("journal"))
+
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+    # 2️⃣ User context
+    user = db.query(User).filter_by(id=user_id).first()
+    nickname = user.nickname or "Friend"
+
+    # 3️⃣ Hero conversations
+    chats = db.query(QueryHistory).filter(
+        QueryHistory.user_id == user_id,
+        QueryHistory.timestamp >= cutoff
+    ).order_by(QueryHistory.timestamp).all()
+
+    formatted_chats = "\n".join([
+        f'{msg.sender_role.title()}: "{msg.question or msg.response}"'
+        for msg in chats
+    ])
+
+    # 4️⃣ Journal reflections
+    journals = db.query(DailyReflection).filter(
+        DailyReflection.user_id == user_id,
+        DailyReflection.date >= cutoff
+    ).order_by(DailyReflection.date).all()
+
+    formatted_journals = "\n".join([
+        f'Journal ({entry.date.strftime("%Y-%m-%d")}): {entry.summary_text.strip()}'
+        for entry in journals
+    ])
+
+    # 5️⃣ Completed quests
+    completed_quests = db.query(UserQuestEntry).filter(
+        UserQuestEntry.user_id == user_id,
+        UserQuestEntry.completed == True,
+        UserQuestEntry.timestamp >= cutoff
+    ).all()
+
+    quest_count = len(completed_quests)
+
+    # 6️⃣ Build AI prompt
+    prompt = f"""
+You are a professional recovery assistant writing a behavioral progress snapshot.
+
+The client’s nickname is: {nickname}
+
+They have been active in the Resurgifi platform over the past {days} days. Here is a summary of their activity:
+
+---
+
+🧠 **Hero Conversations**:
+{formatted_chats if formatted_chats else "No conversations during this period."}
+
+📝 **Journal Reflections**:
+{formatted_journals if formatted_journals else "No journal entries logged."}
+
+🎯 **Completed Quests**: {quest_count} quests completed.
+
+---
+
+Now, write a clean 3–4 paragraph summary for a therapist or counselor. Highlight:
+
+- Emotional themes or recurring patterns
+- Signs of growth, insight, or engagement
+- Any signs of struggle or inconsistency
+- How invested the client appears in their recovery process
+
+Use **third-person**, warm, neutral tone. Refer to them as *“the client.”* Avoid clinical jargon or therapy language. This is not a diagnosis — just a progress reflection that helps spark conversation.
+""".strip()
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.6
+        )
+        summary_text = response.choices[0].message.content.strip()
+        db.close()
+
+        return render_template(
+            "professional_summary_preview.html",
+            summary=summary_text,
+            days=days,
+            quest_count=quest_count
+        )
+
+    except Exception as e:
+        print("🔥 GPT error in professional_summary:", str(e))
+        db.close()
+        flash("Something went wrong while generating your summary.", "danger")
+        return redirect(url_for("journal"))
+from flask import make_response
+from weasyprint import HTML
+import qrcode
+import io
+import base64
+
+@app.route("/download_pdf", methods=["POST"])
+@login_required
+def download_pdf():
+    summary_text = request.form.get("summary_text", "")
+    days = int(request.form.get("days", 7))
+    user_id = session.get("user_id")
+
+    db = SessionLocal()
+    user = db.query(User).filter_by(id=user_id).first()
+    nickname = user.nickname or "Friend"
+    db.close()
+
+    # 🧭 QR Code pointing to /codex
+    qr_url = "https://resurgeifi-app.onrender.com/codex"
+    qr_img = qrcode.make(qr_url)
+    buffered = io.BytesIO()
+    qr_img.save(buffered, format="PNG")
+    qr_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+    # 🖼️ HTML content for PDF
+    html_content = render_template("pdf_summary_template.html",
+                                   nickname=nickname,
+                                   days=days,
+                                   summary=summary_text,
+                                   qr_code_data=qr_base64)
+
+    # 📄 Convert to PDF
+    pdf = HTML(string=html_content).write_pdf()
+
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=Resurgifi_Summary_{nickname}.pdf'
+
+    return response
 
 @app.route("/circle/chat/<resurgitag>", methods=["GET"])
 @login_required
