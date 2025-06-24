@@ -582,7 +582,7 @@ def professional_summary():
     ).order_by(QueryHistory.timestamp).all()
 
     formatted_chats = "\n".join([
-        f'{msg.sender_role.title()}: "{msg.question or msg.response}"'
+        f'{(msg.sender_role or "system").title()}: "{msg.question or msg.response}"'
         for msg in chats
     ])
 
@@ -657,6 +657,7 @@ Use **third-person**, warm, neutral tone. Refer to them as *“the client.”* A
         db.close()
         flash("Something went wrong while generating your summary.", "danger")
         return redirect(url_for("journal"))
+
 from flask import make_response
 from weasyprint import HTML
 import qrcode
