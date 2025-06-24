@@ -2,15 +2,24 @@
 {% block title %}Thank You | Resurgifi{% endblock %}
 
 {% block content %}
-<div class="thank-you-container" style="text-align: center; padding: 4rem 1rem; max-width: 600px; margin: auto;">
+<div class="thank-you-container" style="
+    text-align: center;
+    padding: 4rem 1rem 6rem;  /* ⬅ extra bottom padding */
+    max-width: 600px;
+    margin: auto;
+    word-break: break-word;
+">
   <h1 style="font-size: 2.5rem; margin-bottom: 1.5rem;">You're In 💫</h1>
   <p style="font-size: 1.2rem;">{{ name | default("Friend") }}, welcome to the first wave of Resurgifi.</p>
-  <p style="margin-top: 1rem;">You'll hear from us soon. Until then — keep resurging.</p>
+  <p style="margin-top: 1rem; font-size: 1.1rem;">
+    You'll hear from us soon. Until then — keep resurging.
+  </p>
 
   <a href="/" class="global-button" style="margin-top: 2rem;">⬅ Back to the beginning</a>
 
   <hr style="margin: 3rem auto; width: 60%; border-color: #444;" />
 </div>
 {% endblock %}
+
 
 
