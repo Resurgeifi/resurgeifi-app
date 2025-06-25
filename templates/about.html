@@ -2,50 +2,53 @@
 {% block title %}About Resurgifi{% endblock %}
 {% block content %}
 
-<div class="container py-4 fs-5">  <!-- Sets larger base font -->
+<div class="container py-4 fs-5">
   <div class="content-box">
-    <h1 class="text-center mb-4 fs-2">🚀 Ground Floor Access</h1>
-    <p class="text-center mb-4 fs-4 fst-italic">You're not just discovering Resurgifi. You're shaping it.</p>
+
+    <h1 class="text-center mb-4 fs-2">🚀 Welcome to Resurgifi</h1>
+    <p class="text-center mb-4 fs-4 fst-italic">This isn’t just a tool. It’s your inner world — animated, supported, and evolving with you.</p>
 
     <hr>
 
-    <p><strong>Resurgifi</strong> is live, raw, and evolving in real time. What you're experiencing now is Version Beta — a working prototype with core features like <em>Inner Circle chats, emotional journaling, and adaptive AI reflections</em>. But that's just the surface.</p>
+    <p><strong>Resurgifi</strong> is a guided recovery experience built from real-life healing. It’s part journal, part emotional GPS, and part cinematic journey through the world inside you — complete with heroes, villains, and a support circle who *get it.*</p>
 
-    <p>Think of this as a cinematic draft. Every week brings new features, deeper emotional logic, and more immersive storylines. Our end goal? To build a living, breathing recovery companion — one that grows with you through every stage of the journey.</p>
+    <p>Everything here is designed to help you process what hurts, celebrate what’s working, and stay curious about what’s next — without pressure, shame, or lectures.</p>
 
     <hr>
 
-    <h4 class="fs-3">🔧 What’s Working Right Now</h4>
+    <h4 class="fs-3">🛠️ What You Can Do Right Now</h4>
     <ul class="list-group my-4 fs-5">
-      <li class="list-group-item">✅ Inner Circle — talk with 5 emotionally intelligent AI voices</li>
-      <li class="list-group-item">✅ Quests — guided prompts that sync with your emotional tone</li>
-      <li class="list-group-item">✅ Hero Chats — support from icons like Grace, Cognita, Lucentis</li>
-      <li class="list-group-item">✅ Circle Chat — send love and support to your friends</li>
-      <li class="list-group-item">✅ Auto-Summarize — personalized insight after each reflection</li>
+      <li class="list-group-item">💬 <strong>Inner Circle Chat</strong> — talk with five emotionally intelligent agents trained in recovery and reflection</li>
+      <li class="list-group-item">🎯 <strong>Quests</strong> — short, themed prompts that help you unlock insight and emotional strength</li>
+      <li class="list-group-item">📝 <strong>Summarize to Journal</strong> — after each quest, your insights are shaped into a first-person reflection</li>
+      <li class="list-group-item">📄 <strong>Professional Summary</strong> — generate a clean, shareable snapshot of your growth for a therapist or group</li>
+      <li class="list-group-item">💡 <strong>Hero Support</strong> — receive feedback and care from unique in-world guides like Grace, Cognita, Lucentis, and more</li>
     </ul>
 
-    <h4 class="fs-3">🚧 What’s Coming Soon</h4>
+    <hr>
+
+    <h4 class="fs-3">🔮 What’s on Deck</h4>
     <ul class="list-group my-4 fs-5">
-      <li class="list-group-item">🎮 Card Game — recovery-themed gameplay using hero/villain logic</li>
-      <li class="list-group-item">🎨 Character Sheets — comic-style bios of your internal heroes & villains</li>
-      <li class="list-group-item">📈 Mood Tracking Map — visual arcs of your emotional progress</li>
-      <li class="list-group-item">📚 Reflection Journal — themed printable guided workbook</li>
-      <li class="list-group-item">🧠 Smarter Hero Memory — relationship depth with returning users</li>
+      <li class="list-group-item">📓 <strong>Companion Journal</strong> — a physical tool to reflect, track, and explore offline</li>
+      <li class="list-group-item">🗺️ <strong>Mood Mapping</strong> — visual patterns showing how you’ve been feeling over time</li>
+      <li class="list-group-item">🧠 <strong>Hero Memory</strong> — deeper responses from agents who remember your story</li>
+      <li class="list-group-item">🎨 <strong>Comics + Coloring Pages</strong> — print-friendly art to help you slow down and see your journey</li>
     </ul>
 
-    <p class="mt-4">By using Resurgifi now, you're not just healing — you're helping shape the future of how healing feels. Your feedback, your story, your experience… it all matters.</p>
+    <p class="mt-4">Resurgifi is always evolving — and your feedback directly shapes what it becomes. Whether you’re journaling alone or sharing your summary with a counselor, this space was built with care, for moments like yours.</p>
 
-    <p class="text-center fs-3"><strong>This is the ground floor. Welcome in.</strong></p>
+    <p class="text-center fs-3"><strong>This isn’t beta. It’s becoming. And you’re part of it.</strong></p>
 
     <div class="text-center mt-4">
       <a href="{{ url_for('menu') }}" class="btn btn-outline-dark fs-5">⬅ Back to Menu</a>
     </div>
   </div>
 
-  <!-- 🔗 Contact Form -->
+  <!-- Contact Form -->
   <div class="content-box mt-5">
-    <h2 class="mb-3 fs-3">📬 Want to Collaborate or Share Thoughts?</h2>
-    <p>Whether you’re a clinician, coder, artist, or just someone who gets it — we’d love to hear from you.</p>
+    <h2 class="mb-3 fs-3">📬 Reach Out Anytime</h2>
+    <p>If you're a therapist, coder, artist, or just someone who's resonating with this — we'd love to hear from you.</p>
+
     <form method="POST" action="{{ url_for('contact') }}">
       <div class="mb-3">
         <label for="name" class="form-label fs-5">Your Name:</label>
