@@ -136,7 +136,7 @@ function renderQuestion() {
           const selected = [...optionsEl.querySelectorAll(".selected")].map(el => el.dataset.value);
           if (selected.length <= current.limit) {
             responses[current.name] = selected;
-            nextBtn.style.display = selected.length === current.limit ? "inline-block" : "none";
+            nextBtn.style.display = selected.length >= 1 ? "inline-block" : "none";
           } else {
             btn.classList.remove("selected");
           }
@@ -181,4 +181,3 @@ renderQuestion();
 </style>
 
 {% endblock %}
-
