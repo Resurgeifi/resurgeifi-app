@@ -1837,7 +1837,7 @@ def reset_test_user():
     flash("TestUser created/reset. Starting onboarding.", "success")
     return redirect(url_for("onboarding"))
 
-ffrom useronboarding import generate_and_store_bio
+from useronboarding import generate_and_store_bio
 from models import db, User, UserBio
 from flask import request, jsonify, redirect, url_for, session
 from flask_login import login_required, login_user
