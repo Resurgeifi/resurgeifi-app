@@ -9,17 +9,16 @@
   <form method="POST" action="/settings" style="margin-top: 2rem;">
     <div class="card-dark" style="padding: 2rem;">
 
-      <!-- 🌀 Journey Selection -->
+      <!-- 🌀 Journey Selection (Multi) -->
       <label for="theme_choice" style="font-size: 1.2rem; display: block; margin-bottom: 1rem;"><strong>Your Journey</strong></label>
-      <select name="theme_choice" id="theme_choice" class="global-button" style="width: 100%; padding: 0.6rem; font-size: 1rem; border-radius: 8px;">
-        <option value="">-- Select Journey --</option>
-        <option value="Major loss or grieving" {% if theme_choice == "Major loss or grieving" %}selected{% endif %}>💔 Grief</option>
-        <option value="Anxiety or fear" {% if theme_choice == "Anxiety or fear" %}selected{% endif %}>🌪️ Anxiety</option>
-        <option value="Addiction" {% if theme_choice == "Addiction" %}selected{% endif %}>💊 Addiction</option>
-        <option value="Depression or emptiness" {% if theme_choice == "Depression or emptiness" %}selected{% endif %}>🌫️ Depression</option>
-        <option value="Low self-worth" {% if theme_choice == "Low self-worth" %}selected{% endif %}>🪞 Self-Worth</option>
-        <option value="Trauma or PTSD" {% if theme_choice == "Trauma or PTSD" %}selected{% endif %}>🔥 Trauma</option>
-        <option value="Emotional growth" {% if theme_choice == "Emotional growth" %}selected{% endif %}>🌱 Emotional Growth</option>
+      <select name="theme_choice" id="theme_choice" class="global-button" multiple size="7" style="width: 100%; padding: 0.6rem; font-size: 1rem; border-radius: 8px;">
+        <option value="Major loss or grieving" {% if "Major loss or grieving" in theme_choice %}selected{% endif %}>💔 Grief</option>
+        <option value="Anxiety or fear" {% if "Anxiety or fear" in theme_choice %}selected{% endif %}>🌪️ Anxiety</option>
+        <option value="Addiction" {% if "Addiction" in theme_choice %}selected{% endif %}>💊 Addiction</option>
+        <option value="Depression or emptiness" {% if "Depression or emptiness" in theme_choice %}selected{% endif %}>🌫️ Depression</option>
+        <option value="Low self-worth" {% if "Low self-worth" in theme_choice %}selected{% endif %}>🪞 Self-Worth</option>
+        <option value="Trauma or PTSD" {% if "Trauma or PTSD" in theme_choice %}selected{% endif %}>🔥 Trauma</option>
+        <option value="Emotional growth" {% if "Emotional growth" in theme_choice %}selected{% endif %}>🌱 Emotional Growth</option>
       </select>
 
       <!-- 📅 Start Date -->
@@ -57,7 +56,8 @@
       <button type="submit" class="global-button" style="margin-top: 1.5rem;">💾 Save Settings</button>
     </div>
   </form>
-      <a class="dropdown-item" href="{{ url_for('blocked_users') }}">Manage Blocked Users</a>
+
+  <a class="dropdown-item" href="{{ url_for('blocked_users') }}">Manage Blocked Users</a>
 
   <div class="card-dark" style="padding: 1.5rem; margin-top: 2rem;">
     <p class="mantra">Want to help us improve Resurgifi?</p>
@@ -69,6 +69,6 @@
       <button type="submit" class="global-button" style="background-color: #c62828; color: #fff;">Log Out</button>
     </div>
   </form>
-
 </div>
 {% endblock %}
+

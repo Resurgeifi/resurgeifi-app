@@ -1143,8 +1143,8 @@ def settings():
         if request.method == "POST":
             form = request.form
 
-            # 🌀 Journey selection
-            journey = form.get("theme_choice")
+            # 🌀 Journey selection (multi-select)
+            journey_list = form.getlist("theme_choice")
             valid_journeys = [
                 "Major loss or grieving",
                 "Anxiety or fear",
@@ -1154,9 +1154,9 @@ def settings():
                 "Trauma or PTSD",
                 "Emotional growth"
             ]
-            if journey in valid_journeys:
-                user.theme_choice = journey
-                session['journey'] = journey
+            selected = [j for j in journey_list if j in valid_journeys]
+            user.theme_choice = ",".join(selected)
+            session['journey'] = selected
 
             # 📅 Start date
             date_str = form.get("journey_start_date")
@@ -1173,34 +1173,31 @@ def settings():
                 user.display_name = nickname
                 session['nickname'] = nickname
 
-            # 🕒 Time zone selection
+            # 🕒 Time zone
             tz = form.get("timezone")
             if tz:
                 user.timezone = tz
 
-            # 👁️ Visibility toggle (still available in user.profile)
-            user.show_journey_publicly = 'show_journey_publicly' in form
+            # 👁️ Visibility toggle moved to /profile
+            # user.show_journey_publicly = 'show_journey_publicly' in form
 
             db.commit()
             flash("Settings updated successfully.", "success")
             return redirect(url_for('settings'))
 
         # 🧠 Pull saved values for GET
-        try:
-            journey_start_date = (
-                user.journey_start_date.strftime('%Y-%m-%d')
-                if isinstance(user.journey_start_date, datetime)
-                else ""
-            )
-        except Exception:
-            journey_start_date = ""
+        journey_start_date = (
+            user.journey_start_date.strftime('%Y-%m-%d')
+            if isinstance(user.journey_start_date, datetime)
+            else ""
+        )
 
         return render_template(
             "settings.html",
-            theme_choice=user.theme_choice,
+            theme_choice=(user.theme_choice.split(",") if user.theme_choice else []),
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
-            timezone=user.timezone or "America/New_York",  # Defaults to EST if none set
+            timezone=user.timezone or "America/New_York",
             show_journey_publicly=user.show_journey_publicly,
             datetime=datetime
         )
@@ -1211,7 +1208,6 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
-
 
 @app.route("/profile/update-visibility", methods=["POST"])
 @login_required
@@ -1861,8 +1857,13 @@ def submit_onboarding():
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        # 🔄 Store onboarding answers into user model
-        user.theme_choice = data.get("journey", "")
+        # 🔄 Handle multi-journey input correctly
+        journey_choices = data.get("journey", [])
+        if isinstance(journey_choices, list):
+            user.theme_choice = ",".join(journey_choices)
+        else:
+            user.theme_choice = journey_choices  # fallback if already a string
+
         user.default_coping = data.get("q2", "")
         user.hero_traits = data.get("q3", [])
         user.nickname = data.get("nickname", "")
@@ -1870,8 +1871,21 @@ def submit_onboarding():
         user.timezone = data.get("timezone", "UTC")
         user.has_completed_onboarding = True
 
-        # 🧠 Generate and store user backstory bio
-        generate_and_store_bio(user_id, user.theme_choice, user.default_coping, user.hero_traits)
+        # 🧠 Generate and store user backstory bio directly via db.session
+        try:
+            themes = user.theme_choice
+            traits = ", ".join(user.hero_traits) if isinstance(user.hero_traits, list) else user.hero_traits
+
+            user.bio = (
+                f"{user.nickname or 'This person'} came to Resurgifi seeking support with "
+                f"{themes}. Their main coping tool has been '{user.default_coping}', and they "
+                f"value traits like {traits}. This is their beginning — not their end."
+            )
+
+            print(f"✅ Bio generated and assigned for user {user_id}")
+
+        except Exception as e:
+            print("❌ Error in bio generation:", e)
 
         db.session.commit()
 
