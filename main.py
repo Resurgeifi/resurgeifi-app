@@ -1837,12 +1837,10 @@ def reset_test_user():
     flash("TestUser created/reset. Starting onboarding.", "success")
     return redirect(url_for("onboarding"))
 
-from useronboarding import generate_and_store_bio
-from models import db, User
-
-from flask import redirect, url_for  # Make sure this is imported at the top
-
-from flask_login import login_user  # make sure this is imported at top
+ffrom useronboarding import generate_and_store_bio
+from models import db, User, UserBio
+from flask import request, jsonify, redirect, url_for, session
+from flask_login import login_required, login_user
 
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
@@ -1859,30 +1857,35 @@ def submit_onboarding():
 
         # 🔄 Handle multi-journey input correctly
         journey_choices = data.get("journey", [])
-        if isinstance(journey_choices, list):
-            user.theme_choice = ",".join(journey_choices)
-        else:
-            user.theme_choice = journey_choices  # fallback if already a string
+        user.theme_choice = ",".join(journey_choices) if isinstance(journey_choices, list) else journey_choices
 
+        # Store onboarding fields
         user.default_coping = data.get("q2", "")
-        user.hero_traits = data.get("q3", [])
+        hero_traits_raw = data.get("q3", [])
+        user.hero_traits = hero_traits_raw if isinstance(hero_traits_raw, list) else [hero_traits_raw]
         user.nickname = data.get("nickname", "")
         user.journey_start_date = data.get("journey_start_date")
         user.timezone = data.get("timezone", "UTC")
         user.has_completed_onboarding = True
 
-        # 🧠 Generate and store user backstory bio directly via db.session
+        # 🧠 Generate and save user bio in related UserBio model
         try:
+            traits = ", ".join(user.hero_traits)
             themes = user.theme_choice
-            traits = ", ".join(user.hero_traits) if isinstance(user.hero_traits, list) else user.hero_traits
-
-            user.bio = (
+            bio_text = (
                 f"{user.nickname or 'This person'} came to Resurgifi seeking support with "
                 f"{themes}. Their main coping tool has been '{user.default_coping}', and they "
                 f"value traits like {traits}. This is their beginning — not their end."
             )
 
-            print(f"✅ Bio generated and assigned for user {user_id}")
+            existing_bio = db.session.query(UserBio).filter_by(user_id=user.id).first()
+            if existing_bio:
+                existing_bio.bio_text = bio_text
+            else:
+                new_bio = UserBio(user_id=user.id, bio_text=bio_text)
+                db.session.add(new_bio)
+
+            print(f"✅ Bio saved for user {user_id}")
 
         except Exception as e:
             print("❌ Error in bio generation:", e)
