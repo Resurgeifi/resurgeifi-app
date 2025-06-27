@@ -1868,7 +1868,7 @@ def submit_onboarding():
         user.timezone = data.get("timezone", "UTC")
         user.has_completed_onboarding = True
 
-        # 🧠 Generate and save user bio in related UserBio model
+        # 🧠 Generate and save user bio in both User and UserBio
         try:
             traits = ", ".join(user.hero_traits)
             themes = user.theme_choice
@@ -1878,6 +1878,10 @@ def submit_onboarding():
                 f"value traits like {traits}. This is their beginning — not their end."
             )
 
+            # Save to User model (used in chat, summaries, etc.)
+            user.bio = bio_text
+
+            # Save to UserBio table (for tracking / pro features)
             existing_bio = db.session.query(UserBio).filter_by(user_id=user.id).first()
             if existing_bio:
                 existing_bio.bio_text = bio_text
@@ -1885,7 +1889,7 @@ def submit_onboarding():
                 new_bio = UserBio(user_id=user.id, bio_text=bio_text)
                 db.session.add(new_bio)
 
-            print(f"✅ Bio saved for user {user_id}")
+            print(f"✅ Bio saved in both User and UserBio for user {user_id}")
 
         except Exception as e:
             print("❌ Error in bio generation:", e)
