@@ -1957,8 +1957,8 @@ def quest_entrypoint():
 def run_quest(quest_id):
     db_session = SessionLocal()
     try:
-        user_id = session.get("user_id")
-        user = db_session.query(User).get(user_id)
+        user = current_user
+        user_id = user.id
         now = datetime.utcnow()
 
         # 🔁 Load quest YAML
