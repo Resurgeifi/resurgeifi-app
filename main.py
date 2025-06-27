@@ -18,6 +18,7 @@ def localize_time(utc_time, user_timezone):
     if not user_timezone:
         user_timezone = "America/New_York"
     return utc_time.replace(tzinfo=utc).astimezone(tz(user_timezone))
+
 def generate_resurgitag(base_name):
     """Generate a Resurgifi handle like @Jonas_23"""
     base = ''.join(c for c in base_name if c.isalnum())[:10].capitalize()
@@ -33,7 +34,6 @@ def clean_text_for_voice(raw_text, speaker_name=None):
         text = text.replace("dot", ".")  # special rule for Grace if needed
 
     return text.strip()
-
 
 # 🔒 Auth + Security
 from functools import wraps
@@ -77,7 +77,7 @@ import qrcode
 import io
 import base64
 from sqlalchemy import and_, func
-from flask_login import login_required
+from flask_login import LoginManager, login_required, current_user
 
 # ✅ Load environment variables
 load_dotenv()
@@ -85,6 +85,14 @@ load_dotenv()
 # ✅ Initialize Flask App
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
+
+# ✅ Set up Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
 
 # ✅ CORS for cross-origin POSTs
 CORS(app, supports_credentials=True, resources={
