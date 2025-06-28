@@ -273,11 +273,13 @@ class UserSettings(db.Model):
 
     user = db.relationship("User", backref="settings")
 
-# ✅ login_required decorator
+# ✅ login_required
+ decorator
 from functools import wraps
 from flask import session, redirect, url_for, flash
 
-def login_required(f):
+def login_required
+(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
