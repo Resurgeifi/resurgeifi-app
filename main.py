@@ -1957,20 +1957,36 @@ def quest_entrypoint():
 def run_quest(quest_id):
     db_session = SessionLocal()
     try:
-        user_id = session["user_id"]
+        print("⚙️ Starting /quest route...")
+        user_id = session.get("user_id")
+        if not user_id:
+            print("❌ session['user_id'] not found.")
+            flash("Session expired. Please log in again.", "error")
+            return redirect(url_for("login"))
+
+        print(f"✅ SESSION user_id = {user_id}")
         user = db_session.query(User).get(user_id)
+
+        if not user:
+            print(f"❌ No user found for ID: {user_id}")
+            flash("User not found. Try logging in again.", "error")
+            return redirect(url_for("circle"))
+
+        print(f"✅ DB user loaded: {user.email if user else 'None'}")
         now = datetime.utcnow()
 
         quest = load_quest(quest_id)
         quest_prompt = quest.get("prompt", "")
+        print(f"📘 Quest loaded: {quest_id} | Prompt: {quest_prompt[:30]}...")
 
         if request.method == "POST":
             reflection = request.form.get("reflection", "").strip()
+            print(f"📝 Reflection submitted: {reflection}")
+
             if not reflection:
                 flash("Please share something so we can reflect with you.", "warning")
                 return redirect(url_for("run_quest", quest_id=quest_id))
 
-            # ✨ If short, show expansion options
             if len(reflection.split()) <= 3:
                 try:
                     system_prompt = (
@@ -1987,6 +2003,7 @@ def run_quest(quest_id):
 
                     raw_output = completion.choices[0].message.content.strip()
                     suggestions = [line.strip("-•123. ").strip() for line in raw_output.split("\n") if line.strip()]
+                    print(f"✨ Short reflection expansions: {suggestions}")
                     return render_template("quest_engine.html", quest=quest, quest_id=quest_id,
                                            suggestions=suggestions, short_reflection=reflection, user=user)
 
@@ -1995,16 +2012,16 @@ def run_quest(quest_id):
                     flash("We had trouble expanding your thought. Try adding a bit more detail.", "warning")
                     return redirect(url_for("run_quest", quest_id=quest_id))
 
-            # ⏳ Submission throttle
             four_hours_ago = now - timedelta(hours=4)
             recent_quests = db_session.query(UserQuestEntry)\
                 .filter_by(user_id=user_id)\
                 .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
+            print(f"📊 Recent quest count: {len(recent_quests)}")
+
             if len(recent_quests) >= 30:
                 flash("You’ve already completed 30 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
-            # 🧠 GPT Summary — Always used
             try:
                 system_prompt = (
                     "You are helping a user summarize their own journal entry. They were asked:\n\n"
@@ -2021,12 +2038,12 @@ def run_quest(quest_id):
                     temperature=0.7
                 )
                 summary_text = response.choices[0].message.content.strip()
+                print(f"✅ GPT summary: {summary_text}")
 
             except Exception as e:
                 print("⚠️ GPT summarization failed:", e)
-                summary_text = reflection  # fallback to raw input
+                summary_text = reflection
 
-            # 💾 Save quest result
             new_entry = UserQuestEntry(
                 user_id=user_id,
                 quest_id=quest_id,
@@ -2036,15 +2053,12 @@ def run_quest(quest_id):
             )
             db_session.add(new_entry)
 
-            # 🏅 Award points
             user.points = (user.points or 0) + 5
             session["points_just_added"] = 5
 
-            # ✅ Mark first quest complete if not already done
             if not user.first_quest_complete:
                 user.first_quest_complete = True
 
-            # 🧠 Store for chat
             hero_tag = quest["hero"]
             session["from_quest"] = {
                 "quest_id": quest_id,
@@ -2052,18 +2066,20 @@ def run_quest(quest_id):
             }
 
             db_session.commit()
+            print("💾 Quest entry saved + user updated")
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
 
-        # 📖 Initial quest load
+        print("📖 GET request — rendering quest form")
         return render_template("quest_engine.html", quest=quest, quest_id=quest_id, user=user)
 
     except Exception as e:
         db_session.rollback()
-        flash("Quest processing failed. Please try again.", "error")
         print(f"❌ Quest route error: {e}")
+        flash("Quest processing failed. Please try again.", "error")
         return redirect(url_for("circle"))
     finally:
         db_session.close()
+
 
 @app.route("/change-tag", methods=["GET", "POST"])
 @login_required
