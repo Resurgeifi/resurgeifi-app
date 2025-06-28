@@ -92,6 +92,7 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
+    print(f"🔁 Flask-Login is trying to load user_id {user_id}")
     return db.session.get(User, int(user_id))
 
 # ✅ CORS for cross-origin POSTs
@@ -112,6 +113,9 @@ def load_logged_in_user():
             g.user_timezone = tz(user_tz)
         except Exception:
             g.user_timezone = tz('America/New_York')
+    print(f"🪪 User ID: {getattr(current_user, 'id', None)}")
+    print(f"🍪 Session: {session.get('_user_id')}")
+    print(f"📦 Raw session: {dict(session)}")
 
     # 🐛 TEMP DEBUGGING
     print(f"🔁 Route hit: {request.path}")
