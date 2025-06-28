@@ -101,6 +101,25 @@ CORS(app, supports_credentials=True, resources={
         "methods": ["POST", "OPTIONS"]
     }
 })
+@app.before_request
+def load_logged_in_user():
+    g.user = current_user if current_user.is_authenticated else None
+
+    if g.user:
+        # Optional timezone logic — only if your app uses this
+        user_tz = getattr(g.user, 'timezone', 'America/New_York')
+        try:
+            g.user_timezone = tz(user_tz)
+        except Exception:
+            g.user_timezone = tz('America/New_York')
+
+    # 🐛 TEMP DEBUGGING
+    print(f"🔁 Route hit: {request.path}")
+    print(f"🧍 Authenticated? {current_user.is_authenticated}")
+    if current_user.is_authenticated:
+        print(f"🆔 User ID: {current_user.id} | Tag: {current_user.username}")
+    else:
+        print("🚫 No user logged in.")
 
 # ✅ Email Config
 app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
