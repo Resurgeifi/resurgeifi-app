@@ -84,7 +84,7 @@ load_dotenv()
 
 # ✅ Initialize Flask App
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
+app.secret_key = os.getenv("SECRET_KEY", "resurgifi-dev-key")
 
 # ✅ Set up Flask-Login
 login_manager = LoginManager()
