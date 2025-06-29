@@ -1143,8 +1143,8 @@ def settings():
         if request.method == "POST":
             form = request.form
 
-            # 🌀 Journey selection
-            journey = form.get("theme_choice")
+            # 🌀 Journey selection (Multi)
+            journey_choices = request.form.getlist("journey_choices")
             valid_journeys = [
                 "Major loss or grieving",
                 "Anxiety or fear",
@@ -1154,9 +1154,9 @@ def settings():
                 "Trauma or PTSD",
                 "Emotional growth"
             ]
-            if journey in valid_journeys:
-                user.theme_choice = journey
-                session['journey'] = journey
+            # Ensure that the selected journeys are valid before saving
+            user.journey_choices = [journey for journey in journey_choices if journey in valid_journeys]
+            session['journey_choices'] = user.journey_choices
 
             # 📅 Start date
             date_str = form.get("journey_start_date")
@@ -1187,6 +1187,7 @@ def settings():
 
         # 🧠 Pull saved values for GET
         try:
+            journey_choices = user.journey_choices or []
             journey_start_date = (
                 user.journey_start_date.strftime('%Y-%m-%d')
                 if isinstance(user.journey_start_date, datetime)
@@ -1197,7 +1198,7 @@ def settings():
 
         return render_template(
             "settings.html",
-            theme_choice=user.theme_choice,
+            journey_choices=journey_choices,
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
             timezone=user.timezone or "America/New_York",  # Defaults to EST if none set
