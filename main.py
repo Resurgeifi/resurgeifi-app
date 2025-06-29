@@ -2,132 +2,151 @@
 import os
 import random
 import re
-import io
-import base64
+from datetime import datetime, timedelta
+from datetime import time
+
 from uuid import uuid4
-from datetime import datetime, timedelta, time
+from utils.quest_loader import load_quest
+from utils.timezone_utils import get_user_local_bounds
 
-# 🔧 Core Flask Setup
-from flask import (
-    Flask, abort, render_template, request, redirect,
-    url_for, session, flash, jsonify, g, Response
-)
-from flask_cors import CORS
-from flask_mail import Mail, Message
-from flask_login import (
-    LoginManager, login_user, logout_user,
-    login_required, current_user
-)
-from flask_migrate import Migrate
-
-# 🔐 Auth & Security
-from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
-
-# 🌐 Timezones
+# 🌐 Timezone Handling
 import pytz
-from pytz import timezone as tz, all_timezones, utc
+from pytz import timezone as tz, all_timezones
+from pytz import utc
 
-# 🔧 Utility Functions
 def localize_time(utc_time, user_timezone):
     if not user_timezone:
         user_timezone = "America/New_York"
     return utc_time.replace(tzinfo=utc).astimezone(tz(user_timezone))
-
 def generate_resurgitag(base_name):
+    """Generate a Resurgifi handle like @Jonas_23"""
     base = ''.join(c for c in base_name if c.isalnum())[:10].capitalize()
     suffix = ''.join(random.choices("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", k=2))
     return f"@{base}_{suffix}"
 
 def clean_text_for_voice(raw_text, speaker_name=None):
-    text = raw_text.replace("...", "…")
-    text = re.sub(r'\.(\w)', r'. \1', text)
+    """Clean up text to improve voice performance."""
+    text = raw_text.replace("...", "…")  # replace with ellipsis character
+    text = re.sub(r'\.(\w)', r'. \1', text)  # ensure pause after periods
+
     if speaker_name and speaker_name.lower() == "grace":
-        text = text.replace("dot", ".")
+        text = text.replace("dot", ".")  # special rule for Grace if needed
+
     return text.strip()
 
-# 📦 Internal Imports
-from dotenv import load_dotenv
-from utils.quest_loader import load_quest
-from utils.timezone_utils import get_user_local_bounds
-from user_utils import is_blocked
-from useronboarding import generate_and_store_bio
-from rams import get_hero_for_quest, HERO_NAMES, build_context, select_heroes, build_prompt, call_openai
-from markupsafe import Markup
 
-# 🧩 Models & DB
+# 🔒 Auth + Security
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
+from user_utils import is_blocked  # ✅ correct if file is at root
+
+# 🌍 Flask Core
+from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify, g, Response
+from flask_mail import Mail, Message
+from flask_cors import CORS
+
+# 🧪 Environment Config
+from dotenv import load_dotenv
+
+# 🤖 AI Integration
+from openai import OpenAI
+import requests  # ✅ For ElevenLabs streaming
+
+# 🧩 Resurgifi Internal
 from models import (
-    db, User, UserBio, UserConnection, JournalEntry,
-    QueryHistory, HeroProfile, VillainProfile,
-    CircleMessage, DailyReflection, UserQuestEntry, DirectMessage
+    db,
+    User,
+    UserBio,
+    UserConnection,
+    JournalEntry,
+    QueryHistory,
+    HeroProfile,
+    VillainProfile,
+    CircleMessage,
+    DailyReflection,
+    UserQuestEntry,
+    DirectMessage
 )
-from db import SessionLocal
+from useronboarding import generate_and_store_bio  
+from flask_migrate import Migrate
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import and_, func
-
-# 🤖 AI & Voice
-from openai import OpenAI
-import requests  # For ElevenLabs
+from rams import get_hero_for_quest, HERO_NAMES, build_context, select_heroes, build_prompt, call_openai
+from markupsafe import Markup
 import qrcode
+import io
+import base64
+from sqlalchemy import and_, func
+from flask_login import login_required
 
 # ✅ Load environment variables
 load_dotenv()
 
-# ✅ App + Login + Mail + Migrate Init
+# ✅ Initialize Flask App
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET", "resurgifi-secret")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "resurgifi-dev-key")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///app.db")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['SESSION_COOKIE_SECURE'] = False
+# ✅ CORS for cross-origin POSTs
+CORS(app, supports_credentials=True, resources={
+    r"/contact": {
+        "origins": ["https://resurgelabs.com"],
+        "methods": ["POST", "OPTIONS"]
+    }
+})
 
-db.init_app(app)
+# ✅ Email Config
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS") == "True"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
 mail = Mail(app)
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
-migrate = Migrate(app, db)
-CORS(app)
 
-@app.before_request
-def load_logged_in_user():
-    g.user = current_user if current_user.is_authenticated else None
-    if g.user:
-        user_tz = getattr(g.user, 'timezone', 'America/New_York')
-        try:
-            g.user_timezone = tz(user_tz)
-        except Exception:
-            g.user_timezone = tz('America/New_York')
-    else:
-        g.user_timezone = tz('America/New_York')
-    print(f"🪪 User ID: {getattr(current_user, 'id', None)}")
-    print(f"🍪 Session _user_id: {session.get('_user_id')}")
-    print(f"📦 Raw session: {dict(session)}")
-    print(f"🔁 Route hit: {request.path}")
-    print(f"🧍 Authenticated? {current_user.is_authenticated}")
-    if current_user.is_authenticated:
-        tag = current_user.resurgitag or current_user.display_name or current_user.nickname or "Unnamed"
-        print(f"🆔 User ID: {current_user.id} | Tag: {tag}")
-    else:
-        print("🚫 No user logged in.")
+# ✅ Database Config
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db.init_app(app)
+migrate = Migrate(app, db)
+
+# ✅ SessionLocal for manual queries (inside app context)
+with app.app_context():
+    engine = db.get_engine()
+    SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+
+# ✅ OpenAI Setup
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
+
+# ✅ ElevenLabs Setup
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+
+HERO_VOICE_IDS = {
+    "grace": "hIeqtoW1V7vxkxl7mya3",         # ✅ Grace
+    "cognita": "xNtG3W2oqJs0cJZuTyBc",       # ✅ Cognita (confirmed)
+    "sir_renity": "QcFrn8uykf2t8jKiahBU",     # ✅ Sir Renity (your voice clone)
+    "lucentis": "87tjwokZlpNU7QL3HaLP",       # ⛔ Lucentis Reverand
+    "velessa": "pjcYQlDFKMbcOUp6F5GD",        # ⛔ Placeholder – update soon
+    # ❌ "subox_slumber": Removed — no voice narration for medication-based hero
+}
+
 
 @app.route("/api/tts", methods=["POST"])
 def text_to_speech():
     data = request.json or {}
     text = clean_text_for_voice(data.get("text", ""))
     hero = (data.get("hero") or "grace").strip().lower()
+
     if not text:
         return {"error": "No text provided."}, 400
-    voice_id = HERO_VOICE_IDS.get(hero, HERO_VOICE_IDS["grace"])
+
+    voice_id = HERO_VOICE_IDS.get(hero, HERO_VOICE_IDS["grace"])  # fallback to Grace if missing
+
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
         "Content-Type": "application/json"
     }
+
     payload = {
         "text": text,
         "model_id": "eleven_monolingual_v1",
@@ -136,17 +155,35 @@ def text_to_speech():
             "similarity_boost": 0.75
         }
     }
+
     response = requests.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream",
         headers=headers,
         json=payload,
         stream=True
     )
+
     if response.status_code != 200:
         return {"error": "TTS failed", "details": response.text}, 500
-    return Response(response.iter_content(chunk_size=4096), content_type="audio/mpeg")
 
+    return Response(response.iter_content(chunk_size=4096),
+                    content_type="audio/mpeg")
+
+# ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
+
+@app.before_request
+def load_logged_in_user():
+    user_id = session.get("user_id")
+    if user_id is None:
+        g.user = None
+    else:
+        db_session = SessionLocal()
+        try:
+            g.user = db_session.query(User).filter_by(id=user_id).first()
+           
+        finally:
+            db_session.close()
 
 def login_required(f):
     @wraps(f)
@@ -157,6 +194,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# ✅ Admin access check
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -165,7 +203,6 @@ def admin_required(f):
             return redirect(url_for("index"))
         return f(*args, **kwargs)
     return decorated_function
-
 @app.context_processor
 def inject_unread_count():
     if "user_id" not in session:
@@ -182,25 +219,34 @@ def connect_user(user_id):
     try:
         current_user = db.query(User).get(session["user_id"])
         other_user = db.query(User).get(user_id)
+
         if not other_user:
             flash("User not found.", "danger")
             return redirect(url_for("circle"))
+
         if current_user.id == other_user.id:
             flash("You can't follow yourself.", "warning")
             return redirect(url_for("circle"))
+
         added = False
+
+        # Ensure mutual friendship
         if other_user not in current_user.friends:
             current_user.friends.append(other_user)
             added = True
+
         if current_user not in other_user.friends:
             other_user.friends.append(current_user)
             added = True
+
         if added:
             db.commit()
             flash(f"🎉 You’re now connected with @{other_user.resurgitag}.", "success")
         else:
             flash("You're already connected with this user.", "info")
+
         return redirect(url_for("view_public_profile", resurgitag=other_user.resurgitag))
+
     finally:
         db.close()
 
@@ -216,7 +262,6 @@ def view_user(user_id):
         return render_template("admin_view_user.html", user=user)
     finally:
         db.close()
-
 @app.route("/admin/users", methods=["GET"])
 @admin_required
 def admin_users():
@@ -615,6 +660,9 @@ Use **third-person**, warm, neutral tone. Refer to them as *“the client.”* A
 
 from flask import make_response
 from weasyprint import HTML
+import qrcode
+import io
+import base64
 
 @app.route("/download_pdf", methods=["POST"])
 @login_required
@@ -1009,16 +1057,12 @@ def landing():
 @login_required
 def menu():
     db = SessionLocal()
-    from flask import g
     try:
         user = db.query(User).filter_by(id=session['user_id']).first()
 
         if not user:
             flash("User not found.")
             return redirect(url_for('login'))
-
-        # Attach user to g for template use
-        g.user = user
 
         # 📈 Days on Journey
         days_on_journey = 0
@@ -1047,15 +1091,8 @@ def menu():
             .first()
         )
 
-        # 🧠 Walkthrough logic safety
-        first_time = False
-        try:
-            first_time = not bool(user.first_quest_complete)
-        except Exception as e:
-            print("⚠️ first_quest_complete check failed:", e)
-
         # 🎯 Trigger walkthrough overlay if this is first visit after onboarding
-        show_walkthrough = session.pop("first_time_user", False) or first_time
+        show_walkthrough = session.pop("first_time_user", False)
 
         return render_template(
             "menu.html",
@@ -1065,12 +1102,11 @@ def menu():
             last_journal=last_journal,
             last_hero_msg_text=last_hero_msg.question if last_hero_msg else None,
             streak=session.get('streak', 0),
-            show_walkthrough=show_walkthrough
+            show_walkthrough=show_walkthrough  # 🧠 PASS TO TEMPLATE
         )
 
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
         db.rollback()
-        print("❌ SQLAlchemy Error:", e)
         flash("Could not load your menu. Try again soon.", "error")
         return redirect(url_for("login"))
     finally:
@@ -1107,8 +1143,8 @@ def settings():
         if request.method == "POST":
             form = request.form
 
-            # 🌀 Journey selection (multi-select)
-            journey_list = form.getlist("theme_choice")
+            # 🌀 Journey selection
+            journey = form.get("theme_choice")
             valid_journeys = [
                 "Major loss or grieving",
                 "Anxiety or fear",
@@ -1118,9 +1154,9 @@ def settings():
                 "Trauma or PTSD",
                 "Emotional growth"
             ]
-            selected = [j for j in journey_list if j in valid_journeys]
-            user.theme_choice = ",".join(selected)
-            session['journey'] = selected
+            if journey in valid_journeys:
+                user.theme_choice = journey
+                session['journey'] = journey
 
             # 📅 Start date
             date_str = form.get("journey_start_date")
@@ -1137,31 +1173,34 @@ def settings():
                 user.display_name = nickname
                 session['nickname'] = nickname
 
-            # 🕒 Time zone
+            # 🕒 Time zone selection
             tz = form.get("timezone")
             if tz:
                 user.timezone = tz
 
-            # 👁️ Visibility toggle moved to /profile
-            # user.show_journey_publicly = 'show_journey_publicly' in form
+            # 👁️ Visibility toggle (still available in user.profile)
+            user.show_journey_publicly = 'show_journey_publicly' in form
 
             db.commit()
             flash("Settings updated successfully.", "success")
             return redirect(url_for('settings'))
 
         # 🧠 Pull saved values for GET
-        journey_start_date = (
-            user.journey_start_date.strftime('%Y-%m-%d')
-            if isinstance(user.journey_start_date, datetime)
-            else ""
-        )
+        try:
+            journey_start_date = (
+                user.journey_start_date.strftime('%Y-%m-%d')
+                if isinstance(user.journey_start_date, datetime)
+                else ""
+            )
+        except Exception:
+            journey_start_date = ""
 
         return render_template(
             "settings.html",
-            theme_choice=(user.theme_choice.split(",") if user.theme_choice else []),
+            theme_choice=user.theme_choice,
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
-            timezone=user.timezone or "America/New_York",
+            timezone=user.timezone or "America/New_York",  # Defaults to EST if none set
             show_journey_publicly=user.show_journey_publicly,
             datetime=datetime
         )
@@ -1172,6 +1211,7 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
+
 
 @app.route("/profile/update-visibility", methods=["POST"])
 @login_required
@@ -1345,25 +1385,21 @@ def register():
 
     return render_template("register.html")
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email").strip().lower()
+        email = request.form.get("email")
         password = request.form.get("password")
-
         db = SessionLocal()
         try:
             user = db.query(User).filter_by(email=email).first()
 
             if user and check_password_hash(user.password_hash, password):
-                login_user(user, remember=True)  # ✅ Authenticates and manages session
-
-                # 🧠 Optional session additions — these are safe
+                session['user_id'] = user.id
                 session['journey'] = user.theme_choice or "Not Selected"
                 session['timezone'] = user.timezone or "America/New_York"
 
-                # 🧭 Onboarding logic
+                # ✅ Only redirect to onboarding if it hasn't been completed
                 if not user.has_completed_onboarding:
                     return redirect(url_for("onboarding"))
 
@@ -1806,9 +1842,11 @@ def reset_test_user():
     return redirect(url_for("onboarding"))
 
 from useronboarding import generate_and_store_bio
-from models import db, User, UserBio
-from flask import request, jsonify, redirect, url_for, session
-from flask_login import login_required, login_user
+from models import db, User
+
+from flask import redirect, url_for  # Make sure this is imported at the top
+
+from flask_login import login_user  # make sure this is imported at top
 
 @app.route("/submit-onboarding", methods=["POST"])
 @login_required
@@ -1823,44 +1861,17 @@ def submit_onboarding():
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        # 🔄 Handle multi-journey input correctly
-        journey_choices = data.get("journey", [])
-        user.theme_choice = ",".join(journey_choices) if isinstance(journey_choices, list) else journey_choices
-
-        # Store onboarding fields
+        # 🔄 Store onboarding answers into user model
+        user.theme_choice = data.get("journey", "")
         user.default_coping = data.get("q2", "")
-        hero_traits_raw = data.get("q3", [])
-        user.hero_traits = hero_traits_raw if isinstance(hero_traits_raw, list) else [hero_traits_raw]
+        user.hero_traits = data.get("q3", [])
         user.nickname = data.get("nickname", "")
         user.journey_start_date = data.get("journey_start_date")
         user.timezone = data.get("timezone", "UTC")
         user.has_completed_onboarding = True
 
-        # 🧠 Generate and save user bio in both User and UserBio
-        try:
-            traits = ", ".join(user.hero_traits)
-            themes = user.theme_choice
-            bio_text = (
-                f"{user.nickname or 'This person'} came to Resurgifi seeking support with "
-                f"{themes}. Their main coping tool has been '{user.default_coping}', and they "
-                f"value traits like {traits}. This is their beginning — not their end."
-            )
-
-            # Save to User model (used in chat, summaries, etc.)
-            user.bio = bio_text
-
-            # Save to UserBio table (for tracking / pro features)
-            existing_bio = db.session.query(UserBio).filter_by(user_id=user.id).first()
-            if existing_bio:
-                existing_bio.bio_text = bio_text
-            else:
-                new_bio = UserBio(user_id=user.id, bio_text=bio_text)
-                db.session.add(new_bio)
-
-            print(f"✅ Bio saved in both User and UserBio for user {user_id}")
-
-        except Exception as e:
-            print("❌ Error in bio generation:", e)
+        # 🧠 Generate and store user backstory bio
+        generate_and_store_bio(user_id, user.theme_choice, user.default_coping, user.hero_traits)
 
         db.session.commit()
 
@@ -1891,15 +1902,18 @@ def welcome_inner():
 def quest_entrypoint():
     db_session = SessionLocal()
     try:
-        user_entries = db_session.query(UserQuestEntry).filter_by(user_id=current_user.id).all()
+        user_id = session.get("user_id")
+        user_entries = db_session.query(UserQuestEntry).filter_by(user_id=user_id).all()
         completed_ids = {entry.quest_id for entry in user_entries}
 
+        # Look for first uncompleted quest (assumes 1–99 possible quests for now)
         for qid in range(1, 100):
             if os.path.exists(f"quests/quest_{qid:02}.yaml") and qid not in completed_ids:
                 return redirect(url_for("run_quest", quest_id=qid))
 
+        # If all quests are done, send them to their quest history (to replay)
         flash("You’ve completed all available quests. Replay or wait for new ones.", "info")
-        return redirect(url_for("quest_history"))
+        return redirect(url_for("quest_history"))  # This will be created in MISSION 3
 
     except Exception as e:
         db_session.rollback()
@@ -1914,23 +1928,21 @@ def quest_entrypoint():
 def run_quest(quest_id):
     db_session = SessionLocal()
     try:
-        print("⚙️ Starting /quest route...")
-        user = current_user
-        print(f"✅ DB user loaded: {user.email}")
-
+        user_id = session.get("user_id")
+        user = db_session.query(User).get(user_id)
         now = datetime.utcnow()
+
+        # 🔁 Load quest YAML
         quest = load_quest(quest_id)
         quest_prompt = quest.get("prompt", "")
-        print(f"📘 Quest loaded: {quest_id} | Prompt: {quest_prompt[:30]}...")
 
         if request.method == "POST":
             reflection = request.form.get("reflection", "").strip()
-            print(f"📝 Reflection submitted: {reflection}")
-
             if not reflection:
                 flash("Please share something so we can reflect with you.", "warning")
                 return redirect(url_for("run_quest", quest_id=quest_id))
 
+            # ✨ If short, show expansion options
             if len(reflection.split()) <= 3:
                 try:
                     system_prompt = (
@@ -1938,14 +1950,15 @@ def run_quest(quest_id):
                         f"'{quest_prompt}'\n\nThey replied with a single word or short phrase: '{reflection}'.\n"
                         "Offer 3 short sentence expansions they might mean — emotionally gentle and real."
                     )
+
                     completion = client.chat.completions.create(
                         model="gpt-4o",
                         messages=[{"role": "system", "content": system_prompt}],
                         temperature=0.7
                     )
+
                     raw_output = completion.choices[0].message.content.strip()
                     suggestions = [line.strip("-•123. ").strip() for line in raw_output.split("\n") if line.strip()]
-                    print(f"✨ Short reflection expansions: {suggestions}")
                     return render_template("quest_engine.html", quest=quest, quest_id=quest_id,
                                            suggestions=suggestions, short_reflection=reflection, user=user)
 
@@ -1954,16 +1967,16 @@ def run_quest(quest_id):
                     flash("We had trouble expanding your thought. Try adding a bit more detail.", "warning")
                     return redirect(url_for("run_quest", quest_id=quest_id))
 
+            # ⏳ Submission throttle
             four_hours_ago = now - timedelta(hours=4)
             recent_quests = db_session.query(UserQuestEntry)\
-                .filter_by(user_id=user.id)\
+                .filter_by(user_id=user_id)\
                 .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
-            print(f"📊 Recent quest count: {len(recent_quests)}")
-
             if len(recent_quests) >= 30:
                 flash("You’ve already completed 30 quests in the last 4 hours. Take a break and come back soon!", "info")
                 return redirect(url_for("circle"))
 
+            # 🧠 GPT Summary — Always used
             try:
                 system_prompt = (
                     "You are helping a user summarize their own journal entry. They were asked:\n\n"
@@ -1980,14 +1993,14 @@ def run_quest(quest_id):
                     temperature=0.7
                 )
                 summary_text = response.choices[0].message.content.strip()
-                print(f"✅ GPT summary: {summary_text}")
 
             except Exception as e:
                 print("⚠️ GPT summarization failed:", e)
-                summary_text = reflection
+                summary_text = reflection  # fallback to raw input
 
+            # 💾 Save quest result
             new_entry = UserQuestEntry(
-                user_id=user.id,
+                user_id=user_id,
                 quest_id=quest_id,
                 completed=True,
                 timestamp=now,
@@ -1995,29 +2008,31 @@ def run_quest(quest_id):
             )
             db_session.add(new_entry)
 
+            # 🏅 Award points
             user.points = (user.points or 0) + 5
             session["points_just_added"] = 5
 
+            # ✅ Mark first quest complete if not already done
             if not user.first_quest_complete:
                 user.first_quest_complete = True
 
+            # 🧠 Store for chat
+            hero_tag = quest["hero"]
             session["from_quest"] = {
                 "quest_id": quest_id,
                 "reflection": summary_text
             }
 
-            hero_tag = quest["hero"]
             db_session.commit()
-            print("💾 Quest entry saved + user updated")
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
 
-        print("📖 GET request — rendering quest form")
+        # 📖 Initial quest load
         return render_template("quest_engine.html", quest=quest, quest_id=quest_id, user=user)
 
     except Exception as e:
         db_session.rollback()
-        print(f"❌ Quest route error: {e}")
         flash("Quest processing failed. Please try again.", "error")
+        print(f"❌ Quest route error: {e}")
         return redirect(url_for("circle"))
     finally:
         db_session.close()
@@ -2224,25 +2239,6 @@ def dev_fill_onboarding():
     user.hero_traits = user.hero_traits or ["directness", "compassion", "consistency"]
     db.commit()
     return "🛠️ Onboarding data filled for testing!"
-
-@app.errorhandler(500)
-def internal_error(error):
-    print(f"🔥 500 Error: {error}")
-    return render_template("coming_soon.html", error_code=500), 500
-
-@app.errorhandler(401)
-def unauthorized_error(error):
-    print(f"⛔ 401 Unauthorized: {error}")
-    return render_template("coming_soon.html", error_code=401), 401
-
-@app.errorhandler(403)
-def forbidden_error(error):
-    print(f"🚫 403 Forbidden: {error}")
-    return render_template("coming_soon.html", error_code=403), 403
-@app.errorhandler(404)
-def not_found_error(error):
-    print(f"🧭 404 Not Found: {request.path}")
-    return render_template("coming_soon.html", error_code=404), 404
 
 # Optional but useful for local testing
 if __name__ == '__main__':

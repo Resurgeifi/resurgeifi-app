@@ -226,14 +226,15 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
     journal_summary = None
 
     try:
-        print(f"\n[🧠 BUILD_CONTEXT] user_id: {user_id}")
+        print(f"[🧠 BUILD_CONTEXT] user_id: {user_id}")
         print(f"[🧠 BUILD_CONTEXT] session_data: {session_data}")
         print(f"[🧠 BUILD_CONTEXT] agent_tag: {agent_tag}")
 
         if user_id:
             user = db.query(User).filter_by(id=user_id).first()
-            print(f"[👤 USER] Found: {bool(user)}")
+            print(f"[👤 USER] Found: {user is not None}")
 
+        # 🧵 Pull query history
         if user_id and agent_tag:
             thread = (
                 db.query(QueryHistory)
@@ -245,8 +246,6 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
             )
             history = list(reversed(thread))
             print(f"[📜 HISTORY] Entries found: {len(history)}")
-        else:
-            print("[📜 HISTORY] Skipped — missing user_id or agent_tag.")
 
         for entry in history:
             if entry.question:
@@ -258,24 +257,17 @@ def build_context(user_id=None, session_data=None, journal_data=None, onboarding
 
         # 🧭 Quest reflection injection
         quest_data = session.pop("from_quest", None)
-        if quest_data:
-            quest_reflection = quest_data.get("reflection")
-            if quest_reflection:
-                openai_thread.insert(0, {
-                    "role": "system",
-                    "content": f"The user has completed a quest reflection: '{quest_reflection}'"
-                })
-                formatted_thread = f'Grace: "The user just completed a quest reflection: \'{quest_reflection}\'"\n\n' + formatted_thread
-                print(f"[🧩 QUEST] Injected reflection: {quest_reflection}")
-            else:
-                print("[🧩 QUEST] Quest data found, but no reflection included.")
-        else:
-            print("[🧩 QUEST] No quest reflection data found.")
+        quest_reflection = quest_data.get("reflection") if quest_data else None
+        if quest_reflection:
+            openai_thread.insert(0, {
+                "role": "system",
+                "content": f"The user has completed a quest reflection: '{quest_reflection}'"
+            })
+            formatted_thread = f'Grace: "The user just completed a quest reflection: \'{quest_reflection}\'"\n\n' + formatted_thread
+            print(f"[🧩 QUEST] Injected reflection: {quest_reflection}")
 
         if user:
             nickname = user.nickname or "Friend"
-            print(f"[🧠 Nickname]: {nickname}")
-
             bio_obj = db.query(UserBio).filter_by(user_id=user.id).first()
             bio_text = bio_obj.bio_text if bio_obj else None
 
@@ -290,17 +282,9 @@ The user’s emotional profile includes:
 - When overwhelmed, they typically: {coping}.
 - In someone they trust, they look for: {traits}.
 """.strip()
-                print("[🧠 BIO] Built fallback bio.")
-            else:
-                print("[🧠 BIO] Pulled custom bio from UserBio.")
 
             journal_summary = pull_recent_journal_summary(user.id)
-            if journal_summary:
-                print(f"[📓 JOURNAL SUMMARY] {journal_summary}")
-            else:
-                print("[📓 JOURNAL SUMMARY] No recent journal summary found.")
-        else:
-            print("[👤 USER] Missing user record — skipping bio and journal summary.")
+            print(f"[📓 JOURNAL SUMMARY] {journal_summary}")
 
         emotional_profile = f"""
 {bio_text or "No bio available."}
@@ -311,7 +295,7 @@ Let this shape your tone. Do not reference this directly.
         print(f"[🧠 CONTEXT RETURN] nickname: {nickname}")
         print(f"[🧠 CONTEXT RETURN] emotional_profile: {bool(bio_text)}")
         print(f"[🧠 CONTEXT RETURN] thread length: {len(openai_thread)}")
-        print(f"[🧠 CONTEXT RETURN] journal_summary: {journal_summary or '[none]'}")
+        print(f"[🧠 CONTEXT RETURN] journal_summary: {journal_summary}")
 
         return {
             "formatted_thread": formatted_thread,
