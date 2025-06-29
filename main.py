@@ -1424,6 +1424,8 @@ def register():
 
     return render_template("register.html")
 
+from flask_login import login_user
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -1434,11 +1436,15 @@ def login():
             user = db.query(User).filter_by(email=email).first()
 
             if user and check_password_hash(user.password_hash, password):
+                # 🔐 Proper login for Flask-Login
+                login_user(user, remember=True, fresh=True)
+
+                # 🧠 Set your custom session data
                 session['user_id'] = user.id
                 session['journey'] = user.theme_choice or "Not Selected"
                 session['timezone'] = user.timezone or "America/New_York"
 
-                # ✅ Only redirect to onboarding if it hasn't been completed
+                # ✅ Redirect if onboarding not done
                 if not user.has_completed_onboarding:
                     return redirect(url_for("onboarding"))
 
@@ -1447,6 +1453,7 @@ def login():
 
             flash("Incorrect email or password.", "error")
             return render_template("login.html")
+
         except SQLAlchemyError as e:
             db.rollback()
             flash("Database error during login. Please try again.", "error")
