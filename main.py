@@ -74,12 +74,29 @@ import qrcode
 # ✅ Load environment variables
 load_dotenv()
 
+# ✅ App + Login + Mail + Migrate Init
+app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET", "resurgifi-secret")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///app.db")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['SESSION_COOKIE_SECURE'] = False
+
+db.init_app(app)
+mail = Mail(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+migrate = Migrate(app, db)
+CORS(app)
+
 @app.before_request
 def load_logged_in_user():
-    # ✅ Set g.user using Flask-Login
     g.user = current_user if current_user.is_authenticated else None
-
-    # ✅ Set timezone if user is logged in
     if g.user:
         user_tz = getattr(g.user, 'timezone', 'America/New_York')
         try:
@@ -87,16 +104,12 @@ def load_logged_in_user():
         except Exception:
             g.user_timezone = tz('America/New_York')
     else:
-        g.user_timezone = tz('America/New_York')  # fallback
-
-    # ✅ TEMP LOGGING (no crashing)
+        g.user_timezone = tz('America/New_York')
     print(f"🪪 User ID: {getattr(current_user, 'id', None)}")
     print(f"🍪 Session _user_id: {session.get('_user_id')}")
     print(f"📦 Raw session: {dict(session)}")
     print(f"🔁 Route hit: {request.path}")
     print(f"🧍 Authenticated? {current_user.is_authenticated}")
-
-    # ✅ Safe display tag — no more .username crash
     if current_user.is_authenticated:
         tag = current_user.resurgitag or current_user.display_name or current_user.nickname or "Unnamed"
         print(f"🆔 User ID: {current_user.id} | Tag: {tag}")
@@ -108,17 +121,13 @@ def text_to_speech():
     data = request.json or {}
     text = clean_text_for_voice(data.get("text", ""))
     hero = (data.get("hero") or "grace").strip().lower()
-
     if not text:
         return {"error": "No text provided."}, 400
-
-    voice_id = HERO_VOICE_IDS.get(hero, HERO_VOICE_IDS["grace"])  # fallback to Grace if missing
-
+    voice_id = HERO_VOICE_IDS.get(hero, HERO_VOICE_IDS["grace"])
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
         "Content-Type": "application/json"
     }
-
     payload = {
         "text": text,
         "model_id": "eleven_monolingual_v1",
@@ -127,21 +136,16 @@ def text_to_speech():
             "similarity_boost": 0.75
         }
     }
-
     response = requests.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream",
         headers=headers,
         json=payload,
         stream=True
     )
-
     if response.status_code != 200:
         return {"error": "TTS failed", "details": response.text}, 500
+    return Response(response.iter_content(chunk_size=4096), content_type="audio/mpeg")
 
-    return Response(response.iter_content(chunk_size=4096),
-                    content_type="audio/mpeg")
-
-# ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
 
 def login_required(f):
@@ -153,7 +157,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ✅ Admin access check
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -162,6 +165,7 @@ def admin_required(f):
             return redirect(url_for("index"))
         return f(*args, **kwargs)
     return decorated_function
+
 @app.context_processor
 def inject_unread_count():
     if "user_id" not in session:
@@ -178,34 +182,25 @@ def connect_user(user_id):
     try:
         current_user = db.query(User).get(session["user_id"])
         other_user = db.query(User).get(user_id)
-
         if not other_user:
             flash("User not found.", "danger")
             return redirect(url_for("circle"))
-
         if current_user.id == other_user.id:
             flash("You can't follow yourself.", "warning")
             return redirect(url_for("circle"))
-
         added = False
-
-        # Ensure mutual friendship
         if other_user not in current_user.friends:
             current_user.friends.append(other_user)
             added = True
-
         if current_user not in other_user.friends:
             other_user.friends.append(current_user)
             added = True
-
         if added:
             db.commit()
             flash(f"🎉 You’re now connected with @{other_user.resurgitag}.", "success")
         else:
             flash("You're already connected with this user.", "info")
-
         return redirect(url_for("view_public_profile", resurgitag=other_user.resurgitag))
-
     finally:
         db.close()
 
@@ -221,6 +216,7 @@ def view_user(user_id):
         return render_template("admin_view_user.html", user=user)
     finally:
         db.close()
+
 @app.route("/admin/users", methods=["GET"])
 @admin_required
 def admin_users():
