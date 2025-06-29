@@ -10,16 +10,19 @@
     <div class="card-dark" style="padding: 2rem;">
 
       <!-- 🌀 Journey Selection (Multi) -->
-      <label for="journey_choices" style="font-size: 1.2rem; display: block; margin-bottom: 1rem;"><strong>Your Journey</strong></label>
-      <select name="journey_choices" id="journey_choices" class="global-button" multiple size="7" style="width: 100%; padding: 0.6rem; font-size: 1rem; border-radius: 8px;">
-        <option value="Major loss or grieving" {% if "Major loss or grieving" in journey_choices %}selected{% endif %}>💔 Grief</option>
-        <option value="Anxiety or fear" {% if "Anxiety or fear" in journey_choices %}selected{% endif %}>🌪️ Anxiety</option>
-        <option value="Addiction" {% if "Addiction" in journey_choices %}selected{% endif %}>💊 Addiction</option>
-        <option value="Depression or emptiness" {% if "Depression or emptiness" in journey_choices %}selected{% endif %}>🌫️ Depression</option>
-        <option value="Low self-worth" {% if "Low self-worth" in journey_choices %}selected{% endif %}>🪞 Self-Worth</option>
-        <option value="Trauma or PTSD" {% if "Trauma or PTSD" in journey_choices %}selected{% endif %}>🔥 Trauma</option>
-        <option value="Emotional growth" {% if "Emotional growth" in journey_choices %}selected{% endif %}>🌱 Emotional Growth</option>
-      </select>
+<label for="theme_choice" style="font-size: 1.2rem; display: block; margin-bottom: 1rem;">
+  <strong>Your Journey</strong>
+</label>
+<select name="theme_choice" id="theme_choice" class="global-button" multiple size="7" style="width: 100%; padding: 0.6rem; font-size: 1rem; border-radius: 8px;">
+  <option value="Major loss or grieving" {% if "Major loss or grieving" in theme_choice %}selected{% endif %}>💔 Grief</option>
+  <option value="Anxiety or fear" {% if "Anxiety or fear" in theme_choice %}selected{% endif %}>🌪️ Anxiety</option>
+  <option value="Addiction" {% if "Addiction" in theme_choice %}selected{% endif %}>💊 Addiction</option>
+  <option value="Depression or emptiness" {% if "Depression or emptiness" in theme_choice %}selected{% endif %}>🌫️ Depression</option>
+  <option value="Low self-worth" {% if "Low self-worth" in theme_choice %}selected{% endif %}>🪞 Self-Worth</option>
+  <option value="Trauma or PTSD" {% if "Trauma or PTSD" in theme_choice %}selected{% endif %}>🔥 Trauma</option>
+  <option value="Emotional growth" {% if "Emotional growth" in theme_choice %}selected{% endif %}>🌱 Emotional Growth</option>
+</select>
+
 
       <!-- 📅 Start Date -->
       <label for="journey_start_date" style="font-size: 1.2rem; display: block; margin-top: 2rem;"><strong>🌄 When did your journey begin?</strong></label>
@@ -71,3 +74,5 @@
   </form>
 </div>
 {% endblock %}
+
+

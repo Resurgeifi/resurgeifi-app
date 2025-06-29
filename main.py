@@ -1143,8 +1143,8 @@ def settings():
         if request.method == "POST":
             form = request.form
 
-            # 🌀 Journey selection (Multi)
-            journey_choices = request.form.getlist("journey_choices")
+            # 🌀 Journey selection
+            journey = form.get("theme_choice")
             valid_journeys = [
                 "Major loss or grieving",
                 "Anxiety or fear",
@@ -1154,9 +1154,9 @@ def settings():
                 "Trauma or PTSD",
                 "Emotional growth"
             ]
-            # Ensure that the selected journeys are valid before saving
-            user.journey_choices = [journey for journey in journey_choices if journey in valid_journeys]
-            session['journey_choices'] = user.journey_choices
+            if journey in valid_journeys:
+                user.theme_choice = journey
+                session['journey'] = journey
 
             # 📅 Start date
             date_str = form.get("journey_start_date")
@@ -1186,19 +1186,15 @@ def settings():
             return redirect(url_for('settings'))
 
         # 🧠 Pull saved values for GET
-        try:
-            journey_choices = user.journey_choices or []
-            journey_start_date = (
-                user.journey_start_date.strftime('%Y-%m-%d')
-                if isinstance(user.journey_start_date, datetime)
-                else ""
-            )
-        except Exception:
-            journey_start_date = ""
+        journey_start_date = (
+            user.journey_start_date.strftime('%Y-%m-%d')
+            if isinstance(user.journey_start_date, datetime)
+            else ""
+        )
 
         return render_template(
             "settings.html",
-            journey_choices=journey_choices,
+            theme_choice=user.theme_choice,
             journey_start_date=journey_start_date,
             nickname=user.nickname or "",
             timezone=user.timezone or "America/New_York",  # Defaults to EST if none set
@@ -1212,7 +1208,6 @@ def settings():
         return redirect(url_for("menu"))
     finally:
         db.close()
-
 
 @app.route("/profile/update-visibility", methods=["POST"])
 @login_required
