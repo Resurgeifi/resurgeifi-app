@@ -7,7 +7,7 @@
      alt="State of Inner Title" 
      class="circle-title-img" />
 
-{% if g.user and (g.user.first_quest_complete is none or not g.user.first_quest_complete) %}
+{% if show_walkthrough %}
 <div id="walkthrough" class="walkthrough-overlay" style="animation: fadeout 6.5s ease-out forwards;">
   <div class="walkthrough-box" style="opacity: 1; animation: fadeText 5s ease-out forwards;">
     <h2 style="font-weight: 500;">“You made it here. That means something.”</h2>
@@ -16,8 +16,6 @@
   </div>
 </div>
 {% endif %}
-
-
 
 <!-- 🌄 Main Content -->
 <div id="main-body-content" style="display: none;">

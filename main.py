@@ -1088,12 +1088,16 @@ def landing():
 @login_required
 def menu():
     db = SessionLocal()
+    from flask import g
     try:
         user = db.query(User).filter_by(id=session['user_id']).first()
 
         if not user:
             flash("User not found.")
             return redirect(url_for('login'))
+
+        # Attach user to g for template use
+        g.user = user
 
         # 📈 Days on Journey
         days_on_journey = 0
@@ -1122,8 +1126,15 @@ def menu():
             .first()
         )
 
+        # 🧠 Walkthrough logic safety
+        first_time = False
+        try:
+            first_time = not bool(user.first_quest_complete)
+        except Exception as e:
+            print("⚠️ first_quest_complete check failed:", e)
+
         # 🎯 Trigger walkthrough overlay if this is first visit after onboarding
-        show_walkthrough = session.pop("first_time_user", False)
+        show_walkthrough = session.pop("first_time_user", False) or first_time
 
         return render_template(
             "menu.html",
@@ -1133,11 +1144,12 @@ def menu():
             last_journal=last_journal,
             last_hero_msg_text=last_hero_msg.question if last_hero_msg else None,
             streak=session.get('streak', 0),
-            show_walkthrough=show_walkthrough  # 🧠 PASS TO TEMPLATE
+            show_walkthrough=show_walkthrough
         )
 
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
         db.rollback()
+        print("❌ SQLAlchemy Error:", e)
         flash("Could not load your menu. Try again soon.", "error")
         return redirect(url_for("login"))
     finally:
