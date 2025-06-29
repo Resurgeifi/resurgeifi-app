@@ -61,7 +61,7 @@ from models import (
     QueryHistory, HeroProfile, VillainProfile,
     CircleMessage, DailyReflection, UserQuestEntry, DirectMessage
 )
-from database import SessionLocal
+from db import SessionLocal
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import and_, func
