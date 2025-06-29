@@ -3,26 +3,6 @@
 
 {% block content %}
 <style>
-.grace-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background-color: rgba(0,0,0,0.88);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-.grace-text-box {
-  background: #fff9e6;
-  color: #0d1f1a;
-  padding: 2rem;
-  border-radius: 20px;
-  font-size: 1.2rem;
-  text-align: center;
-  max-width: 600px;
-  box-shadow: 0 0 30px rgba(255,255,255,0.2);
-}
 #introVideoFlash {
   position: fixed;
   top: 0; left: 0;
@@ -39,18 +19,9 @@
 }
 </style>
 
-{% if not g.user.first_quest_complete %}
-<div id="graceIntroOverlay" class="grace-overlay">
-  <div class="grace-text-box">
-    <p id="graceLine"></p>
-    <button id="graceNextBtn" class="global-button">Next</button>
-  </div>
-</div>
-{% endif %}
-
 {% if quest.video_intro %}
 <div id="introVideoFlash">
-  <video autoplay playsinline onended="document.getElementById('introVideoFlash').remove()">
+  <video autoplay playsinline id="introVideo" onended="handleVideoEnd()">
     <source src="{{ url_for('static', filename=quest.video_intro) }}" type="video/mp4">
     Your browser does not support the video tag.
   </video>
@@ -165,44 +136,51 @@
 
 {% block scripts %}
 <script>
-const userFirstName = "{{ user.first_name or 'friend' }}";
-const coreTrigger = "{{ user.core_trigger.lower() if user.core_trigger else '' }}";
-const lines = [
-  `Hey ${userFirstName} — I’m Grace.`,
-  coreTrigger
-    ? `Facing ${coreTrigger} takes real courage.`
-    : "This first quest matters more than you think.",
-  "You don’t have to impress anyone here. Just tell the truth.",
-  "Take your time. I’ll be right here.",
-  "Ready to begin?"
-];
+let currentAudio = null;
+let whisperShown = false;
 
-window.addEventListener("DOMContentLoaded", () => {
-  let index = 0;
-  const lineEl = document.getElementById("graceLine");
-  const nextBtn = document.getElementById("graceNextBtn");
-  const overlay = document.getElementById("graceIntroOverlay");
-
-  if (lineEl && nextBtn) {
-    lineEl.style.color = "#0d1f1a";
-    lineEl.style.textShadow = "none";
-    lineEl.style.marginBottom = "2rem";
-    lineEl.textContent = lines[0];
-
-    nextBtn.addEventListener("click", () => {
-      index++;
-      if (index < lines.length) {
-        lineEl.textContent = lines[index];
-      } else {
-        overlay.style.transition = "opacity 0.8s ease";
-        overlay.style.opacity = 0;
-        setTimeout(() => overlay.remove(), 800);
-      }
-    });
+function stopCurrentAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
   }
+}
+
+async function playQuestVoice(text) {
+  try {
+    const hero = "{{ quest.hero|replace('\"','')|lower }}";
+    const response = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text, hero: hero })
+    });
+    if (!response.ok) return;
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    stopCurrentAudio();
+    const audio = new Audio(audioUrl);
+    currentAudio = audio;
+    audio.play().catch(err => console.warn("Playback error:", err));
+  } catch (err) {
+    console.error("TTS request failed:", err);
+  }
+}
+
+function handleVideoEnd() {
+  const el = document.getElementById("introVideoFlash");
+  if (el) el.remove();
 
   const introText = document.querySelector(".quest-quote")?.innerText;
   if (introText) playQuestVoice(introText);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  if (!document.getElementById("introVideo")) {
+    const introText = document.querySelector(".quest-quote")?.innerText;
+    if (introText) playQuestVoice(introText);
+  }
 
   const textarea = document.getElementById("reflectionBox");
   if (!textarea) return;
@@ -246,37 +224,6 @@ window.addEventListener("DOMContentLoaded", () => {
     whisperShown = true;
   });
 });
-
-let currentAudio = null;
-let whisperShown = false;
-
-function stopCurrentAudio() {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
-  }
-}
-
-async function playQuestVoice(text) {
-  try {
-    const response = await fetch("/api/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text, hero: "{{ quest.hero|lower }}" })
-    });
-    if (!response.ok) return;
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    stopCurrentAudio();
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-    audio.play().catch(err => console.warn("Playback error:", err));
-  } catch (err) {
-    console.error("TTS request failed:", err);
-  }
-}
 
 function endFlash() {
   const flashAudio = document.getElementById("flashAudio");

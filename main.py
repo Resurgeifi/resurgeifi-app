@@ -124,7 +124,7 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 HERO_VOICE_IDS = {
     "grace": "hIeqtoW1V7vxkxl7mya3",         # ✅ Grace
     "cognita": "xNtG3W2oqJs0cJZuTyBc",       # ✅ Cognita (confirmed)
-    "sir_renity": "QcFrn8uykf2t8jKiahBU",     # ✅ Sir Renity (your voice clone)
+    "sir renity": "QcFrn8uykf2t8jKiahBU",     # ✅ Sir Renity (your voice clone)
     "lucentis": "87tjwokZlpNU7QL3HaLP",       # ⛔ Lucentis Reverand
     "velessa": "pjcYQlDFKMbcOUp6F5GD",        # ⛔ Placeholder – update soon
     # ❌ "subox_slumber": Removed — no voice narration for medication-based hero
