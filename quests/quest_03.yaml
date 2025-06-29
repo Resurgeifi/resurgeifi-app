@@ -1,7 +1,7 @@
 quest_id: 3
-title: "Stillness Among Storms"
-hero: "Velessa"
-villain: "Anxia"
-intro_text: "Welcome to the quieter edge of the State of Inner. I’m Velessa. Anxia’s storm moves fast here — chaos, dread, spirals. But we will not run from her. We will slow… and see what she’s hiding."
+title: Stillness Among Storms
+hero: Velessa
+villain: Anxia
+intro_text: Welcome to the quieter edge of the State of Inner. I’m Velessa. Anxia’s storm moves fast here — chaos, dread, spirals. But we will not run from her. We will slow… and see what she’s hiding.
 video_intro: null
-prompt: "What emotion have you been avoiding lately? Try to describe it gently, without rushing past it." 
+prompt: What emotion have you been avoiding lately? Try to describe it gently, without rushing past it.

@@ -1,7 +1,7 @@
 quest_id: 10
-title: "The Spiral Host"
-hero: "Grace"
-villain: "Anxia"
-intro_text: "This is Grace. I’ve walked these storms. Today you’re within the Spiral — Anxia’s realm. In the State of Inner, emotions form storms, but you are not the storm. You are still here. Even now… you are loved."
+title: The Spiral Host
+hero: Grace
+villain: Anxia
+intro_text: This is Grace. I’ve walked these storms. Today you’re within the Spiral — Anxia’s realm. In the State of Inner, emotions form storms, but you are not the storm. You are still here. Even now… you are loved.
 video_intro: null
-prompt: "When did the spiral last hit you? Describe what it felt like. You’re not alone in that memory."
+prompt: When did the spiral last hit you? Describe what it felt like. You’re not alone in that memory.

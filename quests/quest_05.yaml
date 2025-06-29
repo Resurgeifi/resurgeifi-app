@@ -1,7 +1,7 @@
 quest_id: 5
-title: "Clarity in the Fog"
-hero: "Lucentis"
-villain: "The Murk"
-intro_text: "You’ve reached the misted paths of the State of Inner. I am Lucentis. The Murk clouds these trails with fear of what’s next. But fear is only fog. And fog can lift when seen clearly."
+title: Clarity in the Fog
+hero: Lucentis
+villain: The Murk
+intro_text: You have reached the misted paths of the State of Inner. I am Lucentis. The Murk clouds these trails with fear of what’s next. But fear is only fog. And fog can lift when seen clearly.
 video_intro: null
-prompt: "What fear about the future keeps showing up in your recovery? What’s the story it tells you?" 
+prompt: What fear about the future keeps showing up in your recovery? What is the story it tells you?

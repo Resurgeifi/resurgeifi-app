@@ -2239,6 +2239,27 @@ def dev_fill_onboarding():
     user.hero_traits = user.hero_traits or ["directness", "compassion", "consistency"]
     db.commit()
     return "🛠️ Onboarding data filled for testing!"
+from flask import render_template, request
+
+@app.errorhandler(500)
+def internal_error(error):
+    print(f"🔥 500 Error: {error}")
+    return render_template("coming_soon.html", error_code=500), 500
+
+@app.errorhandler(401)
+def unauthorized_error(error):
+    print(f"⛔ 401 Unauthorized: {error}")
+    return render_template("coming_soon.html", error_code=401), 401
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    print(f"🚫 403 Forbidden: {error}")
+    return render_template("coming_soon.html", error_code=403), 403
+
+@app.errorhandler(404)
+def not_found_error(error):
+    print(f"🧭 404 Not Found: {request.path}")
+    return render_template("coming_soon.html", error_code=404), 404
 
 # Optional but useful for local testing
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 quest_id: 8
-title: "The Mirror That Lies"
-hero: "Sir Renity"
-villain: "The Undermind"
-intro_text: "I am Sir Renity. A calm presence in this charged terrain. Here in the dim halls of Reflection, The Undermind hides behind cracked mirrors, feeding you false truths. Let’s speak the truth louder."
+title: The Mirror That Lies
+hero: Sir Renity
+villain: The Undermind
+intro_text: I am Sir Renity. A calm presence in this charged terrain. Here in the dim halls of Reflection, The Undermind hides behind cracked mirrors, feeding you false truths. Let’s speak the truth louder.
 video_intro: null
-prompt: "What’s a lie you’ve believed about yourself lately? Counter it with even a sliver of truth."
+prompt: What’s a lie you’ve believed about yourself lately? Counter it with even a sliver of truth.

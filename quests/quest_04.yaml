@@ -1,7 +1,7 @@
 quest_id: 4
-title: "The Anchored Flame"
-hero: "Sir Renity"
-villain: "Charnobyl"
-intro_text: "This part of the State of Inner holds heat — rage, betrayal, pressure. I’m Sir Renity. Today, we face Charnobyl, not to destroy him, but to keep him from destroying you. Your anger deserves a place. Let’s hold it safely."
+title: The Anchored Flame
+hero: Sir Renity
+villain: Charnobyl
+intro_text: This part of the State of Inner holds heat — rage, betrayal, pressure. I’m Sir Renity. Today, we face Charnobyl, not to destroy him, but to keep him from destroying you. Your anger deserves a place. Let’s hold it safely.
 video_intro: null
-prompt: "What has made you angry that you haven’t said out loud? Speak it here without apology." 
+prompt: What has made you angry that you haven’t said out loud? Speak it here without apology.
