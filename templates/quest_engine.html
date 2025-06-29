@@ -148,25 +148,10 @@ function stopCurrentAudio() {
 }
 
 async function playQuestVoice(text) {
-  try {
-    const hero = "{{ quest.hero|replace('\"','')|lower }}";
-    const response = await fetch("/api/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text, hero: hero })
-    });
-    if (!response.ok) return;
-
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    stopCurrentAudio();
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-    audio.play().catch(err => console.warn("Playback error:", err));
-  } catch (err) {
-    console.error("TTS request failed:", err);
-  }
+  // 🔇 Narration paused to conserve ElevenLabs tokens
+  console.log("Narration paused. Would have spoken:", text);
 }
+
 
 function handleVideoEnd() {
   const el = document.getElementById("introVideoFlash");
