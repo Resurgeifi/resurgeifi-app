@@ -2,165 +2,106 @@
 import os
 import random
 import re
-from datetime import datetime, timedelta
-from datetime import time
-
+import io
+import base64
 from uuid import uuid4
-from utils.quest_loader import load_quest
-from utils.timezone_utils import get_user_local_bounds
+from datetime import datetime, timedelta, time
 
-# 🌐 Timezone Handling
+# 🔧 Core Flask Setup
+from flask import (
+    Flask, abort, render_template, request, redirect,
+    url_for, session, flash, jsonify, g, Response
+)
+from flask_cors import CORS
+from flask_mail import Mail, Message
+from flask_login import (
+    LoginManager, login_user, logout_user,
+    login_required, current_user
+)
+from flask_migrate import Migrate
+
+# 🔐 Auth & Security
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# 🌐 Timezones
 import pytz
-from pytz import timezone as tz, all_timezones
-from pytz import utc
+from pytz import timezone as tz, all_timezones, utc
 
+# 🔧 Utility Functions
 def localize_time(utc_time, user_timezone):
     if not user_timezone:
         user_timezone = "America/New_York"
     return utc_time.replace(tzinfo=utc).astimezone(tz(user_timezone))
 
 def generate_resurgitag(base_name):
-    """Generate a Resurgifi handle like @Jonas_23"""
     base = ''.join(c for c in base_name if c.isalnum())[:10].capitalize()
     suffix = ''.join(random.choices("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", k=2))
     return f"@{base}_{suffix}"
 
 def clean_text_for_voice(raw_text, speaker_name=None):
-    """Clean up text to improve voice performance."""
-    text = raw_text.replace("...", "…")  # replace with ellipsis character
-    text = re.sub(r'\.(\w)', r'. \1', text)  # ensure pause after periods
-
+    text = raw_text.replace("...", "…")
+    text = re.sub(r'\.(\w)', r'. \1', text)
     if speaker_name and speaker_name.lower() == "grace":
-        text = text.replace("dot", ".")  # special rule for Grace if needed
-
+        text = text.replace("dot", ".")
     return text.strip()
 
-# 🔒 Auth + Security
-from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
-from user_utils import is_blocked  # ✅ correct if file is at root
-
-# 🌍 Flask Core
-from flask import Flask, abort, render_template, request, redirect, url_for, session, flash, jsonify, g, Response
-from flask_mail import Mail, Message
-from flask_cors import CORS
-
-# 🧪 Environment Config
+# 📦 Internal Imports
 from dotenv import load_dotenv
-
-# 🤖 AI Integration
-from openai import OpenAI
-import requests  # ✅ For ElevenLabs streaming
-
-# 🧩 Resurgifi Internal
-from models import (
-    db,
-    User,
-    UserBio,
-    UserConnection,
-    JournalEntry,
-    QueryHistory,
-    HeroProfile,
-    VillainProfile,
-    CircleMessage,
-    DailyReflection,
-    UserQuestEntry,
-    DirectMessage
-)
-from useronboarding import generate_and_store_bio  
-from flask_migrate import Migrate
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
+from utils.quest_loader import load_quest
+from utils.timezone_utils import get_user_local_bounds
+from user_utils import is_blocked
+from useronboarding import generate_and_store_bio
 from rams import get_hero_for_quest, HERO_NAMES, build_context, select_heroes, build_prompt, call_openai
 from markupsafe import Markup
-import qrcode
-import io
-import base64
+
+# 🧩 Models & DB
+from models import (
+    db, User, UserBio, UserConnection, JournalEntry,
+    QueryHistory, HeroProfile, VillainProfile,
+    CircleMessage, DailyReflection, UserQuestEntry, DirectMessage
+)
+from database import SessionLocal
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import and_, func
-from flask_login import LoginManager, login_required, current_user
+
+# 🤖 AI & Voice
+from openai import OpenAI
+import requests  # For ElevenLabs
+import qrcode
 
 # ✅ Load environment variables
 load_dotenv()
 
-# ✅ Initialize Flask App
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "resurgifi-dev-key")
-
-# ✅ Set up Flask-Login
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-@login_manager.user_loader
-def load_user(user_id):
-    print(f"🔁 Flask-Login is trying to load user_id {user_id}")
-    return db.session.get(User, int(user_id))
-
-# ✅ CORS for cross-origin POSTs
-CORS(app, supports_credentials=True, resources={
-    r"/contact": {
-        "origins": ["https://resurgelabs.com"],
-        "methods": ["POST", "OPTIONS"]
-    }
-})
 @app.before_request
 def load_logged_in_user():
+    # ✅ Set g.user using Flask-Login
     g.user = current_user if current_user.is_authenticated else None
 
+    # ✅ Set timezone if user is logged in
     if g.user:
-        # Optional timezone logic — only if your app uses this
         user_tz = getattr(g.user, 'timezone', 'America/New_York')
         try:
             g.user_timezone = tz(user_tz)
         except Exception:
             g.user_timezone = tz('America/New_York')
-    print(f"🪪 User ID: {getattr(current_user, 'id', None)}")
-    print(f"🍪 Session: {session.get('_user_id')}")
-    print(f"📦 Raw session: {dict(session)}")
+    else:
+        g.user_timezone = tz('America/New_York')  # fallback
 
-    # 🐛 TEMP DEBUGGING
+    # ✅ TEMP LOGGING (no crashing)
+    print(f"🪪 User ID: {getattr(current_user, 'id', None)}")
+    print(f"🍪 Session _user_id: {session.get('_user_id')}")
+    print(f"📦 Raw session: {dict(session)}")
     print(f"🔁 Route hit: {request.path}")
     print(f"🧍 Authenticated? {current_user.is_authenticated}")
+
+    # ✅ Safe display tag — no more .username crash
     if current_user.is_authenticated:
-        print(f"🆔 User ID: {current_user.id} | Tag: {current_user.username}")
+        tag = current_user.resurgitag or current_user.display_name or current_user.nickname or "Unnamed"
+        print(f"🆔 User ID: {current_user.id} | Tag: {tag}")
     else:
         print("🚫 No user logged in.")
-
-# ✅ Email Config
-app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
-app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT"))
-app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS") == "True"
-app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_DEFAULT_SENDER")
-mail = Mail(app)
-
-# ✅ Database Config
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db.init_app(app)
-migrate = Migrate(app, db)
-
-# ✅ SessionLocal for manual queries (inside app context)
-with app.app_context():
-    engine = db.get_engine()
-    SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
-
-# ✅ OpenAI Setup
-api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key)
-
-# ✅ ElevenLabs Setup
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-
-HERO_VOICE_IDS = {
-    "grace": "hIeqtoW1V7vxkxl7mya3",         # ✅ Grace
-    "cognita": "xNtG3W2oqJs0cJZuTyBc",       # ✅ Cognita (confirmed)
-    "sir_renity": "QcFrn8uykf2t8jKiahBU",     # ✅ Sir Renity (your voice clone)
-    "lucentis": "87tjwokZlpNU7QL3HaLP",       # ⛔ Lucentis Reverand
-    "velessa": "pjcYQlDFKMbcOUp6F5GD",        # ⛔ Placeholder – update soon
-    # ❌ "subox_slumber": Removed — no voice narration for medication-based hero
-}
-
 
 @app.route("/api/tts", methods=["POST"])
 def text_to_speech():
@@ -202,19 +143,6 @@ def text_to_speech():
 
 # ✅ Admin password fallback
 admin_password = os.getenv("ADMIN_PASSWORD", "resurgifi123")
-
-@app.before_request
-def load_logged_in_user():
-    user_id = session.get("user_id")
-    if user_id is None:
-        g.user = None
-    else:
-        db_session = SessionLocal()
-        try:
-            g.user = db_session.query(User).filter_by(id=user_id).first()
-           
-        finally:
-            db_session.close()
 
 def login_required(f):
     @wraps(f)
@@ -691,9 +619,6 @@ Use **third-person**, warm, neutral tone. Refer to them as *“the client.”* A
 
 from flask import make_response
 from weasyprint import HTML
-import qrcode
-import io
-import base64
 
 @app.route("/download_pdf", methods=["POST"])
 @login_required
@@ -1424,28 +1349,25 @@ def register():
 
     return render_template("register.html")
 
-from flask_login import login_user, current_user
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")
+        email = request.form.get("email").strip().lower()
         password = request.form.get("password")
-        db = SessionLocal()
 
+        db = SessionLocal()
         try:
             user = db.query(User).filter_by(email=email).first()
 
             if user and check_password_hash(user.password_hash, password):
-                login_user(user, remember=True, fresh=True)  # ✅ This is key
+                login_user(user, remember=True)  # ✅ Authenticates and manages session
 
+                # 🧠 Optional session additions — these are safe
                 session['journey'] = user.theme_choice or "Not Selected"
                 session['timezone'] = user.timezone or "America/New_York"
 
-                print("✅ Logged in user:", current_user.id)
-                print("🧠 Authenticated:", current_user.is_authenticated)
-
-                # ✅ Onboarding check
+                # 🧭 Onboarding logic
                 if not user.has_completed_onboarding:
                     return redirect(url_for("onboarding"))
 
@@ -1454,12 +1376,10 @@ def login():
 
             flash("Incorrect email or password.", "error")
             return render_template("login.html")
-
         except SQLAlchemyError as e:
             db.rollback()
             flash("Database error during login. Please try again.", "error")
             return render_template("login.html")
-
         finally:
             db.close()
 
@@ -1975,18 +1895,15 @@ def welcome_inner():
 def quest_entrypoint():
     db_session = SessionLocal()
     try:
-        user_id = session.get("user_id")
-        user_entries = db_session.query(UserQuestEntry).filter_by(user_id=user_id).all()
+        user_entries = db_session.query(UserQuestEntry).filter_by(user_id=current_user.id).all()
         completed_ids = {entry.quest_id for entry in user_entries}
 
-        # Look for first uncompleted quest (assumes 1–99 possible quests for now)
         for qid in range(1, 100):
             if os.path.exists(f"quests/quest_{qid:02}.yaml") and qid not in completed_ids:
                 return redirect(url_for("run_quest", quest_id=qid))
 
-        # If all quests are done, send them to their quest history (to replay)
         flash("You’ve completed all available quests. Replay or wait for new ones.", "info")
-        return redirect(url_for("quest_history"))  # This will be created in MISSION 3
+        return redirect(url_for("quest_history"))
 
     except Exception as e:
         db_session.rollback()
@@ -2002,23 +1919,10 @@ def run_quest(quest_id):
     db_session = SessionLocal()
     try:
         print("⚙️ Starting /quest route...")
-        user_id = session.get("user_id")
-        if not user_id:
-            print("❌ session['user_id'] not found.")
-            flash("Session expired. Please log in again.", "error")
-            return redirect(url_for("login"))
+        user = current_user
+        print(f"✅ DB user loaded: {user.email}")
 
-        print(f"✅ SESSION user_id = {user_id}")
-        user = db_session.query(User).get(user_id)
-
-        if not user:
-            print(f"❌ No user found for ID: {user_id}")
-            flash("User not found. Try logging in again.", "error")
-            return redirect(url_for("circle"))
-
-        print(f"✅ DB user loaded: {user.email if user else 'None'}")
         now = datetime.utcnow()
-
         quest = load_quest(quest_id)
         quest_prompt = quest.get("prompt", "")
         print(f"📘 Quest loaded: {quest_id} | Prompt: {quest_prompt[:30]}...")
@@ -2038,13 +1942,11 @@ def run_quest(quest_id):
                         f"'{quest_prompt}'\n\nThey replied with a single word or short phrase: '{reflection}'.\n"
                         "Offer 3 short sentence expansions they might mean — emotionally gentle and real."
                     )
-
                     completion = client.chat.completions.create(
                         model="gpt-4o",
                         messages=[{"role": "system", "content": system_prompt}],
                         temperature=0.7
                     )
-
                     raw_output = completion.choices[0].message.content.strip()
                     suggestions = [line.strip("-•123. ").strip() for line in raw_output.split("\n") if line.strip()]
                     print(f"✨ Short reflection expansions: {suggestions}")
@@ -2058,7 +1960,7 @@ def run_quest(quest_id):
 
             four_hours_ago = now - timedelta(hours=4)
             recent_quests = db_session.query(UserQuestEntry)\
-                .filter_by(user_id=user_id)\
+                .filter_by(user_id=user.id)\
                 .filter(UserQuestEntry.timestamp >= four_hours_ago).all()
             print(f"📊 Recent quest count: {len(recent_quests)}")
 
@@ -2089,7 +1991,7 @@ def run_quest(quest_id):
                 summary_text = reflection
 
             new_entry = UserQuestEntry(
-                user_id=user_id,
+                user_id=user.id,
                 quest_id=quest_id,
                 completed=True,
                 timestamp=now,
@@ -2103,12 +2005,12 @@ def run_quest(quest_id):
             if not user.first_quest_complete:
                 user.first_quest_complete = True
 
-            hero_tag = quest["hero"]
             session["from_quest"] = {
                 "quest_id": quest_id,
                 "reflection": summary_text
             }
 
+            hero_tag = quest["hero"]
             db_session.commit()
             print("💾 Quest entry saved + user updated")
             return redirect(url_for("show_hero_chat", resurgitag=hero_tag.lower()))
@@ -2123,7 +2025,6 @@ def run_quest(quest_id):
         return redirect(url_for("circle"))
     finally:
         db_session.close()
-
 
 @app.route("/change-tag", methods=["GET", "POST"])
 @login_required
@@ -2327,6 +2228,25 @@ def dev_fill_onboarding():
     user.hero_traits = user.hero_traits or ["directness", "compassion", "consistency"]
     db.commit()
     return "🛠️ Onboarding data filled for testing!"
+
+@app.errorhandler(500)
+def internal_error(error):
+    print(f"🔥 500 Error: {error}")
+    return render_template("coming_soon.html", error_code=500), 500
+
+@app.errorhandler(401)
+def unauthorized_error(error):
+    print(f"⛔ 401 Unauthorized: {error}")
+    return render_template("coming_soon.html", error_code=401), 401
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    print(f"🚫 403 Forbidden: {error}")
+    return render_template("coming_soon.html", error_code=403), 403
+@app.errorhandler(404)
+def not_found_error(error):
+    print(f"🧭 404 Not Found: {request.path}")
+    return render_template("coming_soon.html", error_code=404), 404
 
 # Optional but useful for local testing
 if __name__ == '__main__':
